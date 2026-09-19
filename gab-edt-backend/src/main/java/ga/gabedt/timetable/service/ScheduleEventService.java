@@ -43,6 +43,7 @@ public class ScheduleEventService {
     private final RoomRepository roomRepository;
     private final OrganizationalUnitRepository orgUnitRepository;
     private final InstitutionRepository institutionRepository;
+    private final ga.gabedt.notification.NotificationService notificationService;
 
     public List<ScheduleEventDto> searchEvents(UUID groupId, UUID teacherId, UUID roomId, LocalDate startDate, LocalDate endDate) {
         
@@ -185,6 +186,14 @@ public class ScheduleEventService {
         event.setNotes(dto.getNotes());
         
         ScheduleEvent savedEvent = scheduleEventRepository.save(event);
+        
+        // Notification temps-réel
+        notificationService.sendAdminAlert(
+            "Emploi du temps mis à jour",
+            "Un cours a été programmé pour " + course.getSubject().getName(),
+            "INFO"
+        );
+        
         return mapToDto(savedEvent);
     }
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { NotificationProvider } from '@/components/NotificationProvider';
 
 interface NavItem {
   label: string;
@@ -215,7 +216,9 @@ export default function AdminLayout({
       <div className="main-wrapper">
         <Topbar />
         <main className="page-content">
-          {children}
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
         </main>
       </div>
     </div>
