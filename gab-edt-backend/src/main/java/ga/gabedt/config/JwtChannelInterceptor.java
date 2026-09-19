@@ -1,6 +1,6 @@
 package ga.gabedt.config;
 
-import ga.gabedt.auth.JwtService;
+import ga.gabedt.auth.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtChannelInterceptor implements ChannelInterceptor {
 
-    private final JwtService jwtService;
+    private final JwtUtils jwtUtils;
     private final UserDetailsService userDetailsService;
 
     @Override
@@ -31,11 +31,11 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
             
             if (authorization != null && !authorization.isEmpty() && authorization.get(0).startsWith("Bearer ")) {
                 String token = authorization.get(0).substring(7);
-                String userEmail = jwtService.extractUsername(token);
+                String userEmail = jwtUtils.extractUsername(token);
                 
                 if (userEmail != null) {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-                    if (jwtService.isTokenValid(token, userDetails)) {
+                    if (jwtUtils.isTokenValid(token, userDetails)) {
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                 userDetails, null, userDetails.getAuthorities()
                         );
