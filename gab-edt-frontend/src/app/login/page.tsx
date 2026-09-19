@@ -43,7 +43,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{
+    <div suppressHydrationWarning style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #0F172A 0%, #1E3A5F 40%, #004ac6 100%)',
       display: 'flex',

@@ -94,15 +94,15 @@ export default function SubjectsAdminPage() {
 
   const flatOrgUnits = buildFlatList(orgUnits);
 
-  const params = new URLSearchParams({
-    page: page.toString(),
-    size: pageSize.toString(),
-  });
-  if (search) params.append('search', search);
-
   const loadData = useCallback(async () => {
     setLoading(true); setError('');
     try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        size: pageSize.toString(),
+      });
+      if (search) params.append('search', search);
+
       const [resData, orgUnitsRes] = await Promise.all([
         fetchWithAuth(`/subjects?${params.toString()}`),
         fetchWithAuth('/org-units'),
@@ -115,7 +115,7 @@ export default function SubjectsAdminPage() {
       setSelectedIds(new Set());
     } catch { setError('Impossible de charger les données.'); }
     finally { setLoading(false); }
-  }, [params]);
+  }, [page, pageSize, search]);
 
   useEffect(() => { loadData(); }, [loadData]);
 

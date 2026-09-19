@@ -44,6 +44,11 @@ const formatWeekRange = (monday: Date, sunday: Date) => {
 export default function TimetablePage() {
   const hours = Array.from({ length: 11 }, (_, i) => i + 8); // 8 à 18
 
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // MODAL & FORM STATE
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -65,10 +70,44 @@ export default function TimetablePage() {
   // DYNAMIC TIMETABLE STATE
   const [events, setEvents] = useState<UIMockupEvent[]>([]);
   const [resourceTree, setResourceTree] = useState<any>(null);
-  const [currentDate, setCurrentDate] = useState(new Date("2026-09-14T00:00:00"));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [filters, setFilters] = useState({ groupId: '', teacherId: '', roomId: '' });
   
+  // NEW INTERACTIVE STATES
+  const [viewMode, setViewMode] = useState<'day'|'week'|'month'>('week');
+  const [miniCalMonth, setMiniCalMonth] = useState(new Date());
+  const [quickFilter, setQuickFilter] = useState<'all'|'mine'|'free'>('all');
+
+  const getMiniCalendarDays = (monthDate: Date) => {
+    const start = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+    const end = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+    const days = [];
+    
+    const startDay = start.getDay();
+    const diff = startDay === 0 ? 6 : startDay - 1; 
+    const prevMonthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth(), 0).getDate();
+    for (let i = diff - 1; i >= 0; i--) {
+      days.push({ num: prevMonthEnd - i, current: false, date: new Date(monthDate.getFullYear(), monthDate.getMonth() - 1, prevMonthEnd - i) });
+    }
+    for (let i = 1; i <= end.getDate(); i++) {
+      days.push({ num: i, current: true, date: new Date(monthDate.getFullYear(), monthDate.getMonth(), i) });
+    }
+    let nextMonthDay = 1;
+    while (days.length % 7 !== 0) {
+      days.push({ num: nextMonthDay++, current: false, date: new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, nextMonthDay - 1) });
+    }
+    return days;
+  };
+  
   const weekDays = getWeekDays(currentDate);
+
+  let displayedDays = weekDays;
+  if (viewMode === 'day') {
+    const shortNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    displayedDays = [{ short: shortNames[currentDate.getDay()], num: currentDate.getDate(), date: currentDate }];
+  }
+
+  const gridStyle = { gridTemplateColumns: `60px repeat(${displayedDays.length}, minmax(140px, 1fr))` };
 
   const loadSchedule = async () => {
     const start = weekDays[0].date.toISOString().split('T')[0];
@@ -103,7 +142,7 @@ export default function TimetablePage() {
   };
 
   useEffect(() => {
-    fetchWithAuth('/resource-tree').then(res => setResourceTree(res.data)).catch(console.error);
+    fetchWithAuth('/resources/tree').then(res => setResourceTree(res.data)).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -212,6 +251,8 @@ export default function TimetablePage() {
     return `${h.toString().padStart(2, '0')}h${m.toString().padStart(2, '0')}`;
   };
 
+  if (!isMounted) return null;
+
   return (
     <div className={styles.container}>
       {/* ---------------- PANNEAU GAUCHE ---------------- */}
@@ -219,35 +260,62 @@ export default function TimetablePage() {
         {/* MINI CALENDRIER */}
         <div style={{ padding: 'var(--space-lg)', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-md)' }}>
-            <h3 style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-primary)' }}>Septembre 2026</h3>
+            <h3 style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-primary)' }}>
+              {miniCalMonth.toLocaleString('fr-FR', { month: 'long', year: 'numeric' })}
+            </h3>
             <div style={{ display: 'flex', gap: '4px' }}>
-              <button className="topbar-icon-btn" style={{ width: 28, height: 28 }}><span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_left</span></button>
-              <button className="topbar-icon-btn" style={{ width: 28, height: 28 }}><span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span></button>
+              <button className="topbar-icon-btn" style={{ width: 28, height: 28 }} onClick={() => setMiniCalMonth(new Date(miniCalMonth.getFullYear(), miniCalMonth.getMonth() - 1, 1))}>
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_left</span>
+              </button>
+              <button className="topbar-icon-btn" style={{ width: 28, height: 28 }} onClick={() => setMiniCalMonth(new Date(miniCalMonth.getFullYear(), miniCalMonth.getMonth() + 1, 1))}>
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
+              </button>
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px' }}>
             <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', fontSize: '12px', gap: '4px 0' }}>
-            <span style={{ color: 'var(--outline-variant)' }}>31</span>
-            <span>1</span><span>2</span><span>3</span><span>4</span>
-            <span style={{ color: 'var(--text-muted)' }}>5</span><span style={{ color: 'var(--text-muted)' }}>6</span>
-            
-            <span>7</span><span>8</span><span>9</span><span>10</span><span>11</span>
-            <span style={{ color: 'var(--text-muted)' }}>12</span><span style={{ color: 'var(--text-muted)' }}>13</span>
-            
-            <div style={{ gridColumn: 'span 7', display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', background: 'var(--primary-light)', borderRadius: '8px', padding: '2px 0' }}>
-              <span style={{ background: 'var(--primary)', color: 'white', borderRadius: '4px', fontWeight: 700 }}>14</span>
-              <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>15</span>
-              <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>16</span>
-              <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>17</span>
-              <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>18</span>
-              <span style={{ fontWeight: 500, color: 'var(--primary)' }}>19</span>
-              <span style={{ fontWeight: 500, color: 'var(--primary)' }}>20</span>
-            </div>
-
-            <span>21</span><span>22</span><span>23</span><span>24</span><span>25</span>
-            <span style={{ color: 'var(--text-muted)' }}>26</span><span style={{ color: 'var(--text-muted)' }}>27</span>
+            {(() => {
+              const days = getMiniCalendarDays(miniCalMonth);
+              const weeks = [];
+              for (let i = 0; i < days.length; i += 7) {
+                weeks.push(days.slice(i, i + 7));
+              }
+              
+              return weeks.map((week, wIdx) => {
+                const isCurrentWeek = week.some(d => d.date.toDateString() === currentDate.toDateString());
+                
+                if (isCurrentWeek) {
+                  return (
+                    <div key={wIdx} style={{ gridColumn: 'span 7', display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', background: 'var(--primary-light)', borderRadius: '8px', padding: '2px 0' }}>
+                      {week.map((d, i) => {
+                        const isSelected = d.date.toDateString() === currentDate.toDateString();
+                        const color = isSelected ? 'white' : (d.date.getDay() === 0 || d.date.getDay() === 6 ? 'var(--primary)' : 'var(--primary-dark)');
+                        const bg = isSelected ? 'var(--primary)' : 'transparent';
+                        const weight = isSelected ? 700 : (d.date.getDay() === 0 || d.date.getDay() === 6 ? 500 : 600);
+                        return (
+                          <span key={i} onClick={() => { setCurrentDate(d.date); setMiniCalMonth(new Date(d.date.getFullYear(), d.date.getMonth(), 1)); }}
+                                style={{ background: bg, color, borderRadius: '4px', fontWeight: weight, padding: '2px 0', cursor: 'pointer' }}>
+                            {d.num}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+                
+                return week.map((d, i) => {
+                  const color = d.current ? (d.date.getDay() === 0 || d.date.getDay() === 6 ? 'var(--text-muted)' : 'var(--text-primary)') : 'var(--outline-variant)';
+                  return (
+                    <span key={i} onClick={() => { setCurrentDate(d.date); setMiniCalMonth(new Date(d.date.getFullYear(), d.date.getMonth(), 1)); }}
+                          style={{ color, padding: '2px 0', cursor: 'pointer' }}>
+                      {d.num}
+                    </span>
+                  );
+                });
+              });
+            })()}
           </div>
         </div>
 
@@ -255,12 +323,12 @@ export default function TimetablePage() {
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, color: 'var(--text-muted)' }}>Filtres Rapides</span>
-            <span style={{ fontSize: '11px', color: 'var(--primary)', cursor: 'pointer' }}>Réinitialiser</span>
+            <span style={{ fontSize: '11px', color: 'var(--primary)', cursor: 'pointer' }} onClick={() => { setQuickFilter('all'); setFilters({ groupId: '', teacherId: '', roomId: '' }); }}>Réinitialiser</span>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-            <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, background: 'var(--primary-light)', color: 'var(--primary-dark)', cursor: 'pointer' }}>Tout afficher</span>
-            <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, background: 'var(--surface-container-high)', color: 'var(--text-secondary)', cursor: 'pointer' }}>Mes cours</span>
-            <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, background: 'var(--surface-container-high)', color: 'var(--text-secondary)', cursor: 'pointer' }}>Salles libres</span>
+            <span onClick={() => setQuickFilter('all')} style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, background: quickFilter === 'all' ? 'var(--primary-light)' : 'var(--surface-container-high)', color: quickFilter === 'all' ? 'var(--primary-dark)' : 'var(--text-secondary)', cursor: 'pointer' }}>Tout afficher</span>
+            <span onClick={() => setQuickFilter('mine')} style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, background: quickFilter === 'mine' ? 'var(--primary-light)' : 'var(--surface-container-high)', color: quickFilter === 'mine' ? 'var(--primary-dark)' : 'var(--text-secondary)', cursor: 'pointer' }}>Mes cours</span>
+            <span onClick={() => setQuickFilter('free')} style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, background: quickFilter === 'free' ? 'var(--primary-light)' : 'var(--surface-container-high)', color: quickFilter === 'free' ? 'var(--primary-dark)' : 'var(--text-secondary)', cursor: 'pointer' }}>Salles libres</span>
           </div>
         </div>
 
@@ -304,9 +372,9 @@ export default function TimetablePage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ display: 'inline-flex', background: 'var(--surface-container-low)', padding: '2px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '12px', fontWeight: 500 }}>
-              <button style={{ padding: '4px 10px', border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>Jour</button>
-              <button style={{ padding: '4px 10px', border: 'none', background: 'var(--surface)', color: 'var(--primary)', fontWeight: 600, borderRadius: '6px', boxShadow: 'var(--shadow-xs)' }}>Semaine</button>
-              <button style={{ padding: '4px 10px', border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>Mois</button>
+              <button onClick={() => setViewMode('day')} style={{ padding: '4px 10px', border: 'none', background: viewMode === 'day' ? 'var(--surface)' : 'transparent', color: viewMode === 'day' ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: viewMode === 'day' ? 600 : 500, borderRadius: '6px', boxShadow: viewMode === 'day' ? 'var(--shadow-xs)' : 'none', cursor: 'pointer' }}>Jour</button>
+              <button onClick={() => setViewMode('week')} style={{ padding: '4px 10px', border: 'none', background: viewMode === 'week' ? 'var(--surface)' : 'transparent', color: viewMode === 'week' ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: viewMode === 'week' ? 600 : 500, borderRadius: '6px', boxShadow: viewMode === 'week' ? 'var(--shadow-xs)' : 'none', cursor: 'pointer' }}>Semaine</button>
+              <button onClick={() => setViewMode('month')} style={{ padding: '4px 10px', border: 'none', background: viewMode === 'month' ? 'var(--surface)' : 'transparent', color: viewMode === 'month' ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: viewMode === 'month' ? 600 : 500, borderRadius: '6px', boxShadow: viewMode === 'month' ? 'var(--shadow-xs)' : 'none', cursor: 'pointer' }}>Mois</button>
             </div>
             <button className="topbar-icon-btn" style={{ border: '1px solid var(--border)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>print</span>
@@ -320,12 +388,29 @@ export default function TimetablePage() {
 
         {/* TIMETABLE SCROLL AREA */}
         <div className={styles.scrollArea}>
+          {viewMode === 'month' ? (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px', overflowY: 'auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px', flexShrink: 0 }}>
+                <span>LUN</span><span>MAR</span><span>MER</span><span>JEU</span><span>VEN</span><span>SAM</span><span>DIM</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', gridAutoRows: 'minmax(60px, 1fr)' }}>
+                {getMiniCalendarDays(currentDate).map((d, i) => {
+                  const isSelected = d.date.toDateString() === currentDate.toDateString();
+                  return (
+                    <div key={i} onClick={() => { setCurrentDate(d.date); setViewMode('day'); }} style={{ background: isSelected ? 'var(--primary-light)' : (d.current ? 'var(--surface)' : 'var(--surface-container-low)'), border: isSelected ? '2px solid var(--primary)' : '1px solid var(--border)', borderRadius: '8px', padding: '8px', minHeight: '60px', opacity: d.current ? 1 : 0.5, cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontWeight: isSelected ? 800 : 600, color: isSelected ? 'var(--primary-dark)' : 'var(--text-primary)', fontSize: '14px' }}>{d.num}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
           <div className={styles.gridWrapper}>
             
             {/* Day Headers */}
-            <div className={styles.dayHeaders}>
-              <div className={styles.timeColumnHeader}>GMT+1</div>
-              {weekDays.map((day, i) => {
+            <div className={styles.dayHeaders} style={gridStyle}>
+              <div className={styles.timeColumnHeader}></div>
+              {displayedDays.map((day, i) => {
                 const isToday = new Date().toDateString() === day.date.toDateString();
                 return (
                   <div key={i} className={`${styles.headerCell} ${isToday ? styles.headerCellActive : ''}`}>
@@ -340,13 +425,15 @@ export default function TimetablePage() {
             <div className={styles.timetableScroll}>
               
               {/* Red Time Indicator Line (example 10:45) */}
-              <div className={styles.redIndicator} style={{ top: '220px' }}>
-                <div className={styles.redIndicatorTime}>10:45</div>
-                <div className={styles.redIndicatorDot}></div>
-                <div className={styles.redIndicatorLine}></div>
-              </div>
+              {new Date().toDateString() === currentDate.toDateString() && viewMode !== 'month' && (
+                <div className={styles.redIndicator} style={{ top: `${(new Date().getHours() - 8) * 80 + (new Date().getMinutes() / 60) * 80}px` }}>
+                  <div className={styles.redIndicatorTime}>{new Date().getHours()}:{new Date().getMinutes().toString().padStart(2, '0')}</div>
+                  <div className={styles.redIndicatorDot}></div>
+                  <div className={styles.redIndicatorLine}></div>
+                </div>
+              )}
 
-              <div className={styles.timetableGrid}>
+              <div className={styles.timetableGrid} style={gridStyle}>
                 {/* TIME LABELS COL */}
                 <div className={styles.timeCol}>
                   {hours.map(h => (
@@ -357,11 +444,12 @@ export default function TimetablePage() {
                   ))}
                 </div>
 
-                {/* 7 DAYS COLUMNS */}
-                {weekDays.map((_, dayIndex) => {
-                  const dayEvents = events.filter(e => e.dayIndex === dayIndex);
+                {/* COLUMNS */}
+                {displayedDays.map((dayObj, dayIdx) => {
+                  const originalDayIndex = (dayObj.date.getDay() + 6) % 7;
+                  const dayEvents = events.filter(e => e.dayIndex === originalDayIndex);
                   return (
-                    <div key={dayIndex} className={styles.dayCol}>
+                    <div key={dayIdx} className={styles.dayCol}>
                       {/* Background Guidelines */}
                       <div className={styles.dayColLines}>
                         {hours.map(h => (
@@ -430,6 +518,7 @@ export default function TimetablePage() {
               </div>
             </div>
           </div>
+          )}
         </div>
       </main>
 

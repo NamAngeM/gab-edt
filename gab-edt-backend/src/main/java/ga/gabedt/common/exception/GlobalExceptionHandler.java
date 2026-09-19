@@ -67,14 +67,14 @@ public class GlobalExceptionHandler {
 
     // ─── 403 — Accès non autorisé ──────────────────────────────────────
 
-    @ExceptionHandler(UnauthorizedAccessException.class)
-    public ResponseEntity<ApiError> handleUnauthorizedAccess(UnauthorizedAccessException ex) {
+    @ExceptionHandler({UnauthorizedAccessException.class, org.springframework.security.access.AccessDeniedException.class})
+    public ResponseEntity<ApiError> handleUnauthorizedAccess(Exception ex) {
         log.warn("Accès non autorisé : {}", ex.getMessage());
         ApiError error = ApiError.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.FORBIDDEN.value())
                 .code("ACCESS_DENIED")
-                .message(ex.getMessage())
+                .message("Accès refusé. Vous n'avez pas les droits nécessaires.")
                 .build();
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
@@ -194,12 +194,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGenericException(Exception ex) {
-        log.error("Erreur inattendue", ex);
+        log.error("Exception interceptée : " + ex.getMessage(), ex);
         ApiError error = ApiError.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .code("INTERNAL_ERROR")
-                .message("Une erreur interne est survenue. Veuillez réessayer plus tard.")
+                .message("Une erreur interne est survenue : " + ex.getMessage())
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }

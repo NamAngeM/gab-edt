@@ -57,13 +57,13 @@ public class DashboardService {
 
         for (ScheduleEvent event : todayEvents) {
             boolean isRoomConflict = event.getRoom() != null && 
-                scheduleEventRepository.existsOverlappingForRoom(event.getRoom().getId(), event.getStartAt(), event.getEndAt(), event.getId());
+                scheduleEventRepository.existsOverlappingForRoomWithExclude(event.getRoom().getId(), event.getStartAt(), event.getEndAt(), event.getId());
             
             boolean isTeacherConflict = event.getTeacher() != null && 
-                scheduleEventRepository.existsOverlappingForTeacher(event.getTeacher().getId(), event.getStartAt(), event.getEndAt(), event.getId());
+                scheduleEventRepository.existsOverlappingForTeacherWithExclude(event.getTeacher().getId(), event.getStartAt(), event.getEndAt(), event.getId());
             
             boolean isOrgUnitConflict = event.getOrgUnit() != null && 
-                scheduleEventRepository.existsOverlappingForOrgUnit(event.getOrgUnit().getId(), event.getStartAt(), event.getEndAt(), event.getId());
+                scheduleEventRepository.existsOverlappingForOrgUnitWithExclude(event.getOrgUnit().getId(), event.getStartAt(), event.getEndAt(), event.getId());
 
             boolean hasConflict = isRoomConflict || isTeacherConflict || isOrgUnitConflict;
             if (hasConflict) {
@@ -75,7 +75,7 @@ public class DashboardService {
             dto.setTitle(event.getCourse() != null && event.getCourse().getSubject() != null ? event.getCourse().getSubject().getName() : "Cours");
             
             String desc = "";
-            if (event.getTeacher() != null) desc += event.getTeacher().getUser().getLastName();
+            if (event.getTeacher() != null && event.getTeacher().getUser() != null) desc += event.getTeacher().getUser().getLastName();
             if (event.getOrgUnit() != null) desc += (desc.isEmpty() ? "" : " - ") + event.getOrgUnit().getName();
             dto.setDescription(desc);
             

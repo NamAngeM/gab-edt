@@ -62,22 +62,31 @@ public class ScheduleEventService {
     }
 
     private ScheduleEventDto mapToDto(ScheduleEvent event) {
-        SubjectDto subjectDto = new SubjectDto(
-                event.getCourse().getSubject().getId(),
-                event.getCourse().getSubject().getName(),
-                event.getCourse().getSubject().getCode()
-        );
+        SubjectDto subjectDto = null;
+        if (event.getCourse() != null && event.getCourse().getSubject() != null) {
+            subjectDto = new SubjectDto(
+                    event.getCourse().getSubject().getId(),
+                    event.getCourse().getSubject().getName(),
+                    event.getCourse().getSubject().getCode()
+            );
+        }
 
-        TeacherDto teacherDto = new TeacherDto(
-                event.getTeacher().getId(),
-                event.getTeacher().getUser().getFirstName(),
-                event.getTeacher().getUser().getLastName()
-        );
+        TeacherDto teacherDto = null;
+        if (event.getTeacher() != null && event.getTeacher().getUser() != null) {
+            teacherDto = new TeacherDto(
+                    event.getTeacher().getId(),
+                    event.getTeacher().getUser().getFirstName(),
+                    event.getTeacher().getUser().getLastName()
+            );
+        }
 
-        GroupDto groupDto = new GroupDto(
-                event.getOrgUnit().getId(),
-                event.getOrgUnit().getName()
-        );
+        GroupDto groupDto = null;
+        if (event.getOrgUnit() != null) {
+            groupDto = new GroupDto(
+                    event.getOrgUnit().getId(),
+                    event.getOrgUnit().getName()
+            );
+        }
 
         RoomDto roomDto = null;
         if (event.getRoom() != null) {
@@ -102,6 +111,7 @@ public class ScheduleEventService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<ScheduleEventDto> getConflicts() {
         LocalDateTime start = LocalDateTime.now().minusDays(1);
         LocalDateTime end = LocalDateTime.now().plusMonths(6);
@@ -111,13 +121,13 @@ public class ScheduleEventService {
         
         for (ScheduleEvent event : upcomingEvents) {
             boolean isRoomConflict = event.getRoom() != null && 
-                scheduleEventRepository.existsOverlappingForRoom(event.getRoom().getId(), event.getStartAt(), event.getEndAt(), event.getId());
+                scheduleEventRepository.existsOverlappingForRoomWithExclude(event.getRoom().getId(), event.getStartAt(), event.getEndAt(), event.getId());
             
             boolean isTeacherConflict = event.getTeacher() != null && 
-                scheduleEventRepository.existsOverlappingForTeacher(event.getTeacher().getId(), event.getStartAt(), event.getEndAt(), event.getId());
+                scheduleEventRepository.existsOverlappingForTeacherWithExclude(event.getTeacher().getId(), event.getStartAt(), event.getEndAt(), event.getId());
             
             boolean isOrgUnitConflict = event.getOrgUnit() != null && 
-                scheduleEventRepository.existsOverlappingForOrgUnit(event.getOrgUnit().getId(), event.getStartAt(), event.getEndAt(), event.getId());
+                scheduleEventRepository.existsOverlappingForOrgUnitWithExclude(event.getOrgUnit().getId(), event.getStartAt(), event.getEndAt(), event.getId());
 
             if (isRoomConflict || isTeacherConflict || isOrgUnitConflict) {
                 ScheduleEventDto dto = mapToDto(event);
@@ -269,15 +279,24 @@ public class ScheduleEventService {
         scheduleEventRepository.save(event);
     }
 
-    private void validateNoConflict(UUID teacherId, UUID roomId, UUID orgUnitId, LocalDateTime start, LocalDateTime end, UUID excludeEventId) {
-        if (scheduleEventRepository.existsOverlappingForTeacher(teacherId, start, end, excludeEventId)) {
-            throw new ScheduleConflictException("L'enseignant est déjà occupé sur ce créneau horaire.");
+    private void validateNoConflict(UUID teacherId, UUID roomId, UUID orgUnitId, LocalDateTime start, LocalDateTime end, UUID excludeId) {
+        if (teacherId != null) {
+            boolean conflict = (excludeId == null) 
+                ? scheduleEventRepository.existsOverlappingForTeacher(teacherId, start, end)
+                : scheduleEventRepository.existsOverlappingForTeacherWithExclude(teacherId, start, end, excludeId);
+            if (conflict) throw new ScheduleConflictException("L'enseignant est déjà occupé sur cette plage horaire.");
         }
-        if (roomId != null && scheduleEventRepository.existsOverlappingForRoom(roomId, start, end, excludeEventId)) {
-            throw new ScheduleConflictException("La salle est déjà réservée sur ce créneau horaire.");
+        if (roomId != null) {
+            boolean conflict = (excludeId == null)
+                ? scheduleEventRepository.existsOverlappingForRoom(roomId, start, end)
+                : scheduleEventRepository.existsOverlappingForRoomWithExclude(roomId, start, end, excludeId);
+            if (conflict) throw new ScheduleConflictException("La salle est déjà réservée sur cette plage horaire.");
         }
-        if (scheduleEventRepository.existsOverlappingForOrgUnit(orgUnitId, start, end, excludeEventId)) {
-            throw new ScheduleConflictException("La classe ou le groupe a déjà un cours sur ce créneau horaire.");
+        if (orgUnitId != null) {
+            boolean conflict = (excludeId == null)
+                ? scheduleEventRepository.existsOverlappingForOrgUnit(orgUnitId, start, end)
+                : scheduleEventRepository.existsOverlappingForOrgUnitWithExclude(orgUnitId, start, end, excludeId);
+            if (conflict) throw new ScheduleConflictException("Le groupe a déjà cours sur cette plage horaire.");
         }
     }
 }

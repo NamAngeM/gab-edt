@@ -31,7 +31,9 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
   }
 
   if (!response.ok) {
-    throw new Error('Erreur API');
+    const errorText = await response.text();
+    console.error('Erreur API backend:', response.status, response.statusText, errorText);
+    throw new Error(`Erreur API: ${response.status} - ${errorText}`);
   }
 
   return response.json();

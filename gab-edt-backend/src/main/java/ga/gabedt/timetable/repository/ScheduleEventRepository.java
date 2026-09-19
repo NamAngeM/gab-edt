@@ -31,22 +31,43 @@ public interface ScheduleEventRepository extends JpaRepository<ScheduleEvent, UU
            "AND e.teacher.id = :teacherId " +
            "AND e.startAt < :end " +
            "AND e.endAt > :start " +
-           "AND (:excludeId IS NULL OR e.id != :excludeId)")
-    boolean existsOverlappingForTeacher(@Param("teacherId") UUID teacherId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("excludeId") UUID excludeId);
+           "AND e.id != :excludeId")
+    boolean existsOverlappingForTeacherWithExclude(@Param("teacherId") UUID teacherId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("excludeId") UUID excludeId);
+
+    @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM ScheduleEvent e " +
+           "WHERE e.deleted = false " +
+           "AND e.teacher.id = :teacherId " +
+           "AND e.startAt < :end " +
+           "AND e.endAt > :start")
+    boolean existsOverlappingForTeacher(@Param("teacherId") UUID teacherId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM ScheduleEvent e " +
            "WHERE e.deleted = false " +
            "AND e.room.id = :roomId " +
            "AND e.startAt < :end " +
            "AND e.endAt > :start " +
-           "AND (:excludeId IS NULL OR e.id != :excludeId)")
-    boolean existsOverlappingForRoom(@Param("roomId") UUID roomId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("excludeId") UUID excludeId);
+           "AND e.id != :excludeId")
+    boolean existsOverlappingForRoomWithExclude(@Param("roomId") UUID roomId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("excludeId") UUID excludeId);
+
+    @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM ScheduleEvent e " +
+           "WHERE e.deleted = false " +
+           "AND e.room.id = :roomId " +
+           "AND e.startAt < :end " +
+           "AND e.endAt > :start")
+    boolean existsOverlappingForRoom(@Param("roomId") UUID roomId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM ScheduleEvent e " +
            "WHERE e.deleted = false " +
            "AND e.orgUnit.id = :orgUnitId " +
            "AND e.startAt < :end " +
            "AND e.endAt > :start " +
-           "AND (:excludeId IS NULL OR e.id != :excludeId)")
-    boolean existsOverlappingForOrgUnit(@Param("orgUnitId") UUID orgUnitId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("excludeId") UUID excludeId);
+           "AND e.id != :excludeId")
+    boolean existsOverlappingForOrgUnitWithExclude(@Param("orgUnitId") UUID orgUnitId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("excludeId") UUID excludeId);
+
+    @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM ScheduleEvent e " +
+           "WHERE e.deleted = false " +
+           "AND e.orgUnit.id = :orgUnitId " +
+           "AND e.startAt < :end " +
+           "AND e.endAt > :start")
+    boolean existsOverlappingForOrgUnit(@Param("orgUnitId") UUID orgUnitId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

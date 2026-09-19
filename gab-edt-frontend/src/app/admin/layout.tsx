@@ -52,6 +52,13 @@ const navSections: NavSection[] = [
     ],
   },
   {
+    label: 'Communication & Événements',
+    items: [
+      { label: 'Annonces & Actualités', icon: 'campaign', href: '/admin/annonces' },
+      { label: 'Événements Académiques', icon: 'event', href: '/admin/evenements' },
+    ],
+  },
+  {
     label: 'Échange de données',
     items: [
       { label: 'Import Excel / CSV', icon: 'upload_file', href: '/admin/import' },
