@@ -15,9 +15,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -98,6 +107,47 @@ public class SubjectService {
 
         subject.setDeleted(true);
         subjectRepository.save(subject);
+    }
+
+    @Transactional
+    public int importCsv(MultipartFile file) {
+        int count = 0;
+        try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
+             CSVParser csvParser = new CSVParser(fileReader, CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build())) {
+
+            List<Subject> subjectsToSave = new ArrayList<>();
+            
+            Institution inst = institutionRepository.findAll().stream().findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("No Institution available"));
+
+            for (CSVRecord record : csvParser) {
+                String name = record.isSet("Nom") ? record.get("Nom").trim() : (record.isSet("name") ? record.get("name").trim() : null);
+                if (name == null || name.isEmpty()) continue;
+                
+                String code = record.isSet("Code") ? record.get("Code").trim() : (record.isSet("code") ? record.get("code").trim() : "");
+                
+                // Ignorer si le code existe déjà pour éviter les duplicatas
+                if (!code.isEmpty() && subjectRepository.findByCodeAndDeletedFalse(code).isPresent()) {
+                    continue;
+                }
+                
+                Subject subject = new Subject();
+                subject.setName(name);
+                subject.setCode(code);
+                
+                subject.setInstitution(inst);
+                subject.setTenantId(inst.getId());
+                
+                subjectsToSave.add(subject);
+                count++;
+            }
+            
+            subjectRepository.saveAll(subjectsToSave);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de l'analyse du fichier CSV: " + e.getMessage());
+        }
+        return count;
     }
 
     private SubjectDto mapToDto(Subject subject) {

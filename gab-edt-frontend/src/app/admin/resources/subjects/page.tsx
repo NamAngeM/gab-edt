@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { fetchWithAuth, extractArray, extractPageData } from '@/lib/api';
 
 interface Subject {
@@ -22,6 +22,7 @@ interface OrgUnit {
 
 type ModalMode = 'CREATE' | 'EDIT';
 const initForm = { id: '', name: '', code: '', color: '#3B82F6', credits: 3, active: true, orgUnitId: '' };
+
 
 function Toast({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) {
   useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, [onClose]);
@@ -88,6 +89,9 @@ export default function SubjectsAdminPage() {
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const flatOrgUnits = buildFlatList(orgUnits);
 
   const params = new URLSearchParams({
@@ -121,16 +125,44 @@ export default function SubjectsAdminPage() {
 
   const handleOpenEdit = (s: Subject) => {
     setModalMode('EDIT');
-    setFormData({
-      id: s.id,
-      name: s.name,
-      code: s.code || '',
-      color: s.color || '#3B82F6',
-      credits: s.credits ?? 3,
-      active: s.active ?? true,
-      orgUnitId: s.orgUnit?.id || ''
-    });
+    setFormData({ id: s.id, name: s.name, code: s.code || '', color: s.color || '#3B82F6', credits: s.credits || 3, active: s.active ?? true, orgUnitId: s.orgUnit?.id || '' });
     setModalError(''); setIsModalOpen(true);
+  };
+
+  const handleExportCSV = () => {
+    const header = ['ID', 'Nom', 'Code', 'Unité'];
+    const rows = subjects.map(s => [
+      s.id, s.name, s.code || '', s.orgUnit ? s.orgUnit.name : 'Globale'
+    ]);
+    const csvContent = [header, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "matieres.csv");
+    link.click();
+  };
+
+  const handleImportCSV = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setIsImporting(true);
+    setToast(null);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetchWithAuth('/subjects/import-csv', {
+        method: 'POST',
+        body: formData,
+      });
+      setToast({ message: `${res.data} enregistrements importés avec succès.`, type: 'success' });
+      loadData();
+    } catch (err) {
+      setToast({ message: 'Erreur lors de l\'importation du fichier.', type: 'error' });
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -211,6 +243,12 @@ export default function SubjectsAdminPage() {
             <span className="material-symbols-outlined">refresh</span>
             Actualiser
           </button>
+          <input type="file" accept=".csv" style={{ display: 'none' }} ref={fileInputRef} onChange={handleImportCSV} />
+          <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()} disabled={isImporting}>
+            <span className="material-symbols-outlined">{isImporting ? 'progress_activity' : 'upload'}</span> 
+            {isImporting ? 'Importation...' : 'Importer CSV'}
+          </button>
+          <button className="btn btn-secondary" onClick={handleExportCSV}><span className="material-symbols-outlined">download</span> Exporter CSV</button>
           <button className="btn btn-primary" onClick={handleOpenCreate}>
             <span className="material-symbols-outlined">add</span>
             Nouvelle Matière
