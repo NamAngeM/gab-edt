@@ -1,0 +1,45 @@
+# ==============================================================================
+# GAB-EDT Backend — .gitignore
+# ==============================================================================
+
+# ── Build output ──────────────────────────────────────────────────────────────
+target/
+build/
+*.class
+*.jar
+*.war
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+*.swp
+*.swo
+*~
+
+# ── Environment & Secrets ────────────────────────────────────────────────────
+.env
+*.pem
+*.key
+*.p12
+*.jks
+firebase-*.json
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Maven Wrapper (binaire) ──────────────────────────────────────────────────
+# Le wrapper JAR est commité volontairement pour éviter l'installation Maven
+# .mvn/wrapper/maven-wrapper.jar

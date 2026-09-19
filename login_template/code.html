@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Connexion — GAB-EDT | Gestion des Emplois du Temps</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+              950: '#1e1b4b',
+            }
+          },
+          boxShadow: {
+            'elevated': '0 20px 40px -15px rgba(30, 27, 75, 0.08), 0 0 1px 1px rgba(0, 0, 0, 0.04)',
+            'glow': '0 0 25px -5px rgba(79, 70, 229, 0.35)',
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-enhancements">
+    /* Subtle custom backdrop grid pattern */
+    .bg-grid-pattern {
+      background-image: radial-gradient(rgba(99, 102, 241, 0.12) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    
+    /* Smooth transitions for interactive elements */
+    .form-input-focus:focus-within {
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-50 text-slate-800 antialiased font-sans selection:bg-brand-500 selection:text-white">
+<!-- BEGIN: MainContainer -->
+<div class="min-h-full flex flex-col lg:flex-row relative overflow-hidden">
+<!-- BEGIN: LeftBrandingHero (Desktop side banner) -->
+<aside class="hidden lg:flex lg:w-1/2 xl:w-5/12 bg-gradient-to-br from-brand-950 via-slate-900 to-indigo-950 text-white flex-col justify-between p-12 relative overflow-hidden">
+<!-- Background Ambient Glow & Graphic Elements -->
+<div class="absolute -top-24 -left-24 w-96 h-96 bg-brand-600/20 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute bottom-10 right-0 w-80 h-80 bg-indigo-500/15 rounded-full blur-2xl pointer-events-none"></div>
+<!-- Brand Header -->
+<div class="relative z-10">
+<div class="flex items-center gap-3">
+<div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center shadow-glow shadow-brand-500/30">
+<!-- Calendar Schedule Icon -->
+<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+              GAB-EDT
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 border border-brand-400/30">v3.4</span>
+</h1>
+<p class="text-xs text-slate-400 tracking-wide">Gestion &amp; Emplois du Temps</p>
+</div>
+</div>
+</div>
+<!-- Feature Highlight / Dynamic Preview Card -->
+<div class="relative z-10 my-auto py-8">
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-medium text-brand-200 mb-6">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Système synchronisé en temps réel
+        </div>
+<h2 class="text-3xl xl:text-4xl font-extrabold leading-tight text-white mb-4">
+          La planification de cours et salles simplifiée pour tous.
+        </h2>
+<p class="text-slate-300 text-sm leading-relaxed max-w-md mb-8">
+          Accédez à vos plannings académiques, réservations de créneaux et notifications de modifications instantanées en un espace unique.
+        </p>
+<!-- Simulated Schedule Widget Preview -->
+<div class="bg-slate-900/60 backdrop-blur-lg border border-white/10 rounded-2xl p-4 max-w-md shadow-2xl space-y-3">
+<div class="flex items-center justify-between pb-3 border-b border-white/10 text-xs text-slate-400">
+<span class="font-medium text-slate-200">Aujourd'hui • Amphi Richelieu</span>
+<span class="text-emerald-400 font-semibold">98% Présence</span>
+</div>
+<div class="flex items-center gap-3 bg-brand-500/10 border border-brand-500/20 p-2.5 rounded-xl">
+<div class="w-2 self-stretch rounded-full bg-brand-400"></div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-semibold text-white truncate">Algorithmique Avancée • L3 Info</p>
+<p class="text-[11px] text-slate-400">09:00 - 11:00 • Prof. V. Bernard</p>
+</div>
+<span class="text-[10px] font-bold px-2 py-1 rounded bg-brand-500/30 text-brand-200">En cours</span>
+</div>
+<div class="flex items-center gap-3 bg-white/5 border border-white/5 p-2.5 rounded-xl">
+<div class="w-2 self-stretch rounded-full bg-amber-400"></div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-semibold text-white truncate">Bases de Données Relationnelles</p>
+<p class="text-[11px] text-slate-400">11:15 - 13:15 • Salle TD-204</p>
+</div>
+<span class="text-[10px] font-medium px-2 py-1 rounded bg-slate-800 text-slate-400">À venir</span>
+</div>
+</div>
+</div>
+<!-- Testimonial/Security Footer Tagline -->
+<div class="relative z-10 text-xs text-slate-400 flex items-center justify-between pt-6 border-t border-white/10">
+<span>Conforme RGPD &amp; Sécurité EES</span>
+<span class="flex items-center gap-1.5 text-slate-300">
+<svg class="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewbox="0 0 20 20">
+<path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" fill-rule="evenodd"></path>
+</svg>
+          99.98% Disponibilité
+        </span>
+</div>
+</aside>
+<!-- END: LeftBrandingHero -->
+<!-- BEGIN: RightAuthContent -->
+<main class="flex-1 flex flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-16 bg-white relative">
+<!-- Background subtle dots -->
+<div class="absolute inset-0 bg-grid-pattern opacity-40 pointer-events-none"></div>
+<!-- Top Utility Bar (Language Selector & Help) -->
+<div class="relative z-10 flex items-center justify-between w-full max-w-md mx-auto lg:max-w-none lg:mx-0">
+<!-- Mobile Logo display -->
+<div class="flex lg:hidden items-center gap-2">
+<div class="w-9 h-9 rounded-lg bg-brand-600 flex items-center justify-center shadow-md">
+<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<span class="text-base font-bold tracking-tight text-slate-900">GAB-EDT</span>
+</div>
+<div class="flex items-center gap-3 ml-auto">
+<!-- Language Toggle -->
+<div class="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors px-2.5 py-1.5 rounded-lg cursor-pointer">
+<span class="font-medium text-slate-800">FR</span>
+<span class="text-slate-300">|</span>
+<span class="hover:text-slate-700">EN</span>
+</div>
+<!-- Help / Support link -->
+<a class="text-xs text-slate-500 hover:text-brand-600 transition-colors flex items-center gap-1" href="#support">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="hidden sm:inline">Centre d'aide</span>
+</a>
+</div>
+</div>
+<!-- Center Form Card -->
+<div class="relative z-10 w-full max-w-md mx-auto my-auto py-10">
+<!-- Form Header -->
+<div class="mb-8">
+<div class="inline-flex items-center gap-2 mb-2">
+<span class="h-2 w-2 rounded-full bg-brand-600"></span>
+<span class="text-xs font-semibold uppercase tracking-wider text-brand-700">Portail d'authentification</span>
+</div>
+<h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+            Connexion GAB-EDT
+          </h2>
+<p class="text-sm text-slate-500 mt-2">
+            Renseignez vos identifiants académiques ou administratifs pour continuer.
+          </p>
+</div>
+<!-- Single Sign-On / Institution Options -->
+<div class="space-y-3 mb-6" data-purpose="sso-buttons">
+<button class="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-all shadow-sm" type="button">
+<!-- Microsoft / Institution Icon -->
+<svg class="w-4 h-4 text-[#00a4ef]" fill="currentColor" viewbox="0 0 21 21">
+<rect fill="#f25022" height="9" width="9" x="1" y="1"></rect>
+<rect fill="#7fba00" height="9" width="9" x="11" y="1"></rect>
+<rect fill="#00a4ef" height="9" width="9" x="1" y="11"></rect>
+<rect fill="#ffb900" height="9" width="9" x="11" y="11"></rect>
+</svg>
+<span>Connexion institutionnelle (ENT / M365)</span>
+</button>
+</div>
+<!-- Divider -->
+<div class="relative flex py-2 items-center mb-6">
+<div class="flex-grow border-t border-slate-200"></div>
+<span class="flex-shrink mx-4 text-xs uppercase tracking-wider text-slate-400 font-semibold">ou avec identifiant direct</span>
+<div class="flex-grow border-t border-slate-200"></div>
+</div>
+<!-- BEGIN: LoginForm -->
+<form action="#" class="space-y-5" id="loginForm" method="POST">
+<!-- Email / Username Input -->
+<div data-purpose="input-group">
+<label class="block text-xs font-semibold text-slate-700 mb-1.5 tracking-wide" for="email">
+              Adresse e-mail ou identifiant
+            </label>
+<div class="relative rounded-xl shadow-sm form-input-focus transition-all">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+<!-- Mail Icon -->
+<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24">
+<path d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<input autocomplete="email" class="block w-full rounded-xl border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:ring-0 transition" id="email" name="email" placeholder="nom@universite-ou-ecole.fr" required="" type="email" value="admin@test.com"/>
+</div>
+</div>
+<!-- Password Input -->
+<div data-purpose="input-group">
+<div class="flex items-center justify-between mb-1.5">
+<label class="block text-xs font-semibold text-slate-700 tracking-wide" for="password">
+                Mot de passe
+              </label>
+<a class="text-xs font-medium text-brand-600 hover:text-brand-700 transition-colors" href="#forgot-password">
+                Mot de passe oublié ?
+              </a>
+</div>
+<div class="relative rounded-xl shadow-sm form-input-focus transition-all">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+<!-- Lock Icon -->
+<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24">
+<path d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<input autocomplete="current-password" class="block w-full rounded-xl border-slate-200 bg-slate-50/50 pl-10 pr-10 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:ring-0 transition" id="password" name="password" placeholder="Votre mot de passe" required="" type="password" value="••••••••"/>
+<!-- Show/Hide password toggle button -->
+<button aria-label="Afficher ou masquer le mot de passe" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none" id="togglePassword" type="button">
+<svg class="h-5 w-5" fill="none" id="eyeIcon" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24">
+<path d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Remember Me Checkbox -->
+<div class="flex items-center justify-between">
+<label class="flex items-center gap-2.5 cursor-pointer select-none">
+<input class="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500 focus:ring-offset-0 transition" id="remember" name="remember" type="checkbox"/>
+<span class="text-xs text-slate-600 font-medium">Se souvenir de moi sur cet appareil</span>
+</label>
+</div>
+<!-- Submit Button -->
+<button class="w-full relative flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 active:bg-brand-800 shadow-md shadow-brand-600/20 hover:shadow-lg hover:shadow-brand-600/30 transition-all focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2" type="submit">
+<span>Se connecter</span>
+<svg class="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</form>
+<!-- END: LoginForm -->
+<!-- Help Info Note -->
+<div class="mt-8 pt-6 border-t border-slate-100 flex items-start gap-3 text-xs text-slate-500">
+<svg class="w-4 h-4 text-brand-500 flex-shrink-0 mt-0.5" fill="currentColor" viewbox="0 0 20 20">
+<path clip-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" fill-rule="evenodd"></path>
+</svg>
+<p>
+            Première visite ou problème d'accès ? Contactez le coordinateur de scolarité ou le support informatique de votre établissement.
+          </p>
+</div>
+</div>
+<!-- Footer Elements -->
+<footer class="relative z-10 w-full max-w-md mx-auto lg:max-w-none pt-4 text-center lg:text-left text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
+<p>© 2025 GAB-EDT. Tous droits réservés.</p>
+<div class="flex items-center gap-4 text-slate-500">
+<a class="hover:text-slate-800 transition-colors" href="#privacy">Politique de confidentialité</a>
+<span class="text-slate-300">•</span>
+<a class="hover:text-slate-800 transition-colors" href="#terms">Conditions d'utilisation</a>
+</div>
+</footer>
+</main>
+<!-- END: RightAuthContent -->
+</div>
+<!-- END: MainContainer -->
+<!-- BEGIN: InteractiveScripts -->
+<script data-purpose="toggle-password-visibility">
+    document.addEventListener('DOMContentLoaded', function () {
+      const passwordInput = document.getElementById('password');
+      const toggleBtn = document.getElementById('togglePassword');
+      const eyeIcon = document.getElementById('eyeIcon');
+
+      if (toggleBtn && passwordInput) {
+        toggleBtn.addEventListener('click', function () {
+          const isPassword = passwordInput.getAttribute('type') === 'password';
+          passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+          
+          // Switch icon between open and slashed eye
+          if (isPassword) {
+            eyeIcon.innerHTML = `
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+            `;
+          } else {
+            eyeIcon.innerHTML = `
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            `;
+          }
+        });
+      }
+    });
+  </script>
+<!-- END: InteractiveScripts -->
+</body></html>

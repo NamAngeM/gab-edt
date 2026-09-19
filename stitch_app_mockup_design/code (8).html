@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+
+<html lang="fr"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"text-primary":"#0F172A","surface":"#FFFFFF","primary-fixed-dim":"#b4c5ff","text-muted":"#64748B","primary-container":"#2563eb","on-primary":"#ffffff","on-error":"#ffffff","on-tertiary":"#ffffff","secondary-container":"#76dcff","error":"#ba1a1a","danger":"#DC2626","inverse-on-surface":"#f0f0fb","surface-container-lowest":"#ffffff","border":"#E2E8F0","on-secondary-fixed":"#001f28","surface-container-low":"#f3f3fe","surface-tint":"#0053db","text-secondary":"#475569","success":"#16A34A","on-tertiary-fixed-variant":"#7d2d00","primary-light":"#EFF6FF","on-secondary":"#ffffff","on-surface":"#191b23","on-tertiary-container":"#ffede6","info":"#0891B2","surface-dim":"#d9d9e5","on-error-container":"#93000a","outline-variant":"#c3c6d7","inverse-surface":"#2e3039","primary":"#004ac6","on-background":"#191b23","primary-dark":"#1D4ED8","tertiary":"#943700","warning":"#D97706","on-primary-container":"#eeefff","on-primary-fixed-variant":"#003ea8","on-primary-fixed":"#00174b","surface-variant":"#e1e2ed","on-secondary-fixed-variant":"#004e61","secondary-fixed":"#b7eaff","primary-fixed":"#dbe1ff","error-container":"#ffdad6","surface-bright":"#faf8ff","surface-container":"#ededf9","on-secondary-container":"#006077","tertiary-fixed-dim":"#ffb596","secondary":"#006780","outline":"#737686","tertiary-fixed":"#ffdbcd","surface-container-high":"#e7e7f3","on-surface-variant":"#434655","inverse-primary":"#b4c5ff","on-tertiary-fixed":"#360f00","secondary-fixed-dim":"#6cd3f7","tertiary-container":"#bc4800","background":"#F8FAFC","surface-container-highest":"#e1e2ed"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-md":"0.75rem","space-sm":"0.5rem",gutter:"1rem","space-xs":"0.25rem","space-lg":"1rem","space-xl":"1.5rem",margin:"1.5rem"},fontFamily:{"headline-h4":["Inter"],"headline-h1":["Inter"],"badge-label":["Inter"],"body-lg":["Inter"],"body-md":["Inter"],small:["Inter"],"headline-h3":["Inter"],caption:["Inter"],"body-md-medium":["Inter"],"headline-h2":["Inter"],"display-lg":["Inter"]},fontSize:{"headline-h4":["18px",{lineHeight:"24px",fontWeight:"600"}],"headline-h1":["28px",{lineHeight:"36px",fontWeight:"600"}],"badge-label":["11px",{lineHeight:"14px",fontWeight:"600"}],"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"body-md":["14px",{lineHeight:"20px",fontWeight:"400"}],small:["13px",{lineHeight:"18px",fontWeight:"400"}],"headline-h3":["20px",{lineHeight:"28px",fontWeight:"600"}],caption:["12px",{lineHeight:"16px",fontWeight:"500"}],"body-md-medium":["14px",{lineHeight:"20px",fontWeight:"500"}],"headline-h2":["24px",{lineHeight:"32px",fontWeight:"600"}],"display-lg":["32px",{lineHeight:"40px",fontWeight:"700"}]}}}};</script></head><body class="bg-background font-body-md text-text-primary antialiased selection:bg-primary-light selection:text-primary"><aside class="fixed left-0 top-0 h-full w-[250px] bg-surface z-50 flex flex-col shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-space-lg flex items-center gap-space-sm bg-surface"><img alt="Logo GAB-EDT" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WUb8HKfKpS3X6gcCjE-bs2IbxPKrENI4nr-bCo2dknwf889JU9TtjKpmcLE2jABz-ZlLWkQxqRpNtCRnd4UWKXIX9jwKIz-zBrssx2UZLGHy5mfRFzqsYwttjfimm5VhWzio2SgOkmw2NlkyFU2Ay4oKvcXOfR1u4b9Gq0j1Z5PgUi1sxP8gpkafOY4vZU1_MQfTa69rYaqzF6-bdTpuwLygptWEn53SoLBWB2-sIe1mk0tjsl8fGeEHK2"/><div class="flex flex-col min-w-0"><span class="font-headline-h4 text-headline-h4 text-primary tracking-tight leading-none truncate">GAB-EDT</span><span class="font-caption text-caption text-text-muted leading-tight truncate">Planning Supérieur</span></div></div><div class="flex-1 overflow-y-auto px-space-md py-space-sm space-y-space-md"><nav class="space-y-space-xs" data-active-classes="bg-primary-light text-primary font-body-md-medium rounded-lg"><div class="px-space-sm py-space-xs font-caption text-caption text-text-muted uppercase tracking-wider">Principal</div><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-space-xs transition-colors bg-primary-light text-primary font-body-md-medium rounded-lg" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[20px]">space_dashboard</span><span class="font-body-md text-body-md truncate">Tableau de bord</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="emploi-du-temps" href="#"><span class="material-symbols-outlined text-[20px]">calendar_month</span><span class="font-body-md text-body-md truncate">Emploi du temps</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="cours-et-seances" href="#"><span class="material-symbols-outlined text-[20px]">auto_stories</span><span class="font-body-md text-body-md truncate">Cours & Séances</span></a><a class="flex items-center justify-between px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="gestion-des-conflits" href="#"><div class="flex items-center gap-space-sm min-w-0"><span class="material-symbols-outlined text-[20px]">warning</span><span class="font-body-md text-body-md truncate">Conflits</span></div><span class="bg-error text-on-error font-badge-label text-badge-label px-space-xs py-0.5 rounded-full">3</span></a><div class="pt-space-sm px-space-sm py-space-xs font-caption text-caption text-text-muted uppercase tracking-wider">Organisation académique</div><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="facultes-et-departements" href="#"><span class="material-symbols-outlined text-[20px]">apartment</span><span class="font-body-md text-body-md truncate">Facultés & Départements</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="formations-et-niveaux" href="#"><span class="material-symbols-outlined text-[20px]">school</span><span class="font-body-md text-body-md truncate">Formations & Niveaux</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="promotions-et-groupes" href="#"><span class="material-symbols-outlined text-[20px]">group_work</span><span class="font-body-md text-body-md truncate">Promotions & Groupes</span></a><div class="pt-space-sm px-space-sm py-space-xs font-caption text-caption text-text-muted uppercase tracking-wider">Ressources</div><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="enseignants-et-intervenants" href="#"><span class="material-symbols-outlined text-[20px]">badge</span><span class="font-body-md text-body-md truncate">Enseignants</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="etudiants-et-eleves" href="#"><span class="material-symbols-outlined text-[20px]">groups</span><span class="font-body-md text-body-md truncate">Étudiants</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="matieres-et-modules" href="#"><span class="material-symbols-outlined text-[20px]">menu_book</span><span class="font-body-md text-body-md truncate">Matières & Modules</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="salles-et-equipements" href="#"><span class="material-symbols-outlined text-[20px]">meeting_room</span><span class="font-body-md text-body-md truncate">Salles & Équipements</span></a><div class="pt-space-sm px-space-sm py-space-xs font-caption text-caption text-text-muted uppercase tracking-wider">Évaluations & Examens</div><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="sessions-d-examens" href="#"><span class="material-symbols-outlined text-[20px]">edit_calendar</span><span class="font-body-md text-body-md truncate">Sessions d'examens</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="soutenances-stages-pfe" href="#"><span class="material-symbols-outlined text-[20px]">co_present</span><span class="font-body-md text-body-md truncate">Soutenances PFE</span></a><div class="pt-space-sm px-space-sm py-space-xs font-caption text-caption text-text-muted uppercase tracking-wider">Échange de données</div><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="import-excel-csv" href="#"><span class="material-symbols-outlined text-[20px]">upload_file</span><span class="font-body-md text-body-md truncate">Import Excel / CSV</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="export-affichage-tv" href="#"><span class="material-symbols-outlined text-[20px]">tv</span><span class="font-body-md text-body-md truncate">Export & Affichage TV</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="qr-codes-planning" href="#"><span class="material-symbols-outlined text-[20px]">qr_code_2</span><span class="font-body-md text-body-md truncate">QR Codes</span></a><div class="pt-space-sm px-space-sm py-space-xs font-caption text-caption text-text-muted uppercase tracking-wider">Administration</div><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="parametres-et-roles" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span class="font-body-md text-body-md truncate">Paramètres & Rôles</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="journal-d-audit" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span><span class="font-body-md text-body-md truncate">Journal d'audit</span></a></nav></div><div class="p-space-md bg-surface-container-low/60 mx-space-md mb-space-md rounded-xl space-y-space-xs"><div class="flex items-center justify-between"><span class="flex items-center gap-1.5 font-caption text-caption text-text-secondary"><span class="w-2 h-2 rounded-full bg-success inline-block"></span>En ligne</span><span class="font-badge-label text-badge-label bg-surface px-space-xs py-0.5 rounded text-text-muted shadow-[0_1px_8px_rgba(0,0,0,0.04)]">S38 Publié</span></div><div class="font-caption text-caption text-text-muted truncate">Synchronisé à l'instant</div></div></aside><div class="pl-[250px]"><header class="fixed top-0 left-[250px] right-0 h-16 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-space-lg flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md min-w-0"><button class="flex items-center gap-space-xs px-space-md py-space-xs bg-surface-container-low hover:bg-surface-container text-text-primary rounded-lg transition-colors text-left" type="button"><span class="material-symbols-outlined text-[18px] text-primary">account_balance</span><div class="flex flex-col min-w-0 max-w-[260px]"><span class="font-caption text-caption text-text-muted leading-none truncate">Établissement actif</span><span class="font-body-md-medium text-body-md-medium text-text-primary leading-tight truncate">Univ. Omar Bongo — Sciences</span></div><span class="material-symbols-outlined text-[18px] text-text-muted">unfold_more</span></button><div class="hidden xl:flex items-center gap-1.5 px-space-sm py-1 bg-surface-container-low text-text-secondary rounded-full font-caption text-caption"><span class="material-symbols-outlined text-[16px] text-primary">event</span><span>2026–2027 • Semestre 1</span></div></div><div class="flex items-center gap-space-md"><div class="relative hidden md:block w-72 lg:w-96"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-text-muted pointer-events-none">search</span><input class="w-full h-10 pl-9 pr-12 bg-surface-container-low text-text-primary placeholder:text-text-muted font-body-md text-body-md rounded-lg focus:outline-none focus:bg-surface focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Rechercher matière, enseignant, salle, classe..." type="text"/><span class="absolute right-2.5 top-1/2 -translate-y-1/2 font-badge-label text-badge-label text-text-muted bg-surface px-1.5 py-0.5 rounded shadow-[0_1px_8px_rgba(0,0,0,0.04)]">⌘K</span></div><div class="flex items-center gap-space-xs"><button aria-label="Centre d'aide" class="w-10 h-10 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-container-low transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">help_outline</span></button><button aria-label="Notifications" class="relative w-10 h-10 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-container-low transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-danger ring-2 ring-surface"></span></button></div><div class="flex items-center gap-space-sm pl-space-sm"><div class="text-right hidden sm:block"><div class="font-body-md-medium text-body-md-medium text-text-primary leading-tight truncate max-w-[150px]">Dr. Eleanor Vance</div><div class="font-caption text-caption text-text-muted leading-none truncate max-w-[150px]">Directrice des Études</div></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDe4c-MlJsnIh5EzqlMzTRVSdVINHIfq1SUnw7ssD_THwh4q15CMCqQA9Ffqkpy5hXh5Itu28B8CujFxN3SqSIlB8-hrBmntEBSk8pfI1Fus9PsaIsagtNbVYnMvXbQ1YF9l2gzFaEy0YF4dpLQ623KOBd9hHnt45zg9Umsv8VWe7nXmOhL7kV-6KNgIshq9MzcRRDr2iC5pEvQnFXGzzVCN71FGq6XjgWnDSLyAz5gDbIGuB5-OIUS9Q"/></div></div></header><main class="w-full pt-16 bg-background px-margin min-h-screen"><div class="flex flex-col w-full pb-space-xl">
+<!-- Top Welcome & Fast Dispatch Actions Bar -->
+<div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-space-lg mb-space-lg py-space-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-space-xs">
+<span class="font-display-lg text-display-lg tracking-tight text-text-primary">Bonjour, Dr. Vance</span>
+<span class="inline-block text-2xl origin-bottom-right hover:rotate-12 transition-transform duration-200">👋</span>
+<span class="ml-space-sm bg-primary-light text-primary font-badge-label text-badge-label px-2.5 py-1 rounded-full uppercase tracking-wider">Faculté des Sciences</span>
+</div>
+<p class="font-body-md text-body-md text-text-muted">
+        Voici l'activité académique, les flux d'occupation et l'état de planification opérationnelle de la faculté en temps réel.
+      </p>
+</div>
+<!-- CTAs without borders, using clean elevation and background shifts -->
+<div class="flex flex-wrap items-center gap-space-sm">
+<button class="inline-flex items-center gap-2 px-space-md py-2.5 bg-surface text-text-secondary hover:bg-surface-container-low hover:text-text-primary rounded-lg font-body-md-medium text-body-md-medium shadow-sm transition-all duration-150" type="button">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+<span>Rapport hebdomadaire</span>
+</button>
+<button class="inline-flex items-center gap-2 px-space-md py-2.5 bg-surface text-text-secondary hover:bg-surface-container-low hover:text-text-primary rounded-lg font-body-md-medium text-body-md-medium shadow-sm transition-all duration-150" type="button">
+<span class="material-symbols-outlined text-[18px]">upload_file</span>
+<span>Importer EDT</span>
+</button>
+<button class="inline-flex items-center gap-2 px-space-lg py-2.5 bg-primary-container text-on-primary hover:bg-primary-dark rounded-lg font-body-md-medium text-body-md-medium shadow-md hover:shadow-lg transition-all duration-150" type="button">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+<span>Planifier un cours</span>
+</button>
+</div>
+</div>
+<!-- Key Statistics Strip: 6 Cards Bento Metric Overview -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-gutter mb-space-xl">
+<!-- KPI 1 -->
+<div class="bg-surface rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider">Séances S38</span>
+<span class="p-1.5 rounded-lg bg-primary-light text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">event_note</span>
+</span>
+</div>
+<div class="my-space-xs">
+<div class="font-headline-h1 text-headline-h1 text-text-primary">342</div>
+<div class="font-caption text-caption text-text-muted">cours cette semaine</div>
+</div>
+<div class="flex items-center gap-1 font-badge-label text-badge-label text-success">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+<span>+12% vs S37</span>
+</div>
+</div>
+<!-- KPI 2: Alert State -->
+<div class="bg-surface rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider">Conflits</span>
+<span class="p-1.5 rounded-lg bg-error-container text-danger flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">warning</span>
+</span>
+</div>
+<div class="my-space-xs">
+<div class="font-headline-h1 text-headline-h1 text-danger">3</div>
+<div class="font-caption text-caption text-text-muted">chevauchements</div>
+</div>
+<div class="inline-flex items-center gap-1 font-badge-label text-badge-label text-on-error bg-danger px-2 py-0.5 rounded-full w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-surface animate-pulse"></span>
+<span>Action requise</span>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-surface rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider">Occupation</span>
+<span class="p-1.5 rounded-lg bg-surface-container-low text-success flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">door_front</span>
+</span>
+</div>
+<div class="my-space-xs">
+<div class="font-headline-h1 text-headline-h1 text-text-primary">84%</div>
+<div class="font-caption text-caption text-text-muted">salles mobilisées</div>
+</div>
+<div class="flex items-center gap-1 font-badge-label text-badge-label text-success">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>Régime optimal</span>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-surface rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider">Enseignants</span>
+<span class="p-1.5 rounded-lg bg-surface-container-low text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">badge</span>
+</span>
+</div>
+<div class="my-space-xs">
+<div class="font-headline-h1 text-headline-h1 text-text-primary">68<span class="text-headline-h4 text-text-muted">/72</span></div>
+<div class="font-caption text-caption text-text-muted">disponibles sur site</div>
+</div>
+<div class="flex items-center gap-1 font-badge-label text-badge-label text-text-muted">
+<span>4 congés / délégations</span>
+</div>
+</div>
+<!-- KPI 5 -->
+<div class="bg-surface rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider">Effectif</span>
+<span class="p-1.5 rounded-lg bg-surface-container-low text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">groups</span>
+</span>
+</div>
+<div class="my-space-xs">
+<div class="font-headline-h1 text-headline-h1 text-text-primary">1 450</div>
+<div class="font-caption text-caption text-text-muted">apprenants actifs</div>
+</div>
+<div class="flex items-center gap-1 font-badge-label text-badge-label text-text-secondary">
+<span>Licences & Masters</span>
+</div>
+</div>
+<!-- KPI 6 -->
+<div class="bg-surface rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider">Ajustements</span>
+<span class="p-1.5 rounded-lg bg-surface-container-low text-warning flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">published_with_changes</span>
+</span>
+</div>
+<div class="my-space-xs">
+<div class="font-headline-h1 text-headline-h1 text-text-primary">14</div>
+<div class="font-caption text-caption text-text-muted">réaménagés (24h)</div>
+</div>
+<div class="flex items-center gap-1 font-badge-label text-badge-label text-warning">
+<span>3 en attente validation</span>
+</div>
+</div>
+</div>
+<!-- Central Workframe: 2-Column Split (2/3 and 1/3) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-margin">
+<!-- LEFT COLUMN (8 cols out of 12) -->
+<div class="lg:col-span-8 flex flex-col gap-space-lg">
+<!-- Today's Live Schedule Radar -->
+<div class="bg-surface rounded-xl p-space-lg shadow-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm mb-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-success animate-ping"></div>
+<div>
+<h2 class="font-headline-h3 text-headline-h3 text-text-primary">Aperçu du planning du jour</h2>
+<span class="font-caption text-caption text-text-muted">Mardi 15 Septembre 2026 • 24 salles en activité simultanée</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low p-1 rounded-lg">
+<button class="px-2.5 py-1 rounded bg-surface text-primary shadow-xs font-caption text-caption">Tous</button>
+<button class="px-2.5 py-1 rounded text-text-muted hover:text-text-primary font-caption text-caption">Amphis</button>
+<button class="px-2.5 py-1 rounded text-text-muted hover:text-text-primary font-caption text-caption">Labos Info</button>
+<button class="px-2.5 py-1 rounded text-text-muted hover:text-text-primary font-caption text-caption">TD Sciences</button>
+</div>
+</div>
+<!-- Horizontal Timeline Bar & Schedule Slots -->
+<div class="overflow-x-auto pb-space-xs">
+<div class="min-w-[620px] space-y-space-sm">
+<!-- Time axis marker -->
+<div class="grid grid-cols-6 text-center font-caption text-caption text-text-muted bg-surface-container-low/80 py-1.5 rounded-lg">
+<span>08h00 - 10h00</span>
+<span>10h00 - 12h00</span>
+<span>12h00 - 14h00</span>
+<span class="text-primary font-body-md-medium">14h00 - 16h00 (Actuel)</span>
+<span>16h00 - 18h00</span>
+<span>18h00 - 20h00</span>
+</div>
+<!-- Track 1: Amphi A (Sciences) -->
+<div class="p-space-sm bg-surface-container-low rounded-lg flex items-center gap-space-md">
+<div class="w-32 shrink-0">
+<div class="font-body-md-medium text-body-md-medium text-text-primary">Amphi Vion</div>
+<div class="font-caption text-caption text-text-muted">Capacité 250 pl.</div>
+</div>
+<div class="flex-1 grid grid-cols-6 gap-2">
+<div class="col-span-2 bg-primary-light p-2 rounded-lg text-primary">
+<div class="font-badge-label text-badge-label font-semibold truncate">CM Algèbre Linéaire</div>
+<div class="font-caption text-caption text-text-secondary truncate">L1 Math-Info • Pr. Ondo</div>
+</div>
+<div class="col-span-1 bg-surface-container rounded-lg p-2 flex items-center justify-center text-text-muted font-caption text-caption">
+                  Pause
+                </div>
+<div class="col-span-2 bg-primary p-2 rounded-lg text-on-primary shadow-sm">
+<div class="font-badge-label text-badge-label font-semibold truncate">CM Électromagnétisme</div>
+<div class="font-caption text-caption text-primary-fixed truncate">L2 Physique • Dr. Vance</div>
+</div>
+<div class="col-span-1 bg-surface-container-high rounded-lg p-2 flex items-center justify-center text-text-muted font-caption text-caption">
+                  Libre
+                </div>
+</div>
+</div>
+<!-- Track 2: Lab Info B201 -->
+<div class="p-space-sm bg-surface-container-low rounded-lg flex items-center gap-space-md">
+<div class="w-32 shrink-0">
+<div class="font-body-md-medium text-body-md-medium text-text-primary">Labo Info B201</div>
+<div class="font-caption text-caption text-text-muted">Capacité 45 postes</div>
+</div>
+<div class="flex-1 grid grid-cols-6 gap-2">
+<div class="col-span-1 bg-surface-container rounded-lg p-2 flex items-center justify-center text-text-muted font-caption text-caption">
+                  Maintenance
+                </div>
+<div class="col-span-2 bg-secondary-fixed/40 p-2 rounded-lg text-text-primary">
+<div class="font-badge-label text-badge-label font-semibold text-secondary truncate">TP Réseaux Cisco</div>
+<div class="font-caption text-caption text-text-secondary truncate">M1 Télécom • Ing. Kombila</div>
+</div>
+<div class="col-span-2 bg-secondary-fixed/40 p-2 rounded-lg text-text-primary">
+<div class="font-badge-label text-badge-label font-semibold text-secondary truncate">TP Systèmes Distribués</div>
+<div class="font-caption text-caption text-text-secondary truncate">L3 INFO Gr. A • M. Bekale</div>
+</div>
+<div class="col-span-1 bg-surface-container rounded-lg p-2 flex items-center justify-center text-text-muted font-caption text-caption">
+                  Libre
+                </div>
+</div>
+</div>
+<!-- Track 3: Salle B204 (Active Conflict visualization) -->
+<div class="p-space-sm bg-error-container/40 rounded-lg flex items-center gap-space-md">
+<div class="w-32 shrink-0">
+<div class="font-body-md-medium text-body-md-medium text-danger flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">error</span>
+<span>Salle B204</span>
+</div>
+<div class="font-caption text-caption text-danger">Capacité 60 pl.</div>
+</div>
+<div class="flex-1 grid grid-cols-6 gap-2">
+<div class="col-span-3 bg-surface p-2 rounded-lg text-text-secondary">
+<div class="font-badge-label text-badge-label font-semibold truncate">TD Analyse Numérique</div>
+<div class="font-caption text-caption text-text-muted truncate">L2 MATH • Dr. Assoumou</div>
+</div>
+<div class="col-span-2 bg-danger text-on-error p-2 rounded-lg shadow-sm animate-pulse">
+<div class="font-badge-label text-badge-label font-semibold flex items-center gap-1 truncate">
+<span class="material-symbols-outlined text-[14px]">report</span>
+                    CONFLIT 2 COURS
+                  </div>
+<div class="font-caption text-caption text-on-error truncate">L2 Info & L3 Info</div>
+</div>
+<div class="col-span-1 bg-surface-container rounded-lg p-2 flex items-center justify-center text-text-muted font-caption text-caption">
+                  Libre
+                </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Critical Conflicts Resolution Board -->
+<div class="bg-surface rounded-xl p-space-lg shadow-sm">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="p-2 rounded-lg bg-error-container text-danger">
+<span class="material-symbols-outlined text-[22px]">notification_important</span>
+</span>
+<div>
+<h3 class="font-headline-h3 text-headline-h3 text-text-primary">Conflits et Alertes Critiques</h3>
+<p class="font-caption text-caption text-text-muted">Interférences d'horaires et réservations concurrentes nécessitant arbitrage immédiat.</p>
+</div>
+</div>
+<span class="bg-danger text-on-error font-badge-label text-badge-label px-3 py-1 rounded-full uppercase">3 alertes actives</span>
+</div>
+<div class="space-y-space-sm">
+<!-- Conflict Card 1 (Major) -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-md hover:bg-surface-container transition-colors">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-danger/10 text-danger flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[22px]">meeting_room</span>
+</div>
+<div class="space-y-1">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-body-md-medium text-body-md-medium text-text-primary font-semibold">Salle B204 — Bâtiment Info</span>
+<span class="bg-error-container text-danger font-badge-label text-badge-label px-2 py-0.5 rounded">Mardi 14h00 - 16h00</span>
+<span class="bg-surface text-text-muted font-caption text-caption px-2 py-0.5 rounded">Chevauchement physique</span>
+</div>
+<p class="font-caption text-caption text-text-secondary">
+                  Double assignation détectée : <strong class="text-text-primary">L2 INFO (Base de Données — Dr. MBO)</strong> et <strong class="text-text-primary">L3 INFO (Génie Logiciel — Pr. NGUEMA)</strong>.
+                </p>
+<div class="font-caption text-caption text-text-muted flex items-center gap-3">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span> Détecté il y a 42 min</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">lightbulb</span> Suggestion : Basculer Dr. MBO en Salle C102 (disponible)</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0 self-end md:self-center">
+<button class="px-3 py-2 bg-surface text-text-secondary hover:text-text-primary hover:bg-surface-container-high rounded-lg font-caption text-caption transition-colors">
+                Examiner
+              </button>
+<button class="px-3.5 py-2 bg-primary-container text-on-primary hover:bg-primary-dark rounded-lg font-body-md-medium text-body-md-medium shadow-sm transition-all flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+<span>Résoudre en 1 clic</span>
+</button>
+</div>
+</div>
+<!-- Conflict Card 2 -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-md hover:bg-surface-container transition-colors">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-warning/10 text-warning flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[22px]">person_off</span>
+</div>
+<div class="space-y-1">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-body-md-medium text-body-md-medium text-text-primary font-semibold">Dr. Assoumou (Physique Ondulatoire)</span>
+<span class="bg-surface-container-high text-text-secondary font-badge-label text-badge-label px-2 py-0.5 rounded">Jeudi 08h00 - 10h00</span>
+<span class="bg-warning/20 text-warning font-badge-label text-badge-label px-2 py-0.5 rounded">Enseignant en double créneau</span>
+</div>
+<p class="font-caption text-caption text-text-secondary">
+                  Assigné simultanément en <strong class="text-text-primary">Amphi Vion (L1 Bio)</strong> et en <strong class="text-text-primary">Salle D04 (L2 Physique)</strong>.
+                </p>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0 self-end md:self-center">
+<button class="px-3 py-2 bg-surface text-text-secondary hover:text-text-primary hover:bg-surface-container-high rounded-lg font-caption text-caption transition-colors">
+                Examiner
+              </button>
+<button class="px-3.5 py-2 bg-surface text-primary hover:bg-primary-light rounded-lg font-body-md-medium text-body-md-medium transition-colors flex items-center gap-1.5">
+<span>Remplacer créneau</span>
+</button>
+</div>
+</div>
+<!-- Conflict Card 3 -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-md hover:bg-surface-container transition-colors">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-info/10 text-info flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[22px]">group_remove</span>
+</div>
+<div class="space-y-1">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-body-md-medium text-body-md-medium text-text-primary font-semibold">Capacité Salle Insuffisante (C02)</span>
+<span class="bg-surface-container-high text-text-secondary font-badge-label text-badge-label px-2 py-0.5 rounded">Vendredi 10h00 - 12h00</span>
+<span class="bg-info/20 text-info font-badge-label text-badge-label px-2 py-0.5 rounded">Surcharge 130%</span>
+</div>
+<p class="font-caption text-caption text-text-secondary">
+                  Promotion L1 Chimie (78 inscrits) assignée dans une salle de 55 places.
+                </p>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0 self-end md:self-center">
+<button class="px-3.5 py-2 bg-surface text-primary hover:bg-primary-light rounded-lg font-body-md-medium text-body-md-medium transition-colors flex items-center gap-1.5">
+<span>Basculer Amphi B</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Occupancy by Campus Wings (Bar & Donut Visuals) -->
+<div class="bg-surface rounded-xl p-space-lg shadow-sm">
+<div class="flex items-center justify-between mb-space-md">
+<div>
+<h3 class="font-headline-h3 text-headline-h3 text-text-primary">Taux d'occupation par bâtiment</h3>
+<p class="font-caption text-caption text-text-muted">Répartition spatiale instantanée sur le campus Faculté des Sciences</p>
+</div>
+<span class="font-caption text-caption text-primary bg-primary-light px-2.5 py-1 rounded-full">Capacité globale : 2 400 places</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Building 1 -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between">
+<div class="flex items-center justify-between mb-space-sm">
+<div>
+<span class="font-body-md-medium text-body-md-medium text-text-primary">Bâtiment Sciences A</span>
+<p class="font-caption text-caption text-text-muted">18 Salles • TD & Labos</p>
+</div>
+<span class="font-headline-h4 text-headline-h4 text-text-primary">91%</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-high overflow-hidden my-space-xs">
+<div class="h-full bg-primary-container rounded-full" style="width: 91%"></div>
+</div>
+<div class="flex justify-between font-caption text-caption text-text-muted mt-space-xs">
+<span>16 occupées</span>
+<span class="text-success font-medium">2 libres</span>
+</div>
+</div>
+<!-- Building 2 -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between">
+<div class="flex items-center justify-between mb-space-sm">
+<div>
+<span class="font-body-md-medium text-body-md-medium text-text-primary">Bâtiment Info B</span>
+<p class="font-caption text-caption text-text-muted">12 Labos & Postes TP</p>
+</div>
+<span class="font-headline-h4 text-headline-h4 text-text-primary">82%</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-high overflow-hidden my-space-xs">
+<div class="h-full bg-info rounded-full" style="width: 82%"></div>
+</div>
+<div class="flex justify-between font-caption text-caption text-text-muted mt-space-xs">
+<span>10 occupées</span>
+<span class="text-success font-medium">2 libres</span>
+</div>
+</div>
+<!-- Building 3 -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between">
+<div class="flex items-center justify-between mb-space-sm">
+<div>
+<span class="font-body-md-medium text-body-md-medium text-text-primary">Amphithéâtres</span>
+<p class="font-caption text-caption text-text-muted">4 Grands Amphis (A, B, Vion, P2)</p>
+</div>
+<span class="font-headline-h4 text-headline-h4 text-text-primary">75%</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-high overflow-hidden my-space-xs">
+<div class="h-full bg-warning rounded-full" style="width: 75%"></div>
+</div>
+<div class="flex justify-between font-caption text-caption text-text-muted mt-space-xs">
+<span>3 en cours</span>
+<span class="text-success font-medium">1 libre (Amphi B)</span>
+</div>
+</div>
+</div>
+<!-- Campus visual card with photographic texture -->
+<div class="relative rounded-xl overflow-hidden mt-space-md h-36 flex items-end p-space-md">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="Modern university campus building for Faculty of Science at Omar Bongo University with tropical trees, glass architectural windows, African sun, students walking outside, clean high-tech institutional style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUWneIuuMnHRBjPqSJ3wx8-CjfDkRinZQAknerKARM8W26-iC1YYeSaK46P9mNT6mAQ4FssCFhK90WdRgQbW4zQS5ZdjDMmOU-gvXvYPhw_Ouu0EhEp5MyUqb6pkpb4OLB3IbRm33q0SupB46q3cI76N-Bzu0xv7j5ogvx39hcKh4edUr8qnDMP2Wr6ZzJYT2y5kKOABeauYOK92dnzLG3rGbiZriLslAhMn7y2j6PASILzD1MClWlvQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-text-primary/80 via-text-primary/30 to-transparent"></div>
+<div class="relative z-10 flex items-center justify-between w-full text-surface">
+<div>
+<div class="font-body-md-medium text-body-md-medium text-surface">Campus Mont-Bouët — Faculté des Sciences</div>
+<div class="font-caption text-caption text-surface/80">35 salles connectées IoT & bornes d'affichage synchronisées</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-success"></span>
+<span class="font-badge-label text-badge-label uppercase text-surface">Affichage dynamique actif</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN (4 cols out of 12) -->
+<div class="lg:col-span-4 flex flex-col gap-space-lg">
+<!-- Recent Dispatch Feed -->
+<div class="bg-surface rounded-xl p-space-lg shadow-sm">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">history</span>
+<h3 class="font-headline-h4 text-headline-h4 text-text-primary">Flux d'activité récente</h3>
+</div>
+<a class="font-caption text-caption text-primary hover:underline" href="#">Voir tout</a>
+</div>
+<div class="space-y-space-md relative before:absolute before:top-3 before:bottom-3 before:left-3.5 before:w-0.5 before:bg-surface-container-high">
+<!-- Feed Item 1 -->
+<div class="flex items-start gap-space-md relative">
+<span class="w-7 h-7 rounded-full bg-primary-light text-primary flex items-center justify-center shrink-0 z-10 shadow-xs">
+<span class="material-symbols-outlined text-[14px]">edit_calendar</span>
+</span>
+<div class="space-y-0.5 min-w-0">
+<p class="font-body-md text-body-md text-text-primary leading-tight">
+<strong>Pr. Bertin</strong> a déplacé <span class="text-primary font-medium">TD ELC4</span> en <strong>Salle C01</strong>.
+              </p>
+<div class="font-caption text-caption text-text-muted">Il y a 14 minutes • Notifié aux étudiants</div>
+</div>
+</div>
+<!-- Feed Item 2 -->
+<div class="flex items-start gap-space-md relative">
+<span class="w-7 h-7 rounded-full bg-success/10 text-success flex items-center justify-center shrink-0 z-10 shadow-xs">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+</span>
+<div class="space-y-0.5 min-w-0">
+<p class="font-body-md text-body-md text-text-primary leading-tight">
+                Validation de la réservation <strong>Amphi Vion</strong> pour soutenance PFE.
+              </p>
+<div class="font-caption text-caption text-text-muted">Il y a 45 minutes • Par Scolarité Centrale</div>
+</div>
+</div>
+<!-- Feed Item 3 -->
+<div class="flex items-start gap-space-md relative">
+<span class="w-7 h-7 rounded-full bg-secondary-fixed/50 text-secondary flex items-center justify-center shrink-0 z-10 shadow-xs">
+<span class="material-symbols-outlined text-[14px]">upload_file</span>
+</span>
+<div class="space-y-0.5 min-w-0">
+<p class="font-body-md text-body-md text-text-primary leading-tight">
+                Import CSV de la <strong>maquette S39</strong> terminé avec succès.
+              </p>
+<div class="font-caption text-caption text-text-muted">Il y a 2 heures • 280 créneaux injectés</div>
+</div>
+</div>
+<!-- Feed Item 4 -->
+<div class="flex items-start gap-space-md relative">
+<span class="w-7 h-7 rounded-full bg-warning/10 text-warning flex items-center justify-center shrink-0 z-10 shadow-xs">
+<span class="material-symbols-outlined text-[14px]">swap_horiz</span>
+</span>
+<div class="space-y-0.5 min-w-0">
+<p class="font-body-md text-body-md text-text-primary leading-tight">
+                Permutation horaire demandée par <strong>Dr. Moughenda</strong>.
+              </p>
+<div class="font-caption text-caption text-text-muted">Il y a 3 heures • En attente de validation</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pending Replacements & Availabilities Widget -->
+<div class="bg-surface rounded-xl p-space-lg shadow-sm">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-warning text-[20px]">person_pin</span>
+<h3 class="font-headline-h4 text-headline-h4 text-text-primary">Remplacements en attente</h3>
+</div>
+<span class="font-badge-label text-badge-label bg-warning/15 text-warning px-2 py-0.5 rounded-full">2 requêtes</span>
+</div>
+<div class="space-y-space-sm">
+<!-- Replacement Request 1 -->
+<div class="p-space-sm bg-surface-container-low rounded-xl space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-caption text-caption text-danger font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-danger"></span>
+                Absence signalée (Dr. Nze)
+              </span>
+<span class="font-caption text-caption text-text-muted">Mercredi 10h</span>
+</div>
+<div class="font-body-md-medium text-body-md-medium text-text-primary">
+              CM Biochimie Fondamentale (L2 SVT)
+            </div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-caption text-caption text-text-muted">Remplaçant suggéré : <strong>Dr. Koumba</strong></span>
+<button class="px-2.5 py-1 bg-surface hover:bg-primary-light text-primary rounded-lg font-caption text-caption transition-colors">
+                Assigner
+              </button>
+</div>
+</div>
+<!-- Replacement Request 2 -->
+<div class="p-space-sm bg-surface-container-low rounded-xl space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-caption text-caption text-warning font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-warning"></span>
+                Délégation officielle (Pr. Essono)
+              </span>
+<span class="font-caption text-caption text-text-muted">Jeudi 14h</span>
+</div>
+<div class="font-body-md-medium text-body-md-medium text-text-primary">
+              TD Optique Quantique (M1 Physique)
+            </div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-caption text-caption text-text-muted">Remplaçant suggéré : <strong>Dr. Mboumba</strong></span>
+<button class="px-2.5 py-1 bg-surface hover:bg-primary-light text-primary rounded-lg font-caption text-caption transition-colors">
+                Assigner
+              </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Broadcast & Publishing Tools (Affichage TV & QR Codes) -->
+<div class="bg-surface rounded-xl p-space-lg shadow-sm space-y-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">send_to_mobile</span>
+<h3 class="font-headline-h4 text-headline-h4 text-text-primary">Diffusion & Affichage</h3>
+</div>
+<!-- TV Broadcast Fast Action -->
+<a class="group p-space-sm bg-surface-container-low hover:bg-primary-light rounded-xl flex items-center justify-between transition-all" href="#">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface text-primary flex items-center justify-center shadow-xs group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">tv</span>
+</div>
+<div>
+<div class="font-body-md-medium text-body-md-medium text-text-primary group-hover:text-primary">Exporter affichage TV halls</div>
+<div class="font-caption text-caption text-text-muted">4 écrans connectés aux entrées A & B</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-text-muted group-hover:text-primary group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+</a>
+<!-- QR Code Batch Download Fast Action -->
+<a class="group p-space-sm bg-surface-container-low hover:bg-primary-light rounded-xl flex items-center justify-between transition-all" href="#">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface text-primary flex items-center justify-center shadow-xs group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+</div>
+<div>
+<div class="font-body-md-medium text-body-md-medium text-text-primary group-hover:text-primary">Télécharger QR Codes des salles</div>
+<div class="font-caption text-caption text-text-muted">Planches PDF prêtes pour impression porte</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-text-muted group-hover:text-primary group-hover:translate-x-0.5 transition-transform">download</span>
+</a>
+<!-- Department Coordinator Mini Snapshot -->
+<div class="p-space-sm rounded-xl bg-surface-container flex items-center gap-space-sm">
+<img class="w-10 h-10 rounded-full object-cover shrink-0" data-alt="Portrait photo of a distinguished Gabonese university faculty dean smiling in front of university library books, high resolution, soft warm studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwqDvO0DjxANfcMeqt8H83Gnxa82H4YjcuUitSzMRpKGdZ569juGzkUMG8brneboPmYyiP1nz2IpnByH19XXBkp03HMFPhXKEOAZu3bxJatGAxO0SxUKN9JyYQXclM3chiPw8Jday_ARfQZC-I3uoyxJOLnH2TRjcRKMPkzEv6X9eHu_sxPNfLb4lYaVOn1JmgexiXsNJ6VKnuNQzM1ItXSNB67N4X7qSDzP-rBtKyCFs0jyYK99SQXQ"/>
+<div class="min-w-0">
+<div class="font-caption text-caption text-text-muted">Permanence Doyen Sciences :</div>
+<div class="font-body-md-medium text-body-md-medium text-text-primary truncate">Pr. Marc-Arthur Nguema</div>
+<div class="font-caption text-caption text-success">Bureau décanal ouvert jusqu'à 17h30</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Simple micro-interaction for one-click resolution feedback
+  document.querySelectorAll('button').forEach(btn => {
+    if (btn.textContent.includes('Résoudre en 1 clic')) {
+      btn.addEventListener('click', function() {
+        const originalText = this.innerHTML;
+        this.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span> Résolution...';
+        this.classList.add('opacity-80');
+        setTimeout(() => {
+          this.innerHTML = '<span class="material-symbols-outlined text-[16px]">done</span> Résolu !';
+          this.classList.remove('bg-primary-container', 'hover:bg-primary-dark');
+          this.classList.add('bg-success', 'text-on-primary');
+          const card = this.closest('.bg-surface-container-low');
+          if (card) {
+            card.classList.add('opacity-50', 'transition-opacity');
+          }
+        }, 800);
+      });
+    }
+  });
+</script></main></div></body></html>

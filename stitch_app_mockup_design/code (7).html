@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+
+<html lang="fr"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"text-primary":"#0F172A","surface":"#FFFFFF","primary-fixed-dim":"#b4c5ff","text-muted":"#64748B","primary-container":"#2563eb","on-primary":"#ffffff","on-error":"#ffffff","on-tertiary":"#ffffff","secondary-container":"#76dcff","error":"#ba1a1a","danger":"#DC2626","inverse-on-surface":"#f0f0fb","surface-container-lowest":"#ffffff","border":"#E2E8F0","on-secondary-fixed":"#001f28","surface-container-low":"#f3f3fe","surface-tint":"#0053db","text-secondary":"#475569","success":"#16A34A","on-tertiary-fixed-variant":"#7d2d00","primary-light":"#EFF6FF","on-secondary":"#ffffff","on-surface":"#191b23","on-tertiary-container":"#ffede6","info":"#0891B2","surface-dim":"#d9d9e5","on-error-container":"#93000a","outline-variant":"#c3c6d7","inverse-surface":"#2e3039","primary":"#004ac6","on-background":"#191b23","primary-dark":"#1D4ED8","tertiary":"#943700","warning":"#D97706","on-primary-container":"#eeefff","on-primary-fixed-variant":"#003ea8","on-primary-fixed":"#00174b","surface-variant":"#e1e2ed","on-secondary-fixed-variant":"#004e61","secondary-fixed":"#b7eaff","primary-fixed":"#dbe1ff","error-container":"#ffdad6","surface-bright":"#faf8ff","surface-container":"#ededf9","on-secondary-container":"#006077","tertiary-fixed-dim":"#ffb596","secondary":"#006780","outline":"#737686","tertiary-fixed":"#ffdbcd","surface-container-high":"#e7e7f3","on-surface-variant":"#434655","inverse-primary":"#b4c5ff","on-tertiary-fixed":"#360f00","secondary-fixed-dim":"#6cd3f7","tertiary-container":"#bc4800","background":"#F8FAFC","surface-container-highest":"#e1e2ed"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-md":"0.75rem","space-sm":"0.5rem",gutter:"1rem","space-xs":"0.25rem","space-lg":"1rem","space-xl":"1.5rem",margin:"1.5rem"},fontFamily:{"headline-h4":["Inter"],"headline-h1":["Inter"],"badge-label":["Inter"],"body-lg":["Inter"],"body-md":["Inter"],small:["Inter"],"headline-h3":["Inter"],caption:["Inter"],"body-md-medium":["Inter"],"headline-h2":["Inter"],"display-lg":["Inter"]},fontSize:{"headline-h4":["18px",{lineHeight:"24px",fontWeight:"600"}],"headline-h1":["28px",{lineHeight:"36px",fontWeight:"600"}],"badge-label":["11px",{lineHeight:"14px",fontWeight:"600"}],"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"body-md":["14px",{lineHeight:"20px",fontWeight:"400"}],small:["13px",{lineHeight:"18px",fontWeight:"400"}],"headline-h3":["20px",{lineHeight:"28px",fontWeight:"600"}],caption:["12px",{lineHeight:"16px",fontWeight:"500"}],"body-md-medium":["14px",{lineHeight:"20px",fontWeight:"500"}],"headline-h2":["24px",{lineHeight:"32px",fontWeight:"600"}],"display-lg":["32px",{lineHeight:"40px",fontWeight:"700"}]}}}};</script></head><body class="bg-background font-body-md text-text-primary antialiased selection:bg-primary-light selection:text-primary"><aside class="fixed left-0 top-0 h-full w-[250px] bg-surface z-50 flex flex-col shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-space-lg flex items-center gap-space-sm bg-surface"><img alt="Logo GAB-EDT" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WUb8HKfKpS3X6gcCjE-bs2IbxPKrENI4nr-bCo2dknwf889JU9TtjKpmcLE2jABz-ZlLWkQxqRpNtCRnd4UWKXIX9jwKIz-zBrssx2UZLGHy5mfRFzqsYwttjfimm5VhWzio2SgOkmw2NlkyFU2Ay4oKvcXOfR1u4b9Gq0j1Z5PgUi1sxP8gpkafOY4vZU1_MQfTa69rYaqzF6-bdTpuwLygptWEn53SoLBWB2-sIe1mk0tjsl8fGeEHK2"/><div class="flex flex-col min-w-0"><span class="font-headline-h4 text-headline-h4 text-primary tracking-tight leading-none truncate">GAB-EDT</span><span class="font-caption text-caption text-text-muted leading-tight truncate">Planning Supérieur</span></div></div><div class="flex-1 overflow-y-auto px-space-md py-space-sm space-y-space-md"><nav class="space-y-space-xs" data-active-classes="bg-primary-light text-primary font-body-md-medium rounded-lg"><div class="px-space-sm py-space-xs font-caption text-caption text-text-muted uppercase tracking-wider">Principal</div><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-space-xs transition-colors bg-primary-light text-primary font-body-md-medium rounded-lg" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[20px]">space_dashboard</span><span class="font-body-md text-body-md truncate">Tableau de bord</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="emploi-du-temps" href="#"><span class="material-symbols-outlined text-[20px]">calendar_month</span><span class="font-body-md text-body-md truncate">Emploi du temps</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="cours-et-seances" href="#"><span class="material-symbols-outlined text-[20px]">auto_stories</span><span class="font-body-md text-body-md truncate">Cours & Séances</span></a><a class="flex items-center justify-between px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="gestion-des-conflits" href="#"><div class="flex items-center gap-space-sm min-w-0"><span class="material-symbols-outlined text-[20px]">warning</span><span class="font-body-md text-body-md truncate">Conflits</span></div><span class="bg-error text-on-error font-badge-label text-badge-label px-space-xs py-0.5 rounded-full">3</span></a><div class="pt-space-sm px-space-sm py-space-xs font-caption text-caption text-text-muted uppercase tracking-wider">Organisation académique</div><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="facultes-et-departements" href="#"><span class="material-symbols-outlined text-[20px]">apartment</span><span class="font-body-md text-body-md truncate">Facultés & Départements</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="formations-et-niveaux" href="#"><span class="material-symbols-outlined text-[20px]">school</span><span class="font-body-md text-body-md truncate">Formations & Niveaux</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="promotions-et-groupes" href="#"><span class="material-symbols-outlined text-[20px]">group_work</span><span class="font-body-md text-body-md truncate">Promotions & Groupes</span></a><div class="pt-space-sm px-space-sm py-space-xs font-caption text-caption text-text-muted uppercase tracking-wider">Ressources</div><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="enseignants-et-intervenants" href="#"><span class="material-symbols-outlined text-[20px]">badge</span><span class="font-body-md text-body-md truncate">Enseignants</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="etudiants-et-eleves" href="#"><span class="material-symbols-outlined text-[20px]">groups</span><span class="font-body-md text-body-md truncate">Étudiants</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="matieres-et-modules" href="#"><span class="material-symbols-outlined text-[20px]">menu_book</span><span class="font-body-md text-body-md truncate">Matières & Modules</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="salles-et-equipements" href="#"><span class="material-symbols-outlined text-[20px]">meeting_room</span><span class="font-body-md text-body-md truncate">Salles & Équipements</span></a><div class="pt-space-sm px-space-sm py-space-xs font-caption text-caption text-text-muted uppercase tracking-wider">Évaluations & Examens</div><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="sessions-d-examens" href="#"><span class="material-symbols-outlined text-[20px]">edit_calendar</span><span class="font-body-md text-body-md truncate">Sessions d'examens</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="soutenances-stages-pfe" href="#"><span class="material-symbols-outlined text-[20px]">co_present</span><span class="font-body-md text-body-md truncate">Soutenances PFE</span></a><div class="pt-space-sm px-space-sm py-space-xs font-caption text-caption text-text-muted uppercase tracking-wider">Échange de données</div><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="import-excel-csv" href="#"><span class="material-symbols-outlined text-[20px]">upload_file</span><span class="font-body-md text-body-md truncate">Import Excel / CSV</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="export-affichage-tv" href="#"><span class="material-symbols-outlined text-[20px]">tv</span><span class="font-body-md text-body-md truncate">Export & Affichage TV</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="qr-codes-planning" href="#"><span class="material-symbols-outlined text-[20px]">qr_code_2</span><span class="font-body-md text-body-md truncate">QR Codes</span></a><div class="pt-space-sm px-space-sm py-space-xs font-caption text-caption text-text-muted uppercase tracking-wider">Administration</div><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="parametres-et-roles" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span class="font-body-md text-body-md truncate">Paramètres & Rôles</span></a><a class="flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg text-text-secondary hover:bg-surface-container-low hover:text-text-primary transition-colors" data-path="journal-d-audit" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span><span class="font-body-md text-body-md truncate">Journal d'audit</span></a></nav></div><div class="p-space-md bg-surface-container-low/60 mx-space-md mb-space-md rounded-xl space-y-space-xs"><div class="flex items-center justify-between"><span class="flex items-center gap-1.5 font-caption text-caption text-text-secondary"><span class="w-2 h-2 rounded-full bg-success inline-block"></span>En ligne</span><span class="font-badge-label text-badge-label bg-surface px-space-xs py-0.5 rounded text-text-muted shadow-[0_1px_8px_rgba(0,0,0,0.04)]">S38 Publié</span></div><div class="font-caption text-caption text-text-muted truncate">Synchronisé à l'instant</div></div></aside><div class="pl-[250px]"><header class="fixed top-0 left-[250px] right-0 h-16 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-space-lg flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md min-w-0"><button class="flex items-center gap-space-xs px-space-md py-space-xs bg-surface-container-low hover:bg-surface-container text-text-primary rounded-lg transition-colors text-left" type="button"><span class="material-symbols-outlined text-[18px] text-primary">account_balance</span><div class="flex flex-col min-w-0 max-w-[260px]"><span class="font-caption text-caption text-text-muted leading-none truncate">Établissement actif</span><span class="font-body-md-medium text-body-md-medium text-text-primary leading-tight truncate">Univ. Omar Bongo — Sciences</span></div><span class="material-symbols-outlined text-[18px] text-text-muted">unfold_more</span></button><div class="hidden xl:flex items-center gap-1.5 px-space-sm py-1 bg-surface-container-low text-text-secondary rounded-full font-caption text-caption"><span class="material-symbols-outlined text-[16px] text-primary">event</span><span>2026–2027 • Semestre 1</span></div></div><div class="flex items-center gap-space-md"><div class="relative hidden md:block w-72 lg:w-96"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-text-muted pointer-events-none">search</span><input class="w-full h-10 pl-9 pr-12 bg-surface-container-low text-text-primary placeholder:text-text-muted font-body-md text-body-md rounded-lg focus:outline-none focus:bg-surface focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Rechercher matière, enseignant, salle, classe..." type="text"/><span class="absolute right-2.5 top-1/2 -translate-y-1/2 font-badge-label text-badge-label text-text-muted bg-surface px-1.5 py-0.5 rounded shadow-[0_1px_8px_rgba(0,0,0,0.04)]">⌘K</span></div><div class="flex items-center gap-space-xs"><button aria-label="Centre d'aide" class="w-10 h-10 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-container-low transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">help_outline</span></button><button aria-label="Notifications" class="relative w-10 h-10 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-container-low transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-danger ring-2 ring-surface"></span></button></div><div class="flex items-center gap-space-sm pl-space-sm"><div class="text-right hidden sm:block"><div class="font-body-md-medium text-body-md-medium text-text-primary leading-tight truncate max-w-[150px]">Dr. Eleanor Vance</div><div class="font-caption text-caption text-text-muted leading-none truncate max-w-[150px]">Directrice des Études</div></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDe4c-MlJsnIh5EzqlMzTRVSdVINHIfq1SUnw7ssD_THwh4q15CMCqQA9Ffqkpy5hXh5Itu28B8CujFxN3SqSIlB8-hrBmntEBSk8pfI1Fus9PsaIsagtNbVYnMvXbQ1YF9l2gzFaEy0YF4dpLQ623KOBd9hHnt45zg9Umsv8VWe7nXmOhL7kV-6KNgIshq9MzcRRDr2iC5pEvQnFXGzzVCN71FGq6XjgWnDSLyAz5gDbIGuB5-OIUS9Q"/></div></div></header><main class="w-full pt-16 bg-background px-margin min-h-screen"><div class="flex flex-col w-full pb-16 space-y-space-xl">
+<div class="flex flex-col xl:flex-row xl:items-end justify-between gap-space-md pt-space-lg">
+<div class="space-y-space-xs">
+<div class="flex items-center gap-space-sm text-text-muted font-caption text-caption">
+<span>Ressources Immobilières</span>
+<span>/</span>
+<span class="text-primary font-body-md-medium">Référentiel & Espaces Pédagogiques</span>
+<span class="bg-surface-container-high text-text-secondary px-2 py-0.5 rounded text-badge-label font-badge-label ml-1">Salles & Équipements v2.4</span>
+</div>
+<h1 class="font-headline-h1 text-headline-h1 text-text-primary tracking-tight">Gestion du Parc des Salles & Espaces Pédagogiques</h1>
+<p class="font-body-md text-body-md text-text-secondary">
+        54 espaces académiques répertoriés • Taux d'occupation global : <span class="text-primary font-body-md-medium">84%</span> • Campus Mont-Bouët (Faculté des Sciences)
+      </p>
+</div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<button class="flex items-center gap-1.5 px-space-md py-space-xs bg-surface text-text-primary rounded-lg shadow-sm hover:bg-surface-container-low transition-all" type="button">
+<span class="material-symbols-outlined text-[18px] text-text-muted">download</span>
+<span class="font-body-md-medium text-body-md-medium">Exporter l'occupation (PDF/XLS)</span>
+</button>
+<button class="flex items-center gap-1.5 px-space-md py-space-xs bg-primary-light text-primary rounded-lg hover:bg-primary-fixed transition-all" id="btn-quick-search" type="button">
+<span class="material-symbols-outlined text-[18px]">travel_explore</span>
+<span class="font-body-md-medium text-body-md-medium">Recherche salle libre</span>
+</button>
+<button class="flex items-center gap-1.5 px-space-md py-space-xs bg-primary-container text-on-primary rounded-lg shadow-sm hover:bg-primary-dark transition-all" type="button">
+<span class="material-symbols-outlined text-[18px]">add_business</span>
+<span class="font-body-md-medium text-body-md-medium">Ajouter une salle</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<div class="relative overflow-hidden bg-surface p-space-md rounded-xl shadow-sm flex flex-col justify-between group">
+<div class="flex items-start justify-between">
+<div class="space-y-1">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider">Total Espaces Enregistrés</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg text-text-primary leading-none">54</span>
+<span class="text-success font-badge-label text-badge-label flex items-center bg-surface-container-low px-1.5 py-0.5 rounded">100% audité</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[22px]">domain</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-text-muted font-caption text-caption">
+<span>Capacité totale théorique</span>
+<span class="text-text-primary font-body-md-medium">3 420 places</span>
+</div>
+<div class="absolute bottom-0 left-0 right-0 h-1 bg-primary/20"></div>
+</div>
+<div class="relative overflow-hidden bg-surface p-space-md rounded-xl shadow-sm flex flex-col justify-between group">
+<div class="flex items-start justify-between">
+<div class="space-y-1">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider">En Cours d'Utilisation</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg text-primary-container leading-none">38</span>
+<span class="text-primary font-badge-label text-badge-label flex items-center bg-primary-light px-1.5 py-0.5 rounded">70.4% en direct</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-lg bg-primary-light flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">co_present</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-text-muted font-caption text-caption">
+<span>Séances synchronisées</span>
+<span class="text-text-primary font-body-md-medium">28 CM • 10 TP</span>
+</div>
+<div class="absolute bottom-0 left-0 right-0 h-1 bg-primary-container"></div>
+</div>
+<div class="relative overflow-hidden bg-surface p-space-md rounded-xl shadow-sm flex flex-col justify-between group">
+<div class="flex items-start justify-between">
+<div class="space-y-1">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider">Salles Disponibles</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg text-success leading-none">12</span>
+<span class="text-success font-badge-label text-badge-label flex items-center bg-surface-container-low px-1.5 py-0.5 rounded">Immédiatement</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-success">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-text-muted font-caption text-caption">
+<span>Créneau libre moyen</span>
+<span class="text-text-primary font-body-md-medium">≥ 1h45</span>
+</div>
+<div class="absolute bottom-0 left-0 right-0 h-1 bg-success"></div>
+</div>
+<div class="relative overflow-hidden bg-surface p-space-md rounded-xl shadow-sm flex flex-col justify-between group">
+<div class="flex items-start justify-between">
+<div class="space-y-1">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider">Maintenance / Conflits</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg text-warning leading-none">4</span>
+<span class="text-danger font-badge-label text-badge-label flex items-center bg-error-container px-1.5 py-0.5 rounded">1 incident critique</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-warning">
+<span class="material-symbols-outlined text-[22px]">handyman</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-text-muted font-caption text-caption">
+<span>3 climatisations • 1 sonorisateur</span>
+<span class="text-warning font-body-md-medium">Intervention J+1</span>
+</div>
+<div class="absolute bottom-0 left-0 right-0 h-1 bg-warning"></div>
+</div>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-space-md">
+<div class="xl:col-span-2 bg-surface p-space-lg rounded-xl shadow-sm space-y-space-md">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="font-headline-h3 text-headline-h3 text-text-primary">Profil d'Occupation Horaire de la Journée</h2>
+<p class="font-caption text-caption text-text-muted">Analyse en temps réel de la demande sur les 54 salles (Tranches de 08:00 à 20:00)</p>
+</div>
+<div class="flex items-center gap-space-sm text-caption font-caption text-text-secondary">
+<div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>En cours</div>
+<div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-secondary-container"></span>Réservé</div>
+<div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-surface-container"></span>Libre</div>
+</div>
+</div>
+<div class="pt-2">
+<svg class="w-full h-36 text-primary-container overflow-visible" preserveaspectratio="none" viewbox="0 0 760 140">
+<defs>
+<lineargradient id="occupancyGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="currentColor" stop-opacity="0.32"></stop>
+<stop offset="100%" stop-color="currentColor" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<line stroke="#E2E8F0" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="760" y1="20" y2="20"></line>
+<line stroke="#E2E8F0" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="760" y1="60" y2="60"></line>
+<line stroke="#E2E8F0" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="760" y1="100" y2="100"></line>
+<line stroke="#E2E8F0" stroke-width="1" x1="0" x2="760" y1="130" y2="130"></line>
+<path d="M 0 120 Q 70 95 130 50 T 260 25 T 390 40 T 520 22 T 650 65 T 760 115 L 760 130 L 0 130 Z" fill="url(#occupancyGradient)"></path>
+<path d="M 0 120 Q 70 95 130 50 T 260 25 T 390 40 T 520 22 T 650 65 T 760 115" fill="none" stroke="currentColor" stroke-width="2.5"></path>
+<circle cx="390" cy="40" fill="#2563EB" r="4.5" stroke="#FFFFFF" stroke-width="2"></circle>
+<line stroke="#2563EB" stroke-dasharray="2 2" stroke-width="1.5" x1="390" x2="390" y1="10" y2="130"></line>
+<rect fill="#0F172A" height="18" rx="4" width="60" x="360" y="2"></rect>
+<text fill="#FFFFFF" font-size="9" font-weight="600" text-anchor="middle" x="390" y="14">12h15 (84%)</text>
+</svg>
+<div class="flex justify-between text-badge-label font-badge-label text-text-muted px-1 mt-1">
+<span>08:00</span>
+<span>10:00</span>
+<span>12:00</span>
+<span>14:00</span>
+<span>16:00</span>
+<span>18:00</span>
+<span>20:00</span>
+</div>
+</div>
+</div>
+<div class="bg-surface p-space-lg rounded-xl shadow-sm flex flex-col justify-between space-y-space-md">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-h3 text-headline-h3 text-text-primary">Santé des Équipements</h2>
+<span class="text-caption font-caption text-text-muted">Parc actif</span>
+</div>
+<div class="space-y-space-sm">
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">videocam</span>
+<div>
+<div class="font-body-md-medium text-body-md-medium text-text-primary leading-tight">Vidéoprojecteurs / VPI</div>
+<div class="font-caption text-caption text-text-muted">48 unités opérationnelles sur 50</div>
+</div>
+</div>
+<span class="font-body-md-medium text-body-md-medium text-success">96%</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">wifi</span>
+<div>
+<div class="font-body-md-medium text-body-md-medium text-text-primary leading-tight">Bornes Wi-Fi 6 Haute Densité</div>
+<div class="font-caption text-caption text-text-muted">64 bornes • Tous les bâtiments</div>
+</div>
+</div>
+<span class="font-body-md-medium text-body-md-medium text-success">100%</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-warning text-[20px]">air</span>
+<div>
+<div class="font-body-md-medium text-body-md-medium text-text-primary leading-tight">Systèmes Climatisation / Aération</div>
+<div class="font-caption text-caption text-text-muted">3 unités en maintenance (Labo B, Amphi B)</div>
+</div>
+</div>
+<span class="font-body-md-medium text-body-md-medium text-warning">88%</span>
+</div>
+</div>
+<div class="p-space-xs rounded-lg bg-surface-bright flex items-center gap-2 text-text-muted font-caption text-caption">
+<span class="material-symbols-outlined text-[16px] text-info">verified</span>
+<span>Revue technique bi-hebdomadaire effectuée ce matin à 07:15.</span>
+</div>
+</div>
+</div>
+<div class="bg-surface p-space-md rounded-xl shadow-sm space-y-space-md">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-sm items-center">
+<div class="md:col-span-4 relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-text-muted pointer-events-none">search</span>
+<input class="w-full h-10 pl-9 pr-4 bg-surface-container-low text-text-primary placeholder:text-text-muted font-body-md text-body-md rounded-lg focus:outline-none focus:bg-surface focus:ring-2 focus:ring-primary/20 transition-all" id="filter-input-search" placeholder="Rechercher une salle par nom, code ou équipement..." type="text"/>
+</div>
+<div class="md:col-span-2">
+<select class="w-full h-10 px-3 bg-surface-container-low text-text-primary font-body-md text-body-md rounded-lg focus:outline-none focus:bg-surface focus:ring-2 focus:ring-primary/20 cursor-pointer" id="filter-campus">
+<option value="all">Tous campus (Mont-Bouët)</option>
+<option value="sciences">Campus Sciences Nord</option>
+<option value="tech">Pôle Technologique</option>
+<option value="annexe">Bâtiment Polyvalent B</option>
+</select>
+</div>
+<div class="md:col-span-2">
+<select class="w-full h-10 px-3 bg-surface-container-low text-text-primary font-body-md text-body-md rounded-lg focus:outline-none focus:bg-surface focus:ring-2 focus:ring-primary/20 cursor-pointer" id="filter-type">
+<option value="all">Toutes typologies</option>
+<option value="amphi">Amphithéâtres</option>
+<option value="td">Salles de TD</option>
+<option value="labo-info">Laboratoires Informatique</option>
+<option value="tp-chimie">Salles TP Chimie / Physique</option>
+</select>
+</div>
+<div class="md:col-span-2">
+<select class="w-full h-10 px-3 bg-surface-container-low text-text-primary font-body-md text-body-md rounded-lg focus:outline-none focus:bg-surface focus:ring-2 focus:ring-primary/20 cursor-pointer" id="filter-capacity">
+<option value="all">Capacité minimale</option>
+<option value="20">≥ 25 places</option>
+<option value="50">≥ 50 places</option>
+<option value="100">≥ 100 places</option>
+<option value="200">≥ 200 places</option>
+</select>
+</div>
+<div class="md:col-span-2 flex items-center gap-space-xs">
+<select class="w-full h-10 px-3 bg-surface-container-low text-text-primary font-body-md text-body-md rounded-lg focus:outline-none focus:bg-surface focus:ring-2 focus:ring-primary/20 cursor-pointer" id="filter-equip">
+<option value="all">Équipements clés</option>
+<option value="vpi">Vidéoprojecteur (VPI)</option>
+<option value="mac">Postes Mac / Workstation</option>
+<option value="pmr">Accès PMR Certifié</option>
+<option value="clim">Climatisation active</option>
+</select>
+<button class="h-10 w-10 shrink-0 flex items-center justify-center bg-surface-container-low hover:bg-surface-container text-text-muted rounded-lg transition-colors" id="btn-reset-filters" title="Réinitialiser les filtres" type="button">
+<span class="material-symbols-outlined text-[18px]">restart_alt</span>
+</button>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-1.5 pt-1">
+<span class="font-caption text-caption text-text-muted mr-1">Filtres rapides :</span>
+<button class="quick-filter-chip bg-primary-light text-primary hover:bg-primary-fixed text-caption font-caption px-2.5 py-1 rounded-full flex items-center gap-1 transition-colors" data-target="status-free" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-success"></span>Libres maintenant (12)
+      </button>
+<button class="quick-filter-chip bg-surface-container-low text-text-secondary hover:bg-surface-container text-caption font-caption px-2.5 py-1 rounded-full transition-colors" data-target="type-amphi" type="button">
+        Amphithéâtres (6)
+      </button>
+<button class="quick-filter-chip bg-surface-container-low text-text-secondary hover:bg-surface-container text-caption font-caption px-2.5 py-1 rounded-full transition-colors" data-target="type-lab" type="button">
+        Laboratoires PC/Mac (14)
+      </button>
+<button class="quick-filter-chip bg-surface-container-low text-text-secondary hover:bg-surface-container text-caption font-caption px-2.5 py-1 rounded-full transition-colors" data-target="equip-pmr" type="button">
+        Accès PMR Total (32)
+      </button>
+<button class="quick-filter-chip bg-surface-container-low text-text-secondary hover:bg-surface-container text-caption font-caption px-2.5 py-1 rounded-full transition-colors" data-target="status-warning" type="button">
+        Alertes & Conflits (4)
+      </button>
+</div>
+</div>
+<div class="relative grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<div class="lg:col-span-8 xl:col-span-8 bg-surface rounded-xl shadow-sm overflow-hidden transition-all duration-300" id="table-container">
+<div class="px-space-md py-space-sm bg-surface-container-low/40 flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="font-headline-h4 text-headline-h4 text-text-primary">Espaces d'Enseignement</span>
+<span class="bg-surface px-2 py-0.5 rounded text-badge-label font-badge-label text-text-secondary shadow-sm">Affichage de 5 sur 54</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-2.5 py-1 text-caption font-caption bg-surface text-text-secondary hover:text-text-primary rounded shadow-sm" type="button">Trier par Occupation ↓</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/70 text-text-muted font-caption text-caption uppercase tracking-wider">
+<th class="py-3 px-space-md font-body-md-medium">Salle & Code</th>
+<th class="py-3 px-space-md font-body-md-medium">Bâtiment & Étage</th>
+<th class="py-3 px-space-md font-body-md-medium">Typologie & Capacité</th>
+<th class="py-3 px-space-md font-body-md-medium">Équipements Clés</th>
+<th class="py-3 px-space-md font-body-md-medium">Statut Temps Réel</th>
+<th class="py-3 px-space-md font-body-md-medium">Occupation Hebdo</th>
+<th class="py-3 px-space-md font-body-md-medium text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border/60 font-body-md text-body-md text-text-primary">
+<tr class="room-row hover:bg-surface-container-low/50 transition-colors cursor-pointer group bg-primary-light/10" data-room-id="AMPH-01">
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap- space-xs">
+<div class="w-9 h-9 rounded-lg bg-primary-light text-primary flex items-center justify-center font-headline-h4 shrink-0">
+<span class="material-symbols-outlined text-[20px]">meeting_room</span>
+</div>
+<div class="min-w-0 pl-2">
+<div class="font-body-md-medium text-body-md-medium text-text-primary leading-snug group-hover:text-primary transition-colors flex items-center gap-1.5">
+<span>Amphi Vion</span>
+<span class="w-2 h-2 rounded-full bg-primary inline-block" title="Salle sélectionnée"></span>
+</div>
+<div class="font-caption text-caption text-text-muted">AMPH-01</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="font-body-md-medium text-body-md-medium">Bâtiment Sciences A</div>
+<div class="font-caption text-caption text-text-muted">Rez-de-chaussée (RDC)</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-block px-2 py-0.5 rounded text-badge-label font-badge-label bg-surface-container text-text-secondary">Amphithéâtre</span>
+<div class="font-body-md-medium text-body-md-medium mt-0.5">250 places</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-wrap gap-1 max-w-[200px]">
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">VPI 4K</span>
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">Wifi 6</span>
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">Sonorisation 4 mic</span>
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">Accès PMR</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-caption font-caption bg-primary-light text-primary">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                  Occupé : Physique Quantique (L3)
+                </span>
+<div class="font-caption text-caption text-text-muted mt-0.5 pl-3.5">Fin du cours à 13:30</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 92%"></div>
+</div>
+<span class="font-body-md-medium text-body-md-medium text-primary">92%</span>
+</div>
+<div class="font-caption text-caption text-text-muted">41h / 45h créneaux</div>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-1">
+<button class="btn-inspect-room p-1.5 text-text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Aperçu rapide du planning" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_view_day</span>
+</button>
+<button class="p-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-container rounded transition-colors" title="Réserver créneau" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+</button>
+<button class="p-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-container rounded transition-colors" title="Imprimer QR Code de salle" type="button">
+<span class="material-symbols-outlined text-[18px]">qr_code_2</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="room-row hover:bg-surface-container-low/50 transition-colors cursor-pointer group" data-room-id="LAB-INFO-04">
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-space-xs">
+<div class="w-9 h-9 rounded-lg bg-surface-container-low text-text-secondary flex items-center justify-center font-headline-h4 shrink-0">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+</div>
+<div class="min-w-0 pl-2">
+<div class="font-body-md-medium text-body-md-medium text-text-primary leading-snug group-hover:text-primary transition-colors">Labo Info B204</div>
+<div class="font-caption text-caption text-text-muted">LAB-INFO-04</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="font-body-md-medium text-body-md-medium">Bâtiment Informatique</div>
+<div class="font-caption text-caption text-text-muted">2e étage • Aile Ouest</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-block px-2 py-0.5 rounded text-badge-label font-badge-label bg-surface-container text-text-secondary">Labo Informatique</span>
+<div class="font-body-md-medium text-body-md-medium mt-0.5">45 postes Linux/Mac</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-wrap gap-1 max-w-[200px]">
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">45 Mac Studio</span>
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">Fibre 10Gbps</span>
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">Double VPI</span>
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">Clim 24°C</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-caption font-caption bg-surface-container-low text-success">
+<span class="w-2 h-2 rounded-full bg-success"></span>
+                  Libre (jusqu'à 14:00)
+                </span>
+<div class="font-caption text-caption text-text-muted mt-0.5 pl-3.5">Prochain cours : TP Systèmes (M1)</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full rounded-full" style="width: 78%"></div>
+</div>
+<span class="font-body-md-medium text-body-md-medium text-text-primary">78%</span>
+</div>
+<div class="font-caption text-caption text-text-muted">35h / 45h créneaux</div>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-1">
+<button class="btn-inspect-room p-1.5 text-text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Aperçu rapide du planning" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_view_day</span>
+</button>
+<button class="p-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-container rounded transition-colors" title="Réserver créneau" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+</button>
+<button class="p-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-container rounded transition-colors" title="Imprimer QR Code de salle" type="button">
+<span class="material-symbols-outlined text-[18px]">qr_code_2</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="room-row hover:bg-surface-container-low/50 transition-colors cursor-pointer group" data-room-id="TD-C102">
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-space-xs">
+<div class="w-9 h-9 rounded-lg bg-surface-container-low text-text-secondary flex items-center justify-center font-headline-h4 shrink-0">
+<span class="material-symbols-outlined text-[20px]">school</span>
+</div>
+<div class="min-w-0 pl-2">
+<div class="font-body-md-medium text-body-md-medium text-text-primary leading-snug group-hover:text-primary transition-colors">Salle C102</div>
+<div class="font-caption text-caption text-text-muted">TD-C102</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="font-body-md-medium text-body-md-medium">Bâtiment Polyvalent C</div>
+<div class="font-caption text-caption text-text-muted">1er étage • Aile Est</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-block px-2 py-0.5 rounded text-badge-label font-badge-label bg-surface-container text-text-secondary">Salle TD Modulable</span>
+<div class="font-body-md-medium text-body-md-medium mt-0.5">60 places</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-wrap gap-1 max-w-[200px]">
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">Tableau Blanc Interactif</span>
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">Mobilier Agile</span>
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">PMR</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-caption font-caption bg-surface-container text-warning">
+<span class="w-2 h-2 rounded-full bg-warning"></span>
+                  Nettoyage / Pause inter-cours
+                </span>
+<div class="font-caption text-caption text-text-muted mt-0.5 pl-3.5">Reprise à 12:45 (TD Algèbre)</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full rounded-full" style="width: 64%"></div>
+</div>
+<span class="font-body-md-medium text-body-md-medium text-text-primary">64%</span>
+</div>
+<div class="font-caption text-caption text-text-muted">29h / 45h créneaux</div>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-1">
+<button class="btn-inspect-room p-1.5 text-text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Aperçu rapide du planning" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_view_day</span>
+</button>
+<button class="p-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-container rounded transition-colors" title="Réserver créneau" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+</button>
+<button class="p-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-container rounded transition-colors" title="Imprimer QR Code de salle" type="button">
+<span class="material-symbols-outlined text-[18px]">qr_code_2</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="room-row hover:bg-surface-container-low/50 transition-colors cursor-pointer group bg-error-container/20" data-room-id="AMPH-02">
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-space-xs">
+<div class="w-9 h-9 rounded-lg bg-error-container text-danger flex items-center justify-center font-headline-h4 shrink-0">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+</div>
+<div class="min-w-0 pl-2">
+<div class="font-body-md-medium text-body-md-medium text-text-primary leading-snug group-hover:text-danger transition-colors">Amphi B</div>
+<div class="font-caption text-caption text-text-muted">AMPH-02</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="font-body-md-medium text-body-md-medium">Bâtiment Sciences A</div>
+<div class="font-caption text-caption text-text-muted">Rez-de-chaussée (RDC)</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-block px-2 py-0.5 rounded text-badge-label font-badge-label bg-surface-container text-text-secondary">Amphithéâtre</span>
+<div class="font-body-md-medium text-body-md-medium mt-0.5">320 places</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-wrap gap-1 max-w-[200px]">
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">Double Écran</span>
+<span class="bg-error-container text-danger font-badge-label text-badge-label px-1.5 py-0.5 rounded">Climatisation HS</span>
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">PMR OK</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-caption font-caption bg-error-container text-danger font-body-md-medium">
+<span class="w-2 h-2 rounded-full bg-danger"></span>
+                  Conflit signalé (Double résa)
+                </span>
+<div class="font-caption text-caption text-danger mt-0.5 pl-3.5">L2 Informatique vs M1 Bio</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-danger h-full rounded-full" style="width: 89%"></div>
+</div>
+<span class="font-body-md-medium text-body-md-medium text-danger">89%</span>
+</div>
+<div class="font-caption text-caption text-text-muted">40h / 45h créneaux</div>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-1">
+<button class="btn-inspect-room p-1.5 text-danger hover:bg-error-container rounded transition-colors" title="Résoudre le conflit" type="button">
+<span class="material-symbols-outlined text-[18px]">build</span>
+</button>
+<button class="p-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-container rounded transition-colors" title="Aperçu rapide" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_view_day</span>
+</button>
+<button class="p-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-container rounded transition-colors" title="Imprimer QR Code" type="button">
+<span class="material-symbols-outlined text-[18px]">qr_code_2</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="room-row hover:bg-surface-container-low/50 transition-colors cursor-pointer group" data-room-id="TD-D04">
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-space-xs">
+<div class="w-9 h-9 rounded-lg bg-surface-container-low text-text-secondary flex items-center justify-center font-headline-h4 shrink-0">
+<span class="material-symbols-outlined text-[20px]">science</span>
+</div>
+<div class="min-w-0 pl-2">
+<div class="font-body-md-medium text-body-md-medium text-text-primary leading-snug group-hover:text-primary transition-colors">Salle D04</div>
+<div class="font-caption text-caption text-text-muted">TD-D04</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="font-body-md-medium text-body-md-medium">Bâtiment Expérimental D</div>
+<div class="font-caption text-caption text-text-muted">Sous-sol technique</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-block px-2 py-0.5 rounded text-badge-label font-badge-label bg-surface-container text-text-secondary">TP Chimie / Minéralogie</span>
+<div class="font-body-md-medium text-body-md-medium mt-0.5">30 paillasses</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-wrap gap-1 max-w-[200px]">
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">Hotte aspirante</span>
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">Douche sécurité</span>
+<span class="bg-surface-container-low text-text-secondary font-badge-label text-badge-label px-1.5 py-0.5 rounded">Wifi 6</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-caption font-caption bg-surface-container-low text-success">
+<span class="w-2 h-2 rounded-full bg-success"></span>
+                  Libre (Toute l'après-midi)
+                </span>
+<div class="font-caption text-caption text-text-muted mt-0.5 pl-3.5">Prochaine séance demain 08:30</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-secondary-container h-full rounded-full" style="width: 52%"></div>
+</div>
+<span class="font-body-md-medium text-body-md-medium text-text-primary">52%</span>
+</div>
+<div class="font-caption text-caption text-text-muted">23h / 45h créneaux</div>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-1">
+<button class="btn-inspect-room p-1.5 text-text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Aperçu rapide du planning" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_view_day</span>
+</button>
+<button class="p-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-container rounded transition-colors" title="Réserver créneau" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+</button>
+<button class="p-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-container rounded transition-colors" title="Imprimer QR Code de salle" type="button">
+<span class="material-symbols-outlined text-[18px]">qr_code_2</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-space-md bg-surface flex flex-col sm:flex-row items-center justify-between gap-space-sm">
+<span class="font-caption text-caption text-text-muted">Page 1 sur 11 • 54 espaces monitorés</span>
+<div class="flex items-center gap-1.5">
+<button class="px-3 py-1.5 bg-surface-container-low text-text-secondary hover:bg-surface-container rounded-lg font-caption text-caption transition-colors" type="button">Précédent</button>
+<button class="px-3 py-1.5 bg-primary-container text-on-primary rounded-lg font-caption text-caption font-body-md-medium" type="button">1</button>
+<button class="px-3 py-1.5 bg-surface-container-low text-text-secondary hover:bg-surface-container rounded-lg font-caption text-caption transition-colors" type="button">2</button>
+<button class="px-3 py-1.5 bg-surface-container-low text-text-secondary hover:bg-surface-container rounded-lg font-caption text-caption transition-colors" type="button">3</button>
+<span class="text-text-muted px-1">...</span>
+<button class="px-3 py-1.5 bg-surface-container-low text-text-secondary hover:bg-surface-container rounded-lg font-caption text-caption transition-colors" type="button">Suivant</button>
+</div>
+</div>
+</div>
+<aside class="lg:col-span-4 xl:col-span-4 bg-surface rounded-xl shadow-sm p-space-md flex flex-col space-y-space-md sticky top-20" id="room-inspector-panel">
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="bg-primary-light text-primary font-badge-label text-badge-label px-2 py-0.5 rounded">Focus Salle Active</span>
+<span class="text-badge-label font-badge-label text-text-muted">ID: 8492</span>
+</div>
+<h3 class="font-headline-h2 text-headline-h2 text-text-primary mt-1" id="panel-room-name">Amphi Vion (AMPH-01)</h3>
+<p class="font-caption text-caption text-text-muted" id="panel-room-desc">Bâtiment Sciences A • RDC • Capacité nominale : 250 étudiants</p>
+</div>
+<button class="w-8 h-8 rounded-lg bg-surface-container-low hover:bg-surface-container text-text-secondary flex items-center justify-center transition-colors" id="btn-close-panel" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-space-xs">
+<div class="p-space-sm bg-surface-container-low rounded-lg">
+<div class="text-caption font-caption text-text-muted">Taux d'occupation</div>
+<div class="font-headline-h3 text-headline-h3 text-primary mt-0.5">92%</div>
+<div class="text-badge-label font-badge-label text-text-secondary">41h / 45h hebdo</div>
+</div>
+<div class="p-space-sm bg-surface-container-low rounded-lg">
+<div class="text-caption font-caption text-text-muted">Prochaine libération</div>
+<div class="font-headline-h3 text-headline-h3 text-text-primary mt-0.5">13:30</div>
+<div class="text-badge-label font-badge-label text-success">Disponible 30 min</div>
+</div>
+</div>
+<div class="space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-body-md-medium text-body-md-medium text-text-primary">Planning du Jour — Mardi 23 Septembre</span>
+<span class="text-badge-label font-badge-label text-primary font-body-md-medium">En direct</span>
+</div>
+<div class="space-y-2 pt-1 max-h-[360px] overflow-y-auto pr-1">
+<div class="p-2.5 rounded-lg bg-surface-container-low opacity-60 flex items-start justify-between">
+<div class="space-y-0.5">
+<div class="font-badge-label text-badge-label text-text-muted">08:00 — 10:00 • Terminé</div>
+<div class="font-body-md-medium text-body-md-medium text-text-secondary">Mathématiques Discrètes (CM)</div>
+<div class="font-caption text-caption text-text-muted">Prof. K. Mba • L1 Informatique (Promo 210)</div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-success">task_alt</span>
+</div>
+<div class="p-2.5 rounded-lg bg-primary-light text-primary shadow-sm space-y-1">
+<div class="flex items-center justify-between">
+<div class="font-badge-label text-badge-label font-body-md-medium text-primary flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+                10:15 — 13:30 • EN COURS
+              </div>
+<span class="bg-surface text-primary px-1.5 py-0.5 rounded text-badge-label font-badge-label shadow-sm">CM Magistral</span>
+</div>
+<div class="font-body-md-medium text-body-md-medium text-text-primary font-semibold">Physique Quantique Fondamentale</div>
+<div class="font-caption text-caption text-text-secondary flex items-center justify-between">
+<span>Dr. Eleanor Vance</span>
+<span class="font-body-md-medium text-primary">L3 Sciences Physiques (184 ét.)</span>
+</div>
+</div>
+<div class="p-2.5 rounded-lg bg-surface-container-lowest flex items-start justify-between shadow-xs">
+<div class="space-y-0.5">
+<div class="font-badge-label text-badge-label text-success font-body-md-medium">13:30 — 14:00 • Créneau Libre</div>
+<div class="font-body-md-medium text-body-md-medium text-text-primary">Pause technique & Aération salle</div>
+<div class="font-caption text-caption text-text-muted">Disponibilité pour réservation ponctuelle</div>
+</div>
+<button class="text-caption font-caption text-primary hover:underline bg-primary-light px-2 py-1 rounded" type="button">Réserver</button>
+</div>
+<div class="p-2.5 rounded-lg bg-surface-container-low flex items-start justify-between">
+<div class="space-y-0.5">
+<div class="font-badge-label text-badge-label text-text-muted">14:00 — 17:00 • À venir</div>
+<div class="font-body-md-medium text-body-md-medium text-text-primary">Algorithmique Distribuée (CM)</div>
+<div class="font-caption text-caption text-text-muted">Prof. J. Ovono • Master 1 Génie Logiciel</div>
+</div>
+<span class="text-badge-label font-badge-label bg-surface-container text-text-secondary px-1.5 py-0.5 rounded">95 ét.</span>
+</div>
+<div class="p-2.5 rounded-lg bg-surface-container-low flex items-start justify-between">
+<div class="space-y-0.5">
+<div class="font-badge-label text-badge-label text-text-muted">17:15 — 19:15 • À venir</div>
+<div class="font-body-md-medium text-body-md-medium text-text-primary">Conférence Invité • IA & Éthique</div>
+<div class="font-caption text-caption text-text-muted">Chaire UNESCO • Tout public académique</div>
+</div>
+<span class="text-badge-label font-badge-label bg-surface-container text-text-secondary px-1.5 py-0.5 rounded">240 ét.</span>
+</div>
+</div>
+</div>
+<div class="pt-space-xs space-y-space-xs">
+<span class="font-caption text-caption text-text-muted uppercase tracking-wider">Équipements & Connectivité Présents</span>
+<div class="grid grid-cols-2 gap-2 text-caption font-caption">
+<div class="p-2 rounded bg-surface-container-low flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">videocam</span>
+<span class="truncate">VPI Optoma 4K Laser</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">wifi</span>
+<span class="truncate">Borne Aruba WiFi 6 (300 cap.)</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">mic</span>
+<span class="truncate">4 Micros HF Sans Fil</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">accessible</span>
+<span class="truncate">Rampe & 4 places PMR</span>
+</div>
+</div>
+</div>
+<div class="pt-space-xs flex items-center gap-2">
+<button class="flex-1 py-2.5 bg-primary-container hover:bg-primary-dark text-on-primary rounded-lg font-body-md-medium text-body-md-medium shadow-sm transition-colors text-center" type="button">
+          Ouvrir Planning Global
+        </button>
+<button class="p-2.5 bg-surface-container-low hover:bg-surface-container text-text-secondary rounded-lg transition-colors" title="Modifier la fiche salle" type="button">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</button>
+<button class="p-2.5 bg-surface-container-low hover:bg-surface-container text-text-secondary rounded-lg transition-colors" title="Générer QR Code d'accès" type="button">
+<span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+</button>
+</div>
+</aside>
+</div>
+</div>
+<script>
+  (function() {
+    const rows = document.querySelectorAll('.room-row');
+    const panelName = document.getElementById('panel-room-name');
+    const panelDesc = document.getElementById('panel-room-desc');
+    const closeBtn = document.getElementById('btn-close-panel');
+    const panel = document.getElementById('room-inspector-panel');
+
+    const roomDetails = {
+      'AMPH-01': {
+        name: 'Amphi Vion (AMPH-01)',
+        desc: 'Bâtiment Sciences A • RDC • Capacité nominale : 250 étudiants'
+      },
+      'LAB-INFO-04': {
+        name: 'Labo Info B204 (LAB-INFO-04)',
+        desc: 'Bâtiment Informatique • 2e étage • 45 postes Mac Studio M2'
+      },
+      'TD-C102': {
+        name: 'Salle C102 (TD-C102)',
+        desc: 'Bâtiment Polyvalent C • 1er étage • Salle de TD modulable 60 pl.'
+      },
+      'AMPH-02': {
+        name: 'Amphi B (AMPH-02)',
+        desc: 'Bâtiment Sciences A • RDC • 320 places • Conflit à traiter'
+      },
+      'TD-D04': {
+        name: 'Salle D04 (TD-D04)',
+        desc: 'Bâtiment Expérimental D • Sous-sol technique • 30 paillasses chimie'
+      }
+    };
+
+    rows.forEach(row => {
+      row.addEventListener('click', () => {
+        rows.forEach(r => r.classList.remove('bg-primary-light/10'));
+        row.classList.add('bg-primary-light/10');
+
+        const roomId = row.getAttribute('data-room-id');
+        if (roomDetails[roomId]) {
+          panelName.textContent = roomDetails[roomId].name;
+          panelDesc.textContent = roomDetails[roomId].desc;
+          if (panel.classList.contains('hidden')) {
+            panel.classList.remove('hidden');
+          }
+        }
+      });
+    });
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        panel.classList.add('hidden');
+      });
+    }
+
+    const resetBtn = document.getElementById('btn-reset-filters');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        document.getElementById('filter-input-search').value = '';
+        document.getElementById('filter-campus').selectedIndex = 0;
+        document.getElementById('filter-type').selectedIndex = 0;
+        document.getElementById('filter-capacity').selectedIndex = 0;
+        document.getElementById('filter-equip').selectedIndex = 0;
+      });
+    }
+
+    const quickChips = document.querySelectorAll('.quick-filter-chip');
+    quickChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        quickChips.forEach(c => c.classList.remove('ring-2', 'ring-primary'));
+        chip.classList.add('ring-2', 'ring-primary');
+      });
+    });
+  })();
+</script></main></div></body></html>

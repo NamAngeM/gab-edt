@@ -1,0 +1,473 @@
+'use client';
+import React, { useState, useEffect } from 'react';
+import styles from './timetable.module.css';
+import { fetchWithAuth } from '@/lib/api';
+// Types pour l'UI
+type CourseType = 'cm' | 'td' | 'tp' | 'transversal' | 'conflict';
+
+interface UIMockupEvent {
+  id: string;
+  type: CourseType;
+  title: string;
+  teacher: string;
+  location: string;
+  group: string;
+  dayIndex: number; // 0 = Lundi, 1 = Mardi, ..., 6 = Dimanche
+  startHour: number; // ex: 8.5 pour 08h30
+  endHour: number;   // ex: 10.5 pour 10h30
+  extraInfo?: string;
+  isConflict?: boolean;
+  conflictDetails?: string;
+}
+
+const mockEvents: UIMockupEvent[] = [
+  {
+    id: '1', type: 'cm', title: 'Algorithmique Avancée & Complexité',
+    teacher: 'Pr. Marc Nguema', location: 'Amphi A (Sciences)', group: 'L3 Info (Grp 1 & 2)',
+    dayIndex: 0, startHour: 8.5, endHour: 10.5
+  },
+  {
+    id: '2', type: 'td', title: 'Conception BD Relationnelles (SQL)',
+    teacher: 'Dr. Estelle Ondo', location: 'Salle 104 - Bât. Info', group: 'L3 Info — Grp 1',
+    dayIndex: 0, startHour: 11, endHour: 13
+  },
+  {
+    id: '3', type: 'tp', title: 'Architecture Réseaux & Routage IP',
+    teacher: 'M. François Mba', location: 'Labo Réseaux (Salle 208)', group: 'L3 Info — Grp 1',
+    dayIndex: 0, startHour: 14.5, endHour: 17.5,
+    extraInfo: 'Postes équipés Cisco • 24 postes'
+  },
+  {
+    id: '4', type: 'cm', title: 'Génie Logiciel & Méthodes Agiles (SCRUM)',
+    teacher: 'Dr. Jean-Pierre Obiang', location: 'Amphi B', group: 'L3 Info (Grp 1 & 2)',
+    dayIndex: 1, startHour: 9, endHour: 12,
+    extraInfo: 'Projet de mi-semestre présenté'
+  },
+  {
+    id: '5', type: 'conflict', title: 'Superposition Salle 104',
+    teacher: '', location: '', group: '',
+    dayIndex: 1, startHour: 14, endHour: 16,
+    isConflict: true, conflictDetails: 'TD Algorithmique vs TD Mathématiques'
+  },
+  {
+    id: '6', type: 'cm', title: "Probabilités & Statistiques pour l'Informatique",
+    teacher: 'Pr. Joseph Boussougou', location: 'Amphi A', group: 'L3 Info (Grp 1 & 2)',
+    dayIndex: 2, startHour: 8, endHour: 10
+  },
+  {
+    id: '7', type: 'td', title: "Systèmes d'Exploitation Unix/Linux",
+    teacher: 'Dr. Guy Mengue', location: 'Salle 102 - Bât. Sciences', group: 'L3 Info — Grp 2',
+    dayIndex: 2, startHour: 10.5, endHour: 12.5
+  },
+  {
+    id: '8', type: 'transversal', title: 'English for Computer Science & IT',
+    teacher: 'Mme Sarah Walker', location: 'Labo Langues', group: 'L3 Info — Grp 1 & 2',
+    dayIndex: 2, startHour: 14, endHour: 16
+  }
+];
+
+const DAYS = [
+  { short: 'Lun', num: 14 },
+  { short: 'Mar', num: 15 },
+  { short: 'Mer', num: 16 },
+  { short: 'Jeu', num: 17 },
+  { short: 'Ven', num: 18 },
+  { short: 'Sam', num: 19 },
+  { short: 'Dim', num: 20 },
+];
+
+export default function TimetablePage() {
+  const hours = Array.from({ length: 11 }, (_, i) => i + 8); // 8 à 18
+
+  // MODAL & FORM STATE
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    subjectId: '',
+    teacherId: '',
+    roomId: '',
+    orgUnitId: '',
+    startAt: '',
+    endAt: '',
+    status: 'PLANNED',
+    notes: ''
+  });
+
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [orgUnits, setOrgUnits] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      const extractArray = (res: any) => {
+        if (res?.data?.content) return res.data.content;
+        if (Array.isArray(res?.data)) return res.data;
+        if (Array.isArray(res)) return res;
+        return [];
+      };
+
+      fetchWithAuth('/teachers').then(res => setTeachers(extractArray(res))).catch(console.error);
+      fetchWithAuth('/rooms').then(res => setRooms(extractArray(res))).catch(console.error);
+      fetchWithAuth('/subjects').then(res => setSubjects(extractArray(res))).catch(console.error);
+      fetchWithAuth('/org-units').then(res => setOrgUnits(extractArray(res))).catch(console.error);
+    }
+  }, [isModalOpen]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await fetchWithAuth('/schedule-events', {
+        method: 'POST',
+        body: JSON.stringify(formData)
+      });
+      setIsModalOpen(false);
+      alert("Cours planifié avec succès !");
+    } catch (error) {
+      console.error(error);
+      alert("Erreur lors de la planification.");
+    }
+  };
+
+  const getEventInlineStyle = (evt: UIMockupEvent) => {
+    // Colors
+    let bg = "", border = "", text = "", badgeBg = "", badgeText = "";
+    if (evt.isConflict) {
+      bg = "var(--danger-bg)";
+      border = "var(--danger)";
+      text = "var(--danger)";
+      badgeBg = "var(--danger)";
+      badgeText = "white";
+    } else {
+      const typeColors: Record<string, any> = {
+        'cm': { bg: 'var(--cm-bg)', border: 'var(--cm-border)', text: 'var(--cm-text)' },
+        'td': { bg: 'var(--td-bg)', border: 'var(--td-border)', text: 'var(--td-text)' },
+        'tp': { bg: 'var(--tp-bg)', border: 'var(--tp-border)', text: 'var(--tp-text)' },
+        'transversal': { bg: 'var(--info-bg)', border: 'var(--info)', text: 'var(--info)' },
+      };
+      const colors = typeColors[evt.type] || typeColors['cm'];
+      bg = colors.bg; border = colors.border; text = colors.text;
+      badgeBg = colors.border; badgeText = "white"; // For better contrast
+    }
+
+    // Geometry
+    // 1 hour = 80px, starting at 8h
+    const top = (evt.startHour - 8) * 80;
+    const height = (evt.endHour - evt.startHour) * 80;
+
+    return {
+      top: `${top}px`,
+      height: `${height}px`,
+      backgroundColor: bg,
+      borderLeftColor: border,
+      color: text,
+      '--badge-bg': badgeBg,
+      '--badge-text': badgeText,
+    } as React.CSSProperties;
+  };
+
+  const formatHourString = (decimalHour: number) => {
+    const h = Math.floor(decimalHour);
+    const m = Math.round((decimalHour - h) * 60);
+    return `${h.toString().padStart(2, '0')}h${m.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className={styles.container}>
+      {/* ---------------- PANNEAU GAUCHE ---------------- */}
+      <aside className={styles.sidebar}>
+        {/* MINI CALENDRIER */}
+        <div style={{ padding: 'var(--space-lg)', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-md)' }}>
+            <h3 style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-primary)' }}>Septembre 2026</h3>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              <button className="topbar-icon-btn" style={{ width: 28, height: 28 }}><span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_left</span></button>
+              <button className="topbar-icon-btn" style={{ width: 28, height: 28 }}><span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span></button>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px' }}>
+            <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', fontSize: '12px', gap: '4px 0' }}>
+            <span style={{ color: 'var(--outline-variant)' }}>31</span>
+            <span>1</span><span>2</span><span>3</span><span>4</span>
+            <span style={{ color: 'var(--text-muted)' }}>5</span><span style={{ color: 'var(--text-muted)' }}>6</span>
+            
+            <span>7</span><span>8</span><span>9</span><span>10</span><span>11</span>
+            <span style={{ color: 'var(--text-muted)' }}>12</span><span style={{ color: 'var(--text-muted)' }}>13</span>
+            
+            <div style={{ gridColumn: 'span 7', display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', background: 'var(--primary-light)', borderRadius: '8px', padding: '2px 0' }}>
+              <span style={{ background: 'var(--primary)', color: 'white', borderRadius: '4px', fontWeight: 700 }}>14</span>
+              <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>15</span>
+              <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>16</span>
+              <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>17</span>
+              <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>18</span>
+              <span style={{ fontWeight: 500, color: 'var(--primary)' }}>19</span>
+              <span style={{ fontWeight: 500, color: 'var(--primary)' }}>20</span>
+            </div>
+
+            <span>21</span><span>22</span><span>23</span><span>24</span><span>25</span>
+            <span style={{ color: 'var(--text-muted)' }}>26</span><span style={{ color: 'var(--text-muted)' }}>27</span>
+          </div>
+        </div>
+
+        {/* FILTRES RAPIDES */}
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, color: 'var(--text-muted)' }}>Filtres Rapides</span>
+            <span style={{ fontSize: '11px', color: 'var(--primary)', cursor: 'pointer' }}>Réinitialiser</span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, background: 'var(--primary-light)', color: 'var(--primary-dark)', cursor: 'pointer' }}>Tout afficher</span>
+            <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, background: 'var(--surface-container-high)', color: 'var(--text-secondary)', cursor: 'pointer' }}>Mes cours</span>
+            <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, background: 'var(--surface-container-high)', color: 'var(--text-secondary)', cursor: 'pointer' }}>Salles libres</span>
+          </div>
+        </div>
+
+        {/* ARBRE DES RESSOURCES */}
+        <div style={{ padding: '16px', flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--text-muted)' }}>filter_alt</span>
+              <h3 style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>Ressources à afficher</h3>
+            </div>
+          </div>
+          
+          <div style={{ fontSize: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontWeight: 600, cursor: 'pointer' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>expand_more</span>
+              <span>🏛️ Faculté des Sciences</span>
+            </div>
+            <div style={{ marginLeft: '20px', paddingLeft: '8px', borderLeft: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontWeight: 500, cursor: 'pointer' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>expand_more</span>
+                <span>📁 Département Informatique</span>
+              </div>
+              <div style={{ marginLeft: '20px', paddingLeft: '8px', borderLeft: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--primary-dark)', fontWeight: 500 }}>
+                  <input type="checkbox" defaultChecked /> Licence 3 Info — Grp 1
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--primary-dark)', fontWeight: 500 }}>
+                  <input type="checkbox" defaultChecked /> Licence 3 Info — Grp 2
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input type="checkbox" /> Master 1 Génie Logiciel
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* ---------------- ESPACE PRINCIPAL ---------------- */}
+      <main className={styles.mainArea}>
+        {/* TOP TOOLBAR */}
+        <div className={styles.toolbar}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', background: 'var(--surface-container-low)', padding: '2px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              <button className="topbar-icon-btn" style={{ width: 28, height: 28 }}><span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_left</span></button>
+              <button style={{ padding: '4px 10px', fontSize: '12px', fontWeight: 600, background: 'transparent', border: 'none', cursor: 'pointer' }}>Aujourd'hui</button>
+              <button className="topbar-icon-btn" style={{ width: 28, height: 28 }}><span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span></button>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', whiteSpace: 'nowrap' }}>
+              <span style={{ padding: '4px 8px', borderRadius: '6px', fontWeight: 700, background: 'var(--primary-light)', color: 'var(--primary-dark)', border: '1px solid #dbeafe' }}>S38 (14–20 Sept)</span>
+              <span style={{ padding: '4px 8px', borderRadius: '6px', color: 'var(--text-secondary)', cursor: 'pointer' }}>S39 (21–27 Sept)</span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'inline-flex', background: 'var(--surface-container-low)', padding: '2px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '12px', fontWeight: 500 }}>
+              <button style={{ padding: '4px 10px', border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>Jour</button>
+              <button style={{ padding: '4px 10px', border: 'none', background: 'var(--surface)', color: 'var(--primary)', fontWeight: 600, borderRadius: '6px', boxShadow: 'var(--shadow-xs)' }}>Semaine</button>
+              <button style={{ padding: '4px 10px', border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>Mois</button>
+            </div>
+            <button className="topbar-icon-btn" style={{ border: '1px solid var(--border)' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>print</span>
+            </button>
+            <button className="btn btn-primary" style={{ flexShrink: 0 }} onClick={() => setIsModalOpen(true)}>
+              <span className="material-symbols-outlined">add</span>
+              Planifier un cours
+            </button>
+          </div>
+        </div>
+
+        {/* TIMETABLE SCROLL AREA */}
+        <div className={styles.scrollArea}>
+          <div className={styles.gridWrapper}>
+            
+            {/* Day Headers */}
+            <div className={styles.dayHeaders}>
+              <div className={styles.timeColumnHeader}>GMT+1</div>
+              {DAYS.map((day, i) => (
+                <div key={i} className={`${styles.headerCell} ${i === 0 ? styles.headerCellActive : ''}`}>
+                  <span className={`${styles.dayName} ${i === 0 ? styles.dayNameActive : ''}`}>{day.short}</span>
+                  <span className={`${styles.dayNumber} ${i === 0 ? styles.dayNumberActive : ''}`}>{day.num}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Grid Scroll Area */}
+            <div className={styles.timetableScroll}>
+              
+              {/* Red Time Indicator Line (example 10:45) */}
+              <div className={styles.redIndicator} style={{ top: '220px' }}>
+                <div className={styles.redIndicatorTime}>10:45</div>
+                <div className={styles.redIndicatorDot}></div>
+                <div className={styles.redIndicatorLine}></div>
+              </div>
+
+              <div className={styles.timetableGrid}>
+                {/* TIME LABELS COL */}
+                <div className={styles.timeCol}>
+                  {hours.map(h => (
+                    <div key={h} className={styles.timeSlot}>
+                      <div className={styles.hourText}>{h.toString().padStart(2, '0')}h00</div>
+                      <div className={styles.halfHourText}>{h.toString().padStart(2, '0')}h30</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 7 DAYS COLUMNS */}
+                {DAYS.map((_, dayIndex) => {
+                  const dayEvents = mockEvents.filter(e => e.dayIndex === dayIndex);
+                  return (
+                    <div key={dayIndex} className={styles.dayCol}>
+                      {/* Background Guidelines */}
+                      <div className={styles.dayColLines}>
+                        {hours.map(h => (
+                          <div key={h} className={styles.timeSlot}>
+                            <div className={styles.lineHalf}></div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Events */}
+                      {dayEvents.map((evt) => {
+                        const styleObj = getEventInlineStyle(evt);
+                        return (
+                          <div key={evt.id} className={styles.eventCard} style={styleObj}>
+                            <div className={styles.eventHeader}>
+                              {evt.isConflict ? (
+                                <span className={styles.eventBadge} style={{ background: 'var(--badge-bg)', color: 'var(--badge-text)' }}>
+                                  CONFLIT
+                                </span>
+                              ) : (
+                                <span className={styles.eventBadge} style={{ background: 'var(--badge-bg)', color: 'var(--badge-text)' }}>
+                                  {evt.type}
+                                </span>
+                              )}
+                              <span className={styles.eventTime}>
+                                {formatHourString(evt.startHour)} - {formatHourString(evt.endHour)}
+                              </span>
+                            </div>
+                            
+                            <div className={styles.eventTitle}>{evt.title}</div>
+
+                            {evt.isConflict ? (
+                              <>
+                                <div style={{ fontSize: '11px', marginTop: '4px' }}>{evt.conflictDetails}</div>
+                                <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '10px', fontWeight: 600, textDecoration: 'underline' }}>Résoudre</span>
+                                </div>
+                              </>
+                            ) : (
+                              <div className={styles.eventDetails}>
+                                <div className={styles.eventDetailRow}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: 12, opacity: 0.7 }}>person</span>
+                                  <span>{evt.teacher}</span>
+                                </div>
+                                <div className={styles.eventDetailRow}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: 12, opacity: 0.7 }}>location_on</span>
+                                  <span style={{ fontWeight: 600 }}>{evt.location}</span>
+                                </div>
+                                <div className={styles.eventDetailRow}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: 12, opacity: 0.7 }}>group</span>
+                                  <span style={{ color: 'var(--badge-bg)', fontWeight: 600 }}>{evt.group}</span>
+                                </div>
+                                {evt.extraInfo && (
+                                  <div style={{ paddingTop: '8px', marginTop: '8px', borderTop: '1px solid currentColor', opacity: 0.8 }}>
+                                    {evt.extraInfo}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* ---------------- SLIDE-OVER MODAL ---------------- */}
+      {isModalOpen && (
+        <div className={styles.overlay} onClick={() => setIsModalOpen(false)}>
+          <div className={styles.slideOver} onClick={e => e.stopPropagation()}>
+            <div className={styles.slideOverHeader}>
+              <h2 className={styles.slideOverTitle}>Planifier un cours</h2>
+              <button className={styles.closeButton} onClick={() => setIsModalOpen(false)}>
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            
+            <div className={styles.slideOverBody}>
+              <form id="schedule-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Matière</label>
+                  <select className={styles.formSelect} required value={formData.subjectId} onChange={e => setFormData({...formData, subjectId: e.target.value})}>
+                    <option value="">Sélectionner une matière...</option>
+                    {subjects.map(s => <option key={s.id} value={s.id}>{s.name || s.title || s.id}</option>)}
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Enseignant</label>
+                  <select className={styles.formSelect} required value={formData.teacherId} onChange={e => setFormData({...formData, teacherId: e.target.value})}>
+                    <option value="">Sélectionner un enseignant...</option>
+                    {teachers.map(t => <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>)}
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Salle</label>
+                  <select className={styles.formSelect} required value={formData.roomId} onChange={e => setFormData({...formData, roomId: e.target.value})}>
+                    <option value="">Sélectionner une salle...</option>
+                    {rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Groupe / Promotion</label>
+                  <select className={styles.formSelect} required value={formData.orgUnitId} onChange={e => setFormData({...formData, orgUnitId: e.target.value})}>
+                    <option value="">Sélectionner un groupe...</option>
+                    {orgUnits.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+                  </select>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Début</label>
+                    <input type="datetime-local" className={styles.formInput} required value={formData.startAt} onChange={e => setFormData({...formData, startAt: e.target.value})} />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Fin</label>
+                    <input type="datetime-local" className={styles.formInput} required value={formData.endAt} onChange={e => setFormData({...formData, endAt: e.target.value})} />
+                  </div>
+                </div>
+
+              </form>
+            </div>
+
+            <div className={styles.slideOverFooter}>
+              <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)} style={{ background: 'transparent', border: '1px solid var(--border-strong)', padding: '0 16px', borderRadius: 'var(--radius)', color: 'var(--text-secondary)', cursor: 'pointer', height: '40px', fontWeight: 500 }}>Annuler</button>
+              <button type="submit" form="schedule-form" className="btn btn-primary">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

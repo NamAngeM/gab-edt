@@ -1,0 +1,43 @@
+# ==============================================================================
+# GAB-EDT — Configuration test
+# ==============================================================================
+
+spring:
+  # Testcontainers PostgreSQL — configuré dynamiquement
+  datasource:
+    url: jdbc:tc:postgresql:16:///gabedt_test
+    username: test
+    password: test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+  # JPA — test settings
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+
+  # Flyway
+  flyway:
+    enabled: true
+    clean-disabled: false
+
+  # Redis désactivé pour les tests unitaires
+  data:
+    redis:
+      repositories:
+        enabled: false
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+
+# Logging — minimal en test
+logging:
+  level:
+    root: WARN
+    ga.gabedt: INFO
+
+# Swagger désactivé en test
+springdoc:
+  swagger-ui:
+    enabled: false
