@@ -21,6 +21,15 @@ interface Activity {
   type: string;
 }
 
+interface BuildingOccupation {
+  name: string;
+  sub: string;
+  pct: number;
+  occupied: string;
+  free: string;
+  color: string;
+}
+
 interface DashboardStats {
   teacherCount: number;
   studentCount: number;
@@ -29,6 +38,7 @@ interface DashboardStats {
   activeConflictsCount: number;
   todayEvents: TodayEvent[];
   recentActivity: Activity[];
+  buildingOccupations: BuildingOccupation[];
 }
 
 interface StatCardProps {
@@ -131,12 +141,7 @@ export default function AdminDashboardPage() {
 
   useEffect(() => { loadStats(); }, [loadStats]);
 
-  const activeEvents = stats?.todayEvents?.length ? stats.todayEvents : [
-    { id: '1', title: 'Algorithmique Avancée', description: 'Pr. Marc Nguema • L3 Info', roomName: 'Amphi A', startAt: new Date(new Date().setHours(8, 30)).toISOString(), endAt: new Date(new Date().setHours(10, 30)).toISOString(), conflict: true },
-    { id: '2', title: 'Génie Logiciel', description: 'Dr. Jean-Pierre Obiang • L2 Info', roomName: 'Amphi B', startAt: new Date(new Date().setHours(9, 0)).toISOString(), endAt: new Date(new Date().setHours(12, 0)).toISOString(), conflict: true },
-    { id: '3', title: 'Conception BD', description: 'Dr. Estelle Ondo • L2 Info', roomName: 'Salle 104', startAt: new Date(new Date().setHours(14, 0)).toISOString(), endAt: new Date(new Date().setHours(17, 0)).toISOString(), conflict: true },
-    { id: '4', title: 'Mathématiques Discrètes', description: 'Pr. Mba • L1 Info', roomName: 'Amphi Vion', startAt: new Date(new Date().setHours(10, 30)).toISOString(), endAt: new Date(new Date().setHours(12, 30)).toISOString(), conflict: false }
-  ];
+  const activeEvents = stats?.todayEvents || [];
   const conflicts = activeEvents.filter(e => e.conflict);
 
   return (
@@ -169,7 +174,7 @@ export default function AdminDashboardPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
         <StatCard
           label="Enseignants"
-          value={loading ? '—' : (stats?.teacherCount || 42)}
+          value={loading ? '—' : (stats?.teacherCount ?? 0)}
           icon="badge"
           trend="corps enseignant"
           iconBg="var(--primary-light)"
@@ -178,7 +183,7 @@ export default function AdminDashboardPage() {
         />
         <StatCard
           label="Étudiants"
-          value={loading ? '—' : (stats?.studentCount || 1250)}
+          value={loading ? '—' : (stats?.studentCount ?? 0)}
           icon="groups"
           trend="apprenants actifs"
           iconBg="#F0FDF4"
@@ -187,7 +192,7 @@ export default function AdminDashboardPage() {
         />
         <StatCard
           label="Matières"
-          value={loading ? '—' : (stats?.subjectCount || 128)}
+          value={loading ? '—' : (stats?.subjectCount ?? 0)}
           icon="menu_book"
           trend="catalogue pédagogique"
           iconBg="#EDE9FE"
@@ -196,7 +201,7 @@ export default function AdminDashboardPage() {
         />
         <StatCard
           label="Salles"
-          value={loading ? '—' : (stats?.roomCount || 34)}
+          value={loading ? '—' : (stats?.roomCount ?? 0)}
           icon="meeting_room"
           trend="espaces disponibles"
           iconBg="var(--warning-bg)"
@@ -205,7 +210,7 @@ export default function AdminDashboardPage() {
         />
         <StatCard
           label="Conflits"
-          value={loading ? '—' : (stats?.activeConflictsCount || conflicts.length)}
+          value={loading ? '—' : (stats?.activeConflictsCount ?? 0)}
           icon="warning"
           trend="nécessitent arbitrage"
           trendPositive={false}
@@ -405,28 +410,30 @@ export default function AdminDashboardPage() {
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Capacité globale: 2 400 places</span>
             </div>
             <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {[
-                { name: 'Bâtiment Sciences A', sub: '18 Salles • TD & Labos', pct: 91, occupied: '16 occupées', free: '2 libres', color: 'var(--danger)' },
-                { name: 'Bâtiment Info B', sub: '12 Labos & Postes TP', pct: 82, occupied: '10 occupées', free: '2 libres', color: 'var(--warning)' },
-                { name: 'Amphithéâtres', sub: '4 Grands Amphis (A, B, Vion, P2)', pct: 75, occupied: '3 en cours', free: '1 libre', color: 'var(--success)' },
-              ].map((bld, i) => (
-                <div key={i}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{bld.name}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{bld.sub}</div>
+              {stats?.buildingOccupations && stats.buildingOccupations.length > 0 ? (
+                stats.buildingOccupations.map((bld, i) => (
+                  <div key={i}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{bld.name}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{bld.sub}</div>
+                      </div>
+                      <span style={{ fontSize: 20, fontWeight: 700, color: bld.color }}>{bld.pct}%</span>
                     </div>
-                    <span style={{ fontSize: 20, fontWeight: 700, color: bld.color }}>{bld.pct}%</span>
+                    <div className="progress-bar">
+                      <div className="progress-fill" style={{ width: `${bld.pct}%`, background: bld.color }} />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 11, color: 'var(--text-muted)' }}>
+                      <span>{bld.occupied}</span>
+                      <span style={{ color: 'var(--success)' }}>{bld.free}</span>
+                    </div>
                   </div>
-                  <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: `${bld.pct}%`, background: bld.color }} />
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 11, color: 'var(--text-muted)' }}>
-                    <span>{bld.occupied}</span>
-                    <span style={{ color: 'var(--success)' }}>{bld.free}</span>
-                  </div>
+                ))
+              ) : (
+                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+                  Aucun bâtiment enregistré ou données indisponibles.
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>

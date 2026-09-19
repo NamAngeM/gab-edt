@@ -14,4 +14,5 @@ public class DashboardStatsDto {
     
     private List<TodayEventDto> todayEvents;
     private List<ActivityDto> recentActivity;
+    private List<BuildingOccupationDto> buildingOccupations;
 }

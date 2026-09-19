@@ -3,7 +3,10 @@ package ga.gabedt.dashboard;
 import ga.gabedt.dashboard.dto.ActivityDto;
 import ga.gabedt.dashboard.dto.DashboardStatsDto;
 import ga.gabedt.dashboard.dto.TodayEventDto;
+import ga.gabedt.dashboard.dto.BuildingOccupationDto;
+import ga.gabedt.resource.Room;
 import ga.gabedt.resource.repository.RoomRepository;
+import ga.gabedt.structure.OrganizationalUnit;
 import ga.gabedt.resource.repository.SubjectRepository;
 import ga.gabedt.timetable.ScheduleEvent;
 import ga.gabedt.timetable.repository.ScheduleEventRepository;
@@ -16,8 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -85,6 +91,46 @@ public class DashboardService {
         // Trier les événements par heure de début
         eventDtos.sort((e1, e2) -> e1.getStartAt().compareTo(e2.getStartAt()));
         stats.setTodayEvents(eventDtos);
+
+        // 2b. Occupation par bâtiment (en temps réel)
+        LocalDateTime now = LocalDateTime.now();
+        Set<String> occupiedRoomIds = todayEvents.stream()
+            .filter(e -> !now.isBefore(e.getStartAt()) && now.isBefore(e.getEndAt()))
+            .filter(e -> e.getRoom() != null)
+            .map(e -> e.getRoom().getId())
+            .map(java.util.UUID::toString) // Convert UUID to String if ID is UUID
+            .collect(Collectors.toSet());
+
+        List<Room> allRooms = roomRepository.findAllByDeletedFalse();
+        Map<OrganizationalUnit, List<Room>> roomsByOrg = allRooms.stream()
+            .filter(r -> r.getOrgUnit() != null)
+            .collect(Collectors.groupingBy(Room::getOrgUnit));
+
+        List<BuildingOccupationDto> bOccupations = new ArrayList<>();
+        for (Map.Entry<OrganizationalUnit, List<Room>> entry : roomsByOrg.entrySet()) {
+            OrganizationalUnit org = entry.getKey();
+            List<Room> orgRooms = entry.getValue();
+            
+            long total = orgRooms.size();
+            long occupied = orgRooms.stream().filter(r -> occupiedRoomIds.contains(r.getId().toString())).count();
+            long free = total - occupied;
+            int pct = total == 0 ? 0 : (int) ((occupied * 100) / total);
+            
+            BuildingOccupationDto dto = new BuildingOccupationDto();
+            dto.setName(org.getName());
+            dto.setSub(total + " Salles");
+            dto.setPct(pct);
+            dto.setOccupied(occupied + " occupées");
+            dto.setFree(free + " libres");
+            
+            if (pct > 80) dto.setColor("var(--danger)");
+            else if (pct > 50) dto.setColor("var(--warning)");
+            else dto.setColor("var(--success)");
+            
+            bOccupations.add(dto);
+        }
+        bOccupations.sort((b1, b2) -> Integer.compare(b2.getPct(), b1.getPct()));
+        stats.setBuildingOccupations(bOccupations.size() > 4 ? bOccupations.subList(0, 4) : bOccupations);
 
         // 3. Activités récentes (Mock pour le moment car l'audit n'est pas encore modélisé en table)
         List<ActivityDto> activities = new ArrayList<>();
