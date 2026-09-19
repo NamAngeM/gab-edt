@@ -366,7 +366,7 @@ export default function SubjectsAdminPage() {
             </div>
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setIsModalOpen(false)} disabled={modalLoading}>Annuler</button>
-              <button className="btn btn-primary" onClick={handleSave} disabled={modalLoading}>
+              <button className="btn btn-primary" onClick={handleSubmit} disabled={modalLoading}>
                 {modalLoading ? <><span className="material-symbols-outlined" style={{ fontSize: 18 }}>progress_activity</span>En cours...</> : <><span className="material-symbols-outlined">save</span>{modalMode === 'CREATE' ? 'Créer la matière' : 'Enregistrer'}</>}
               </button>
             </div>

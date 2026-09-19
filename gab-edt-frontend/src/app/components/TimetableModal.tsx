@@ -112,7 +112,7 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
           if (errorData && errorData.message) {
             throw new Error(errorData.message);
           }
-        } catch (parseError) {
+        } catch (parseError: any) {
           // Si on ne peut pas parser le JSON, ou si c'est déjà une erreur qu'on vient de throw
           if (parseError.message && parseError.message !== "Unexpected end of JSON input" && parseError.message !== "Unexpected token < in JSON at position 0") {
              throw parseError;

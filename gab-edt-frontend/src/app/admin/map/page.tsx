@@ -82,8 +82,8 @@ export default function AdminMapPage() {
           });
         }
         
-        setNodes(newNodes);
-        setEdges(newEdges);
+        setNodes(newNodes as any);
+        setEdges(newEdges as any);
       } catch (error) {
         console.error("Failed to load map data", error);
       } finally {
@@ -94,7 +94,7 @@ export default function AdminMapPage() {
     loadTree();
   }, []);
 
-  const onConnect = useCallback((params: any) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
+  const onConnect = useCallback((params: any) => setEdges((eds: any) => addEdge(params, eds) as any), [setEdges]);
 
   if (loading) return <div style={{ padding: '3rem', textAlign: 'center' }}>Chargement de la carte...</div>;
 

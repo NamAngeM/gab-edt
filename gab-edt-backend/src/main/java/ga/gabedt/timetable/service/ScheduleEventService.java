@@ -95,8 +95,41 @@ public class ScheduleEventService {
                 event.getStartAt(),
                 event.getEndAt(),
                 event.getStatus(),
-                event.getPublicationStatus()
+                event.getPublicationStatus(),
+                false,
+                null
         );
+    }
+
+    public List<ScheduleEventDto> getConflicts() {
+        LocalDateTime start = LocalDateTime.now().minusDays(1);
+        LocalDateTime end = LocalDateTime.now().plusMonths(6);
+        List<ScheduleEvent> upcomingEvents = scheduleEventRepository.findByStartAtBetweenAndDeletedFalse(start, end);
+        
+        List<ScheduleEventDto> conflicts = new java.util.ArrayList<>();
+        
+        for (ScheduleEvent event : upcomingEvents) {
+            boolean isRoomConflict = event.getRoom() != null && 
+                scheduleEventRepository.existsOverlappingForRoom(event.getRoom().getId(), event.getStartAt(), event.getEndAt(), event.getId());
+            
+            boolean isTeacherConflict = event.getTeacher() != null && 
+                scheduleEventRepository.existsOverlappingForTeacher(event.getTeacher().getId(), event.getStartAt(), event.getEndAt(), event.getId());
+            
+            boolean isOrgUnitConflict = event.getOrgUnit() != null && 
+                scheduleEventRepository.existsOverlappingForOrgUnit(event.getOrgUnit().getId(), event.getStartAt(), event.getEndAt(), event.getId());
+
+            if (isRoomConflict || isTeacherConflict || isOrgUnitConflict) {
+                ScheduleEventDto dto = mapToDto(event);
+                dto.setConflict(true);
+                String desc = "";
+                if (isRoomConflict) desc += "Superposition de salle. ";
+                if (isTeacherConflict) desc += "Professeur déjà occupé. ";
+                if (isOrgUnitConflict) desc += "La classe a déjà cours. ";
+                dto.setConflictDetails(desc.trim());
+                conflicts.add(dto);
+            }
+        }
+        return conflicts;
     }
 
     @Transactional

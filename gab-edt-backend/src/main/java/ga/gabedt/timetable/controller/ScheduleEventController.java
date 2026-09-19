@@ -33,6 +33,11 @@ public class ScheduleEventController {
         return ResponseEntity.ok(ApiResponse.success(events));
     }
 
+    @GetMapping("/conflicts")
+    public ResponseEntity<ApiResponse<List<ScheduleEventDto>>> getConflicts() {
+        return ResponseEntity.ok(ApiResponse.success(scheduleEventService.getConflicts()));
+    }
+
     @PostMapping
     @PreAuthorize("@securityAclService.canManage(#dto.orgUnitId)")
     public ResponseEntity<ApiResponse<ScheduleEventDto>> createEvent(@RequestBody ScheduleEventCreateDto dto) {

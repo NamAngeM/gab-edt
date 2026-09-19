@@ -22,4 +22,8 @@ public class ScheduleEventDto {
     private LocalDateTime endAt;
     private EventStatus status;
     private PublicationStatus publicationStatus;
+    
+    // Conflict Info
+    private boolean conflict;
+    private String conflictDetails;
 }
