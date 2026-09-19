@@ -1,12 +1,15 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { fetchWithAuth } from '@/lib/api';
+import { fetchWithAuth, extractArray, extractPageData } from '@/lib/api';
 
 interface Subject {
   id: string;
   name: string;
   code?: string;
+  color?: string;
+  credits?: number;
+  active?: boolean;
   orgUnit?: { id: string; name: string; type: string };
 }
 
@@ -18,7 +21,7 @@ interface OrgUnit {
 }
 
 type ModalMode = 'CREATE' | 'EDIT';
-const initForm = { id: '', name: '', code: '', orgUnitId: '' };
+const initForm = { id: '', name: '', code: '', color: '#3B82F6', credits: 3, active: true, orgUnitId: '' };
 
 function Toast({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) {
   useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, [onClose]);
@@ -37,12 +40,15 @@ function SkeletonRows() {
   return (
     <>{[1,2,3,4].map(i => (
       <tr key={i}>
+        <td style={{ width: 40, paddingRight: 0 }}></td>
         <td style={{ padding: '16px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div className="skeleton" style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0 }} />
             <div className="skeleton skeleton-text" style={{ width: '55%' }} />
           </div>
         </td>
+        <td><div className="skeleton skeleton-text" style={{ width: '40%' }} /></td>
+        <td><div className="skeleton skeleton-text" style={{ width: '30%' }} /></td>
         <td><div className="skeleton skeleton-text" style={{ width: '40%' }} /></td>
         <td><div className="skeleton skeleton-text" style={{ width: '60%' }} /></td>
         <td style={{ textAlign: 'right' }}>
@@ -68,6 +74,11 @@ export default function SubjectsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>('CREATE');
@@ -79,18 +90,28 @@ export default function SubjectsAdminPage() {
 
   const flatOrgUnits = buildFlatList(orgUnits);
 
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: pageSize.toString(),
+  });
+  if (search) params.append('search', search);
+
   const loadData = useCallback(async () => {
     setLoading(true); setError('');
     try {
-      const [subjectsRes, orgUnitsRes] = await Promise.all([
-        fetchWithAuth('/subjects'),
+      const [resData, orgUnitsRes] = await Promise.all([
+        fetchWithAuth(`/subjects?${params.toString()}`),
         fetchWithAuth('/org-units'),
       ]);
-      setSubjects(subjectsRes.data || []);
-      setOrgUnits(orgUnitsRes || []);
+      setSubjects(extractArray(resData));
+      const pageData = extractPageData(resData);
+      setTotalElements(pageData.totalElements);
+      setTotalPages(pageData.totalPages);
+      setOrgUnits(extractArray(orgUnitsRes));
+      setSelectedIds(new Set());
     } catch { setError('Impossible de charger les données.'); }
     finally { setLoading(false); }
-  }, []);
+  }, [params]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -100,7 +121,15 @@ export default function SubjectsAdminPage() {
 
   const handleOpenEdit = (s: Subject) => {
     setModalMode('EDIT');
-    setFormData({ id: s.id, name: s.name, code: s.code || '', orgUnitId: s.orgUnit?.id || '' });
+    setFormData({
+      id: s.id,
+      name: s.name,
+      code: s.code || '',
+      color: s.color || '#3B82F6',
+      credits: s.credits ?? 3,
+      active: s.active ?? true,
+      orgUnitId: s.orgUnit?.id || ''
+    });
     setModalError(''); setIsModalOpen(true);
   };
 
@@ -110,19 +139,45 @@ export default function SubjectsAdminPage() {
       await fetchWithAuth(`/subjects/${id}`, { method: 'DELETE' });
       setToast({ message: 'Matière supprimée avec succès.', type: 'success' });
       loadData();
-    } catch (err: any) { setToast({ message: err.message || 'Erreur lors de la suppression.', type: 'error' }); }
+    } catch { setToast({ message: 'Erreur lors de la suppression.', type: 'error' }); }
   };
 
-  const handleSave = async () => {
-    if (!formData.name.trim()) { setModalError('Le nom de la matière est obligatoire.'); return; }
-    setModalLoading(true); setModalError('');
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Supprimer les ${selectedIds.size} matières sélectionnées ?`)) return;
     try {
-      const body = { name: formData.name, code: formData.code || null, orgUnitId: formData.orgUnitId || null };
-      if (modalMode === 'CREATE') {
-        await fetchWithAuth('/subjects', { method: 'POST', body: JSON.stringify(body) });
-      } else {
-        await fetchWithAuth(`/subjects/${formData.id}`, { method: 'PUT', body: JSON.stringify(body) });
-      }
+      await fetchWithAuth(`/subjects/bulk-delete`, { 
+        method: 'POST', body: JSON.stringify(Array.from(selectedIds))
+      });
+      setToast({ message: `${selectedIds.size} matières supprimées.`, type: 'success' });
+      loadData();
+    } catch { setToast({ message: 'Erreur lors de la suppression groupée.', type: 'error' }); }
+  };
+
+  const handleBulkStatus = async (status: boolean) => {
+    if (selectedIds.size === 0) return;
+    try {
+      await fetchWithAuth(`/subjects/bulk-status`, { 
+        method: 'POST', body: JSON.stringify({ ids: Array.from(selectedIds), active: status })
+      });
+      setToast({ message: `Statut mis à jour pour ${selectedIds.size} matières.`, type: 'success' });
+      loadData();
+    } catch { setToast({ message: 'Erreur.', type: 'error' }); }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); setModalError(''); setModalLoading(true);
+    try {
+      const url = modalMode === 'EDIT' ? `/subjects/${formData.id}` : `/subjects`;
+      const method = modalMode === 'EDIT' ? 'PUT' : 'POST';
+      await fetchWithAuth(url, {
+        method,
+        body: JSON.stringify({
+          name: formData.name, code: formData.code, color: formData.color,
+          credits: Number(formData.credits), active: formData.active,
+          orgUnitId: formData.orgUnitId || null,
+        }),
+      });
       setIsModalOpen(false);
       setToast({ message: modalMode === 'CREATE' ? 'Matière créée avec succès.' : 'Matière modifiée avec succès.', type: 'success' });
       loadData();

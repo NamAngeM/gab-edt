@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { fetchWithAuth, API_URL } from '@/lib/api';
+import { fetchWithAuth, extractArray, extractPageData } from '@/lib/api';
 
 interface Room {
   id: string;
@@ -123,10 +123,11 @@ export default function RoomsAdminPage() {
         fetchWithAuth(`/rooms?${params.toString()}`),
         fetchWithAuth('/org-units'),
       ]);
-      setRooms(resData.data?.content || []);
-      setTotalElements(resData.data?.totalElements || 0);
-      setTotalPages(resData.data?.totalPages || 1);
-      setOrgUnits(orgUnitsRes || []);
+      setRooms(extractArray(resData));
+      const pageData = extractPageData(resData);
+      setTotalElements(pageData.totalElements);
+      setTotalPages(pageData.totalPages);
+      setOrgUnits(extractArray(orgUnitsRes));
       setSelectedIds(new Set());
     } catch { setError('Impossible de charger les données.'); }
     finally { setLoading(false); }
@@ -149,9 +150,7 @@ export default function RoomsAdminPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer cette salle ? Cette action est irréversible.')) return;
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const res = await fetch(`${API_URL}/rooms/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error();
+      await fetchWithAuth(`/rooms/${id}`, { method: 'DELETE' });
       setToast({ message: 'Salle supprimée avec succès.', type: 'success' });
       loadData();
     } catch { setToast({ message: 'Erreur lors de la suppression.', type: 'error' }); }
@@ -161,11 +160,9 @@ export default function RoomsAdminPage() {
     if (selectedIds.size === 0) return;
     if (!confirm(`Supprimer les ${selectedIds.size} salles sélectionnées ?`)) return;
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const res = await fetch(`${API_URL}/rooms/bulk-delete`, { 
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(Array.from(selectedIds))
+      await fetchWithAuth(`/rooms/bulk-delete`, { 
+        method: 'POST', body: JSON.stringify(Array.from(selectedIds))
       });
-      if (!res.ok) throw new Error();
       setToast({ message: `${selectedIds.size} salles supprimées.`, type: 'success' });
       loadData();
     } catch { setToast({ message: 'Erreur lors de la suppression groupée.', type: 'error' }); }
@@ -174,11 +171,9 @@ export default function RoomsAdminPage() {
   const handleBulkStatus = async (status: boolean) => {
     if (selectedIds.size === 0) return;
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const res = await fetch(`${API_URL}/rooms/bulk-status`, { 
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ ids: Array.from(selectedIds), active: status })
+      await fetchWithAuth(`/rooms/bulk-status`, { 
+        method: 'POST', body: JSON.stringify({ ids: Array.from(selectedIds), active: status })
       });
-      if (!res.ok) throw new Error();
       setToast({ message: `Statut mis à jour pour ${selectedIds.size} salles.`, type: 'success' });
       loadData();
     } catch { setToast({ message: 'Erreur.', type: 'error' }); }
@@ -187,12 +182,10 @@ export default function RoomsAdminPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setModalError(''); setModalLoading(true);
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const url = modalMode === 'EDIT' ? `${API_URL}/rooms/${formData.id}` : `${API_URL}/rooms`;
+      const url = modalMode === 'EDIT' ? `/rooms/${formData.id}` : `/rooms`;
       const method = modalMode === 'EDIT' ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      await fetchWithAuth(url, {
         method,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           name: formData.name,
           code: formData.code,
@@ -202,7 +195,6 @@ export default function RoomsAdminPage() {
           orgUnitId: formData.orgUnitId || null,
         }),
       });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || 'Erreur API'); }
       setIsModalOpen(false);
       setToast({ message: modalMode === 'CREATE' ? 'Salle créée avec succès.' : 'Salle modifiée avec succès.', type: 'success' });
       loadData();

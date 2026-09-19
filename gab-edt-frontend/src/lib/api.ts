@@ -36,3 +36,21 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
 
   return response.json();
 }
+
+export function extractArray(res: any): any[] {
+  if (Array.isArray(res)) return res;
+  if (res?.data?.content && Array.isArray(res.data.content)) return res.data.content;
+  if (res?.content && Array.isArray(res.content)) return res.content;
+  if (res?.data && Array.isArray(res.data)) return res.data;
+  return [];
+}
+
+export function extractPageData(res: any) {
+  const data = res?.data || res || {};
+  return {
+    totalElements: data.totalElements || 0,
+    totalPages: data.totalPages || 1,
+    size: data.size || 10,
+    number: data.number || 0
+  };
+}

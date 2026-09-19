@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { fetchWithAuth, API_URL } from '@/lib/api';
+import { fetchWithAuth, extractArray, extractPageData } from '@/lib/api';
 
 interface Student {
   id: string;
@@ -105,10 +105,11 @@ export default function StudentsAdminPage() {
         fetchWithAuth(`/students?${params.toString()}`),
         fetchWithAuth('/org-units'),
       ]);
-      setStudents(resData.data?.content || []);
-      setTotalElements(resData.data?.totalElements || 0);
-      setTotalPages(resData.data?.totalPages || 1);
-      setOrgUnits(orgUnitsRes || []);
+      setStudents(extractArray(resData));
+      const pageData = extractPageData(resData);
+      setTotalElements(pageData.totalElements);
+      setTotalPages(pageData.totalPages);
+      setOrgUnits(extractArray(orgUnitsRes));
       setSelectedIds(new Set());
     } catch {
       setError('Impossible de charger les données.');
@@ -130,9 +131,7 @@ export default function StudentsAdminPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer cet étudiant ? Cette action est irréversible.')) return;
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const res = await fetch(`${API_URL}/students/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error();
+      await fetchWithAuth(`/students/${id}`, { method: 'DELETE' });
       setToast({ message: 'Étudiant supprimé avec succès.', type: 'success' });
       loadData();
     } catch { setToast({ message: 'Erreur lors de la suppression.', type: 'error' }); }
@@ -142,11 +141,9 @@ export default function StudentsAdminPage() {
     if (selectedIds.size === 0) return;
     if (!confirm(`Supprimer les ${selectedIds.size} étudiants sélectionnés ?`)) return;
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const res = await fetch(`${API_URL}/students/bulk-delete`, { 
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(Array.from(selectedIds))
+      await fetchWithAuth(`/students/bulk-delete`, { 
+        method: 'POST', body: JSON.stringify(Array.from(selectedIds))
       });
-      if (!res.ok) throw new Error();
       setToast({ message: `${selectedIds.size} étudiants supprimés.`, type: 'success' });
       loadData();
     } catch { setToast({ message: 'Erreur lors de la suppression groupée.', type: 'error' }); }
@@ -155,11 +152,9 @@ export default function StudentsAdminPage() {
   const handleBulkStatus = async (status: boolean) => {
     if (selectedIds.size === 0) return;
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const res = await fetch(`${API_URL}/students/bulk-status`, { 
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ ids: Array.from(selectedIds), active: status })
+      await fetchWithAuth(`/students/bulk-status`, { 
+        method: 'POST', body: JSON.stringify({ ids: Array.from(selectedIds), active: status })
       });
-      if (!res.ok) throw new Error();
       setToast({ message: `Statut mis à jour pour ${selectedIds.size} étudiants.`, type: 'success' });
       loadData();
     } catch { setToast({ message: 'Erreur.', type: 'error' }); }
@@ -168,18 +163,16 @@ export default function StudentsAdminPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setModalError(''); setModalLoading(true);
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const url = modalMode === 'EDIT' ? `${API_URL}/students/${formData.id}` : `${API_URL}/students`;
+      const url = modalMode === 'EDIT' ? `/students/${formData.id}` : `/students`;
       const method = modalMode === 'EDIT' ? 'PUT' : 'POST';
-      const res = await fetch(url, {
-        method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      await fetchWithAuth(url, {
+        method,
         body: JSON.stringify({
           firstName: formData.firstName, lastName: formData.lastName, email: formData.email,
           studentNumber: formData.studentNumber, phone: formData.phone, active: formData.active,
           orgUnitIds: formData.orgUnitId ? [formData.orgUnitId] : [],
         }),
       });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || 'Erreur API'); }
       setIsModalOpen(false);
       setToast({ message: modalMode === 'CREATE' ? 'Étudiant créé.' : 'Étudiant modifié.', type: 'success' });
       loadData();

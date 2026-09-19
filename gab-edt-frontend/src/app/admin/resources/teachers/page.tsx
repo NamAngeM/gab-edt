@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { fetchWithAuth, API_URL } from '@/lib/api';
+import { fetchWithAuth, extractArray, extractPageData } from '@/lib/api';
 
 interface Teacher {
   id: string;
@@ -113,14 +113,15 @@ export default function TeachersAdminPage() {
       if (activeFilter !== 'ALL') params.append('active', activeFilter === 'ACTIVE' ? 'true' : 'false');
       if (orgFilter) params.append('orgUnitId', orgFilter);
 
-      const [teachersRes, orgUnitsRes] = await Promise.all([
+      const [resData, orgUnitsRes] = await Promise.all([
         fetchWithAuth(`/teachers?${params.toString()}`),
         fetchWithAuth('/org-units'),
       ]);
-      setTeachers(teachersRes.data?.content || []);
-      setTotalElements(teachersRes.data?.totalElements || 0);
-      setTotalPages(teachersRes.data?.totalPages || 1);
-      setOrgUnits(orgUnitsRes || []);
+      setTeachers(extractArray(resData));
+      const pageData = extractPageData(resData);
+      setTotalElements(pageData.totalElements);
+      setTotalPages(pageData.totalPages);
+      setOrgUnits(extractArray(orgUnitsRes));
       setSelectedIds(new Set());
     } catch {
       setError('Impossible de charger les données. Vérifiez votre connexion.');
@@ -158,49 +159,33 @@ export default function TeachersAdminPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer cet enseignant ? Cette action est irréversible.')) return;
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const res = await fetch(`${API_URL}/teachers/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error();
+      await fetchWithAuth(`/teachers/${id}`, { method: 'DELETE' });
       setToast({ message: 'Enseignant supprimé avec succès.', type: 'success' });
       loadData();
-    } catch {
-      setToast({ message: 'Erreur lors de la suppression.', type: 'error' });
-    }
+    } catch { setToast({ message: 'Erreur lors de la suppression.', type: 'error' }); }
   };
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
     if (!confirm(`Supprimer les ${selectedIds.size} enseignants sélectionnés ?`)) return;
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const res = await fetch(`${API_URL}/teachers/bulk-delete`, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(Array.from(selectedIds))
+      await fetchWithAuth(`/teachers/bulk-delete`, { 
+        method: 'POST', body: JSON.stringify(Array.from(selectedIds))
       });
-      if (!res.ok) throw new Error();
       setToast({ message: `${selectedIds.size} enseignants supprimés.`, type: 'success' });
       loadData();
-    } catch {
-      setToast({ message: 'Erreur lors de la suppression groupée.', type: 'error' });
-    }
+    } catch { setToast({ message: 'Erreur lors de la suppression groupée.', type: 'error' }); }
   };
 
   const handleBulkStatus = async (status: boolean) => {
     if (selectedIds.size === 0) return;
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const res = await fetch(`${API_URL}/teachers/bulk-status`, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ids: Array.from(selectedIds), active: status })
+      await fetchWithAuth(`/teachers/bulk-status`, { 
+        method: 'POST', body: JSON.stringify({ ids: Array.from(selectedIds), active: status })
       });
-      if (!res.ok) throw new Error();
       setToast({ message: `Statut mis à jour pour ${selectedIds.size} enseignants.`, type: 'success' });
       loadData();
-    } catch {
-      setToast({ message: 'Erreur lors de la mise à jour groupée.', type: 'error' });
-    }
+    } catch { setToast({ message: 'Erreur lors de la mise à jour groupée.', type: 'error' }); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -208,12 +193,10 @@ export default function TeachersAdminPage() {
     setModalError('');
     setModalLoading(true);
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const url = modalMode === 'EDIT' ? `${API_URL}/teachers/${formData.id}` : `${API_URL}/teachers`;
+      const url = modalMode === 'EDIT' ? `/teachers/${formData.id}` : `/teachers`;
       const method = modalMode === 'EDIT' ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      await fetchWithAuth(url, {
         method,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -224,10 +207,6 @@ export default function TeachersAdminPage() {
           orgUnitIds: formData.orgUnitId ? [formData.orgUnitId] : [],
         }),
       });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || 'Erreur API');
-      }
       setIsModalOpen(false);
       setToast({ message: modalMode === 'CREATE' ? 'Enseignant créé avec succès.' : 'Enseignant modifié avec succès.', type: 'success' });
       loadData();
