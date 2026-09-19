@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { ResponsivePie } from '@nivo/pie';
-import { fetchWithAuth } from '@/lib/api';
+import { fetchWithAuth, extractArray } from '@/lib/api';
 import { motion } from 'framer-motion';
 
 export default function AdminStatsPage() {
@@ -14,27 +14,26 @@ export default function AdminStatsPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [campuses, depts, rooms, teachers] = await Promise.all([
-          fetchWithAuth('/campuses').then(res => res.data),
-          fetchWithAuth('/departments').then(res => res.data),
-          fetchWithAuth('/rooms').then(res => res.data),
-          fetchWithAuth('/teachers').then(res => res.data)
+        const [depts, rooms, teachers] = await Promise.all([
+          fetchWithAuth('/org-units').then(res => extractArray(res)),
+          fetchWithAuth('/rooms').then(res => extractArray(res)),
+          fetchWithAuth('/teachers').then(res => extractArray(res))
         ]);
 
-        // Process Bar Chart (Rooms capacity by Campus)
-        const campusCapacities = campuses.map((campus: any) => {
-          const campusRooms = rooms.filter((r: any) => r.campusId === campus.id);
-          const totalCapacity = campusRooms.reduce((acc: number, r: any) => acc + (r.capacity || 0), 0);
+        // Process Bar Chart (Rooms capacity by OrgUnit)
+        const orgUnitCapacities = depts.map((dept: any) => {
+          const deptRooms = rooms.filter((r: any) => r.orgUnitId === dept.id);
+          const totalCapacity = deptRooms.reduce((acc: number, r: any) => acc + (r.capacity || 0), 0);
           return {
-            campus: campus.name,
+            campus: dept.name, // on garde la clé "campus" pour le ResponsiveBar (indexBy="campus")
             capacite: totalCapacity
           };
-        });
-        setBarData(campusCapacities);
+        }).filter((item: any) => item.capacite > 0);
+        setBarData(orgUnitCapacities);
 
         // Process Pie Chart (Teachers by Department)
         const deptTeachers = depts.map((dept: any) => {
-          const deptT = teachers.filter((t: any) => t.departmentId === dept.id);
+          const deptT = teachers.filter((t: any) => t.orgUnitIds && t.orgUnitIds.includes(dept.id));
           return {
             id: dept.name,
             label: dept.name,
@@ -77,7 +76,7 @@ export default function AdminStatsPage() {
             boxShadow: 'var(--box-shadow)'
           }}
         >
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '1rem' }}>Capacité Totale par Campus</h2>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '1rem' }}>Capacité Totale par Département</h2>
           {barData.length > 0 ? (
             <ResponsiveBar
                 data={barData}
@@ -96,7 +95,7 @@ export default function AdminStatsPage() {
                     tickSize: 5,
                     tickPadding: 5,
                     tickRotation: 0,
-                    legend: 'Campus',
+                    legend: 'Département',
                     legendPosition: 'middle',
                     legendOffset: 40
                 }}
