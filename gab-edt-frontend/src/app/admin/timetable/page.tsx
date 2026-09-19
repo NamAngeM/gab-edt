@@ -20,61 +20,26 @@ interface UIMockupEvent {
   conflictDetails?: string;
 }
 
-const mockEvents: UIMockupEvent[] = [
-  {
-    id: '1', type: 'cm', title: 'Algorithmique Avancée & Complexité',
-    teacher: 'Pr. Marc Nguema', location: 'Amphi A (Sciences)', group: 'L3 Info (Grp 1 & 2)',
-    dayIndex: 0, startHour: 8.5, endHour: 10.5
-  },
-  {
-    id: '2', type: 'td', title: 'Conception BD Relationnelles (SQL)',
-    teacher: 'Dr. Estelle Ondo', location: 'Salle 104 - Bât. Info', group: 'L3 Info — Grp 1',
-    dayIndex: 0, startHour: 11, endHour: 13
-  },
-  {
-    id: '3', type: 'tp', title: 'Architecture Réseaux & Routage IP',
-    teacher: 'M. François Mba', location: 'Labo Réseaux (Salle 208)', group: 'L3 Info — Grp 1',
-    dayIndex: 0, startHour: 14.5, endHour: 17.5,
-    extraInfo: 'Postes équipés Cisco • 24 postes'
-  },
-  {
-    id: '4', type: 'cm', title: 'Génie Logiciel & Méthodes Agiles (SCRUM)',
-    teacher: 'Dr. Jean-Pierre Obiang', location: 'Amphi B', group: 'L3 Info (Grp 1 & 2)',
-    dayIndex: 1, startHour: 9, endHour: 12,
-    extraInfo: 'Projet de mi-semestre présenté'
-  },
-  {
-    id: '5', type: 'conflict', title: 'Superposition Salle 104',
-    teacher: '', location: '', group: '',
-    dayIndex: 1, startHour: 14, endHour: 16,
-    isConflict: true, conflictDetails: 'TD Algorithmique vs TD Mathématiques'
-  },
-  {
-    id: '6', type: 'cm', title: "Probabilités & Statistiques pour l'Informatique",
-    teacher: 'Pr. Joseph Boussougou', location: 'Amphi A', group: 'L3 Info (Grp 1 & 2)',
-    dayIndex: 2, startHour: 8, endHour: 10
-  },
-  {
-    id: '7', type: 'td', title: "Systèmes d'Exploitation Unix/Linux",
-    teacher: 'Dr. Guy Mengue', location: 'Salle 102 - Bât. Sciences', group: 'L3 Info — Grp 2',
-    dayIndex: 2, startHour: 10.5, endHour: 12.5
-  },
-  {
-    id: '8', type: 'transversal', title: 'English for Computer Science & IT',
-    teacher: 'Mme Sarah Walker', location: 'Labo Langues', group: 'L3 Info — Grp 1 & 2',
-    dayIndex: 2, startHour: 14, endHour: 16
+const getWeekDays = (date: Date) => {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d.setDate(diff));
+  
+  const days = [];
+  const shortNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  for (let i = 0; i < 7; i++) {
+    const curr = new Date(monday);
+    curr.setDate(monday.getDate() + i);
+    days.push({ short: shortNames[i], num: curr.getDate(), date: curr });
   }
-];
+  return days;
+};
 
-const DAYS = [
-  { short: 'Lun', num: 14 },
-  { short: 'Mar', num: 15 },
-  { short: 'Mer', num: 16 },
-  { short: 'Jeu', num: 17 },
-  { short: 'Ven', num: 18 },
-  { short: 'Sam', num: 19 },
-  { short: 'Dim', num: 20 },
-];
+const formatWeekRange = (monday: Date, sunday: Date) => {
+  const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+  return `${monday.getDate()}–${sunday.getDate()} ${months[monday.getMonth()]}`;
+};
 
 export default function TimetablePage() {
   const hours = Array.from({ length: 11 }, (_, i) => i + 8); // 8 à 18
@@ -96,6 +61,54 @@ export default function TimetablePage() {
   const [rooms, setRooms] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [orgUnits, setOrgUnits] = useState<any[]>([]);
+
+  // DYNAMIC TIMETABLE STATE
+  const [events, setEvents] = useState<UIMockupEvent[]>([]);
+  const [resourceTree, setResourceTree] = useState<any>(null);
+  const [currentDate, setCurrentDate] = useState(new Date("2026-09-14T00:00:00"));
+  const [filters, setFilters] = useState({ groupId: '', teacherId: '', roomId: '' });
+  
+  const weekDays = getWeekDays(currentDate);
+
+  const loadSchedule = async () => {
+    const start = weekDays[0].date.toISOString().split('T')[0];
+    const end = weekDays[6].date.toISOString().split('T')[0];
+    const params = new URLSearchParams({ startDate: start, endDate: end });
+    if (filters.groupId) params.append('groupId', filters.groupId);
+    if (filters.teacherId) params.append('teacherId', filters.teacherId);
+    if (filters.roomId) params.append('roomId', filters.roomId);
+
+    try {
+      const res = await fetchWithAuth(`/schedule-events?${params.toString()}`);
+      const apiEvents = res.data || [];
+      const mapped = apiEvents.map((evt: any) => {
+        const dStart = new Date(evt.startAt);
+        const dEnd = new Date(evt.endAt);
+        return {
+          id: evt.id,
+          type: 'cm',
+          title: evt.subject?.name || 'Sans titre',
+          teacher: evt.teacher ? `${evt.teacher.firstName} ${evt.teacher.lastName}` : '',
+          location: evt.room?.name || '',
+          group: evt.group?.name || '',
+          dayIndex: (dStart.getDay() + 6) % 7,
+          startHour: dStart.getHours() + (dStart.getMinutes() / 60),
+          endHour: dEnd.getHours() + (dEnd.getMinutes() / 60),
+          isConflict: evt.status === 'CANCELLED',
+          conflictDetails: evt.status === 'CANCELLED' ? 'Annulé' : ''
+        };
+      });
+      setEvents(mapped);
+    } catch (e) { console.error(e); }
+  };
+
+  useEffect(() => {
+    fetchWithAuth('/resource-tree').then(res => setResourceTree(res.data)).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    loadSchedule();
+  }, [currentDate, filters]);
 
   useEffect(() => {
     if (isModalOpen) {
@@ -121,11 +134,39 @@ export default function TimetablePage() {
         body: JSON.stringify(formData)
       });
       setIsModalOpen(false);
+      loadSchedule(); // Rafraîchir les données
       alert("Cours planifié avec succès !");
     } catch (error) {
       console.error(error);
       alert("Erreur lors de la planification.");
     }
+  };
+
+  const renderTree = (node: any, level = 0) => {
+    if (!node) return null;
+    return (
+      <div key={node.id} style={{ marginLeft: level > 0 ? '20px' : '0', paddingLeft: level > 0 ? '8px' : '0', borderLeft: level > 0 ? '1px solid var(--border)' : 'none', fontSize: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontWeight: level === 0 ? 600 : 500, cursor: 'pointer' }}
+             onClick={() => setFilters({ groupId: node.id, teacherId: '', roomId: '' })}>
+          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{level === 0 ? 'account_balance' : 'folder'}</span>
+          <span style={{ color: filters.groupId === node.id ? 'var(--primary-dark)' : 'inherit' }}>{node.name}</span>
+        </div>
+        
+        {node.children && node.children.map((child: any) => renderTree(child, level + 1))}
+        
+        {node.resources && node.resources.map((r: any) => (
+           <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '4px 0', marginLeft: '20px', color: (filters.teacherId === r.id || filters.roomId === r.id) ? 'var(--primary-dark)' : 'inherit' }}>
+             <input type="radio" name="resourceFilter" 
+                    checked={filters.teacherId === r.id || filters.roomId === r.id} 
+                    onChange={() => {
+                      if (r.resourceType === 'TEACHER') setFilters({ groupId: '', teacherId: r.id, roomId: '' });
+                      if (r.resourceType === 'ROOM') setFilters({ groupId: '', teacherId: '', roomId: r.id });
+                    }} /> 
+             {r.name} <small style={{opacity: 0.6}}>({r.resourceType})</small>
+           </label>
+        ))}
+      </div>
+    );
   };
 
   const getEventInlineStyle = (evt: UIMockupEvent) => {
@@ -224,7 +265,7 @@ export default function TimetablePage() {
         </div>
 
         {/* ARBRE DES RESSOURCES */}
-        <div style={{ padding: '16px', flex: 1 }}>
+        <div style={{ padding: '16px', flex: 1, overflowY: 'auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--text-muted)' }}>filter_alt</span>
@@ -233,27 +274,14 @@ export default function TimetablePage() {
           </div>
           
           <div style={{ fontSize: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontWeight: 600, cursor: 'pointer' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>expand_more</span>
-              <span>🏛️ Faculté des Sciences</span>
-            </div>
-            <div style={{ marginLeft: '20px', paddingLeft: '8px', borderLeft: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontWeight: 500, cursor: 'pointer' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>expand_more</span>
-                <span>📁 Département Informatique</span>
-              </div>
-              <div style={{ marginLeft: '20px', paddingLeft: '8px', borderLeft: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--primary-dark)', fontWeight: 500 }}>
-                  <input type="checkbox" defaultChecked /> Licence 3 Info — Grp 1
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--primary-dark)', fontWeight: 500 }}>
-                  <input type="checkbox" defaultChecked /> Licence 3 Info — Grp 2
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <input type="checkbox" /> Master 1 Génie Logiciel
-                </label>
-              </div>
-            </div>
+            {resourceTree?.institution && (
+               <div style={{ fontSize: '12px' }}>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontWeight: 600 }}>
+                   <span>🏛️ {resourceTree.institution.name}</span>
+                 </div>
+                 {resourceTree.institution.rootUnits?.map((u: any) => renderTree(u, 1))}
+               </div>
+            )}
           </div>
         </div>
       </aside>
@@ -264,13 +292,14 @@ export default function TimetablePage() {
         <div className={styles.toolbar}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', background: 'var(--surface-container-low)', padding: '2px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-              <button className="topbar-icon-btn" style={{ width: 28, height: 28 }}><span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_left</span></button>
-              <button style={{ padding: '4px 10px', fontSize: '12px', fontWeight: 600, background: 'transparent', border: 'none', cursor: 'pointer' }}>Aujourd'hui</button>
-              <button className="topbar-icon-btn" style={{ width: 28, height: 28 }}><span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span></button>
+              <button className="topbar-icon-btn" style={{ width: 28, height: 28 }} onClick={() => setCurrentDate(new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000))}><span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_left</span></button>
+              <button style={{ padding: '4px 10px', fontSize: '12px', fontWeight: 600, background: 'transparent', border: 'none', cursor: 'pointer' }} onClick={() => setCurrentDate(new Date())}>Aujourd'hui</button>
+              <button className="topbar-icon-btn" style={{ width: 28, height: 28 }} onClick={() => setCurrentDate(new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000))}><span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span></button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', whiteSpace: 'nowrap' }}>
-              <span style={{ padding: '4px 8px', borderRadius: '6px', fontWeight: 700, background: 'var(--primary-light)', color: 'var(--primary-dark)', border: '1px solid #dbeafe' }}>S38 (14–20 Sept)</span>
-              <span style={{ padding: '4px 8px', borderRadius: '6px', color: 'var(--text-secondary)', cursor: 'pointer' }}>S39 (21–27 Sept)</span>
+              <span style={{ padding: '4px 8px', borderRadius: '6px', fontWeight: 700, background: 'var(--primary-light)', color: 'var(--primary-dark)', border: '1px solid #dbeafe' }}>
+                {formatWeekRange(weekDays[0].date, weekDays[6].date)}
+              </span>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -296,12 +325,15 @@ export default function TimetablePage() {
             {/* Day Headers */}
             <div className={styles.dayHeaders}>
               <div className={styles.timeColumnHeader}>GMT+1</div>
-              {DAYS.map((day, i) => (
-                <div key={i} className={`${styles.headerCell} ${i === 0 ? styles.headerCellActive : ''}`}>
-                  <span className={`${styles.dayName} ${i === 0 ? styles.dayNameActive : ''}`}>{day.short}</span>
-                  <span className={`${styles.dayNumber} ${i === 0 ? styles.dayNumberActive : ''}`}>{day.num}</span>
-                </div>
-              ))}
+              {weekDays.map((day, i) => {
+                const isToday = new Date().toDateString() === day.date.toDateString();
+                return (
+                  <div key={i} className={`${styles.headerCell} ${isToday ? styles.headerCellActive : ''}`}>
+                    <span className={`${styles.dayName} ${isToday ? styles.dayNameActive : ''}`}>{day.short}</span>
+                    <span className={`${styles.dayNumber} ${isToday ? styles.dayNumberActive : ''}`}>{day.num}</span>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Grid Scroll Area */}
@@ -326,8 +358,8 @@ export default function TimetablePage() {
                 </div>
 
                 {/* 7 DAYS COLUMNS */}
-                {DAYS.map((_, dayIndex) => {
-                  const dayEvents = mockEvents.filter(e => e.dayIndex === dayIndex);
+                {weekDays.map((_, dayIndex) => {
+                  const dayEvents = events.filter(e => e.dayIndex === dayIndex);
                   return (
                     <div key={dayIndex} className={styles.dayCol}>
                       {/* Background Guidelines */}

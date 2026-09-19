@@ -16,6 +16,14 @@ export default function UsersAdminPage() {
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState('');
 
+  // User Create/Edit state
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [userFormData, setUserFormData] = useState({
+    id: '', email: '', password: '', firstName: '', lastName: '', phone: '', role: 'TEACHER', active: true
+  });
+  const [userModalLoading, setUserModalLoading] = useState(false);
+  const [userModalError, setUserModalError] = useState('');
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -81,15 +89,66 @@ export default function UsersAdminPage() {
     }
   };
 
+  const handleOpenUserModal = (user?: any) => {
+    setUserModalError('');
+    if (user) {
+      setUserFormData({
+        id: user.id, email: user.email, password: '', firstName: user.firstName, lastName: user.lastName,
+        phone: user.phone || '', role: user.role, active: user.active
+      });
+    } else {
+      setUserFormData({
+        id: '', email: '', password: '', firstName: '', lastName: '', phone: '', role: 'TEACHER', active: true
+      });
+    }
+    setIsUserModalOpen(true);
+  };
+
+  const handleUserSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUserModalError('');
+    setUserModalLoading(true);
+    
+    try {
+      const isCreate = !userFormData.id;
+      const url = isCreate ? '/users' : `/users/${userFormData.id}`;
+      const method = isCreate ? 'POST' : 'PUT';
+      
+      const payload = isCreate ? {
+        email: userFormData.email, password: userFormData.password, firstName: userFormData.firstName,
+        lastName: userFormData.lastName, phone: userFormData.phone, role: userFormData.role, active: userFormData.active
+      } : {
+        firstName: userFormData.firstName, lastName: userFormData.lastName, phone: userFormData.phone,
+        role: userFormData.role, active: userFormData.active
+      };
+
+      await fetchWithAuth(url, {
+        method,
+        body: JSON.stringify(payload)
+      });
+      
+      setIsUserModalOpen(false);
+      loadData();
+    } catch (err) {
+      setUserModalError('Erreur lors de la sauvegarde de l\'utilisateur.');
+    } finally {
+      setUserModalLoading(false);
+    }
+  };
+
   return (
     <div className="page-container">
-      <div className="page-header">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <h1 className="page-title">Gestion des Accès et Utilisateurs</h1>
           <p className="page-description">
-            Assignez les droits d'administration sur les unités organisationnelles.
+            Créez des comptes, modifiez les rôles et assignez les droits d'administration.
           </p>
         </div>
+        <button className="btn btn-primary" onClick={() => handleOpenUserModal()}>
+          <span className="material-symbols-outlined">add</span>
+          Créer un utilisateur
+        </button>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
@@ -132,13 +191,16 @@ export default function UsersAdminPage() {
                   )}
                 </div>
                 
-                {(user.role === 'PEDAGOGICAL_MANAGER' || user.role === 'SCHOOL_ADMIN') && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <button className="btn btn-secondary" onClick={() => handleOpenEdit(user)}>
-                      Gérer les droits (ACL)
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button className="btn btn-secondary" onClick={() => handleOpenUserModal(user)} style={{ fontSize: '13px', padding: '6px 12px' }}>
+                    Modifier
+                  </button>
+                  {(user.role === 'PEDAGOGICAL_MANAGER' || user.role === 'SCHOOL_ADMIN') && (
+                    <button className="btn btn-secondary" onClick={() => handleOpenEdit(user)} style={{ fontSize: '13px', padding: '6px 12px' }}>
+                      Gérer ACL
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -183,6 +245,79 @@ export default function UsersAdminPage() {
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={modalLoading}>
                   {modalLoading ? 'Enregistrement...' : 'Enregistrer'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Créer / Modifier Utilisateur */}
+      {isUserModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2 className="modal-title">
+                {userFormData.id ? 'Modifier l\'utilisateur' : 'Créer un utilisateur'}
+              </h2>
+            </div>
+            
+            <form onSubmit={handleUserSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {userModalError && <div className="alert alert-error">{userModalError}</div>}
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">Prénom</label>
+                    <input type="text" className="form-input" required value={userFormData.firstName} onChange={e => setUserFormData({...userFormData, firstName: e.target.value})} />
+                  </div>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">Nom</label>
+                    <input type="text" className="form-input" required value={userFormData.lastName} onChange={e => setUserFormData({...userFormData, lastName: e.target.value})} />
+                  </div>
+                </div>
+
+                {!userFormData.id && (
+                  <>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label">Email</label>
+                      <input type="email" className="form-input" required value={userFormData.email} onChange={e => setUserFormData({...userFormData, email: e.target.value})} />
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label">Mot de passe</label>
+                      <input type="password" className="form-input" required value={userFormData.password} onChange={e => setUserFormData({...userFormData, password: e.target.value})} />
+                    </div>
+                  </>
+                )}
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">Téléphone</label>
+                    <input type="text" className="form-input" value={userFormData.phone} onChange={e => setUserFormData({...userFormData, phone: e.target.value})} />
+                  </div>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">Rôle</label>
+                    <select className="form-input" required value={userFormData.role} onChange={e => setUserFormData({...userFormData, role: e.target.value})}>
+                      <option value="STUDENT">Étudiant</option>
+                      <option value="TEACHER">Enseignant</option>
+                      <option value="PEDAGOGICAL_MANAGER">Responsable Pédagogique</option>
+                      <option value="SCHOOL_ADMIN">Administrateur</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ margin: 0, marginTop: '0.5rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 500 }}>
+                    <input type="checkbox" checked={userFormData.active} onChange={e => setUserFormData({...userFormData, active: e.target.checked})} style={{ cursor: 'pointer', transform: 'scale(1.2)' }} />
+                    Compte actif
+                  </label>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsUserModalOpen(false)}>Annuler</button>
+                <button type="submit" className="btn btn-primary" disabled={userModalLoading}>
+                  {userModalLoading ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
               </div>
             </form>
