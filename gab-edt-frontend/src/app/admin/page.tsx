@@ -145,7 +145,7 @@ export default function AdminDashboardPage() {
   const conflicts = activeEvents.filter(e => e.conflict);
 
   return (
-    <div className="page-container">
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
       {/* Welcome header */}
       <div style={{ marginBottom: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>

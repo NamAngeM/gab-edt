@@ -17,7 +17,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtils {
 
-    @Value("${jwt.secret:defaultSecretKeyThatShouldBeAtLeast32BytesLong}")
+    @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.expiration:900000}")

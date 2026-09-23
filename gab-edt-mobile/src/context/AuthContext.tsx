@@ -1,32 +1,62 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import * as SecureStore from 'expo-secure-store';
 
 type AuthContextType = {
   userToken: string | null;
-  login: (token: string) => void;
-  logout: () => void;
+  isLoading: boolean;
+  login: (token: string) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType>({
   userToken: null,
-  login: () => {},
-  logout: () => {},
+  isLoading: true,
+  login: async () => {},
+  logout: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userToken, setUserToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const login = (token: string) => {
-    // Dans le futur, on sauvegardera le token avec expo-secure-store ici
-    setUserToken(token);
+  // Charger le token au démarrage de l'app
+  useEffect(() => {
+    const loadToken = async () => {
+      try {
+        const storedToken = await SecureStore.getItemAsync('userToken');
+        if (storedToken) {
+          setUserToken(storedToken);
+        }
+      } catch (error) {
+        console.error("Erreur de récupération du token", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadToken();
+  }, []);
+
+  const login = async (token: string) => {
+    try {
+      await SecureStore.setItemAsync('userToken', token);
+      setUserToken(token);
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde du token", error);
+    }
   };
 
-  const logout = () => {
-    // Et on le supprimera ici
-    setUserToken(null);
+  const logout = async () => {
+    try {
+      await SecureStore.deleteItemAsync('userToken');
+      setUserToken(null);
+    } catch (error) {
+      console.error("Erreur lors de la suppression du token", error);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ userToken, login, logout }}>
+    <AuthContext.Provider value={{ userToken, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

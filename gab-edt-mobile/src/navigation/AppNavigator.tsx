@@ -8,7 +8,12 @@ import { TabNavigator } from './TabNavigator';
 const Stack = createNativeStackNavigator();
 
 export const AppNavigator = () => {
-  const { userToken } = useAuth();
+  const { userToken, isLoading } = useAuth();
+
+  if (isLoading) {
+    // Rend un écran vide ou un composant de chargement pendant la restauration du token
+    return null;
+  }
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>

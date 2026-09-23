@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { fetchWithAuth } from '@/lib/api';
+import { DatePicker } from "@/components/ui/date-picker";
 
 export default function CoursListAdminPage() {
   const [events, setEvents] = useState<any[]>([]);
@@ -84,9 +85,9 @@ export default function CoursListAdminPage() {
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--surface-container)', padding: '0.5rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
-             <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text-primary)' }} />
+             <div style={{ width: '150px' }}><DatePicker value={startDate} onChange={setStartDate} /></div>
              <span style={{ color: 'var(--text-muted)', alignSelf: 'center' }}>-</span>
-             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--text-primary)' }} />
+             <div style={{ width: '150px' }}><DatePicker value={endDate} onChange={setEndDate} /></div>
           </div>
           <button style={{ 
             display: 'flex', alignItems: 'center', gap: '8px',

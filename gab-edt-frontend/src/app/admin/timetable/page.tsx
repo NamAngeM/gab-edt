@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import styles from './timetable.module.css';
 import { fetchWithAuth } from '@/lib/api';
+import { TimetableModal } from '@/app/components/TimetableModal';
+import { toast } from 'sonner';
 // Types pour l'UI
 type CourseType = 'cm' | 'td' | 'tp' | 'transversal' | 'conflict';
 
@@ -51,20 +53,7 @@ export default function TimetablePage() {
 
   // MODAL & FORM STATE
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    subjectId: '',
-    teacherId: '',
-    roomId: '',
-    orgUnitId: '',
-    startAt: '',
-    endAt: '',
-    status: 'PLANNED',
-    notes: ''
-  });
-
-  const [teachers, setTeachers] = useState<any[]>([]);
-  const [rooms, setRooms] = useState<any[]>([]);
-  const [subjects, setSubjects] = useState<any[]>([]);
+  const [defaultModalTime, setDefaultModalTime] = useState<{start: Date, end: Date} | undefined>(undefined);
   const [orgUnits, setOrgUnits] = useState<any[]>([]);
 
   // DYNAMIC TIMETABLE STATE
@@ -158,28 +147,9 @@ export default function TimetablePage() {
         return [];
       };
 
-      fetchWithAuth('/teachers').then(res => setTeachers(extractArray(res))).catch(console.error);
-      fetchWithAuth('/rooms').then(res => setRooms(extractArray(res))).catch(console.error);
-      fetchWithAuth('/subjects').then(res => setSubjects(extractArray(res))).catch(console.error);
       fetchWithAuth('/org-units').then(res => setOrgUnits(extractArray(res))).catch(console.error);
     }
   }, [isModalOpen]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await fetchWithAuth('/schedule-events', {
-        method: 'POST',
-        body: JSON.stringify(formData)
-      });
-      setIsModalOpen(false);
-      loadSchedule(); // Rafraîchir les données
-      alert("Cours planifié avec succès !");
-    } catch (error) {
-      console.error(error);
-      alert("Erreur lors de la planification.");
-    }
-  };
 
   const renderTree = (node: any, level = 0) => {
     if (!node) return null;
@@ -249,6 +219,69 @@ export default function TimetablePage() {
     const h = Math.floor(decimalHour);
     const m = Math.round((decimalHour - h) * 60);
     return `${h.toString().padStart(2, '0')}h${m.toString().padStart(2, '0')}`;
+  };
+
+  const handleDragStart = (e: React.DragEvent, event: UIMockupEvent) => {
+    e.dataTransfer.setData("eventId", event.id);
+    const duration = event.endHour - event.startHour;
+    e.dataTransfer.setData("duration", duration.toString());
+  };
+
+  const handleDrop = async (e: React.DragEvent, dayObj: any) => {
+    e.preventDefault();
+    const eventId = e.dataTransfer.getData("eventId");
+    const duration = parseFloat(e.dataTransfer.getData("duration"));
+    if (!eventId || isNaN(duration)) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const droppedHour = (y / 80) + 8;
+    
+    // Snap to 15 mins (0.25)
+    const snappedHour = Math.round(droppedHour * 4) / 4;
+    
+    const startH = Math.floor(snappedHour);
+    const startM = Math.round((snappedHour - startH) * 60);
+    
+    const startD = new Date(dayObj.date);
+    startD.setHours(startH, startM, 0, 0);
+    
+    const endD = new Date(dayObj.date);
+    const endSnapped = snappedHour + duration;
+    const endH = Math.floor(endSnapped);
+    const endM = Math.round((endSnapped - endH) * 60);
+    endD.setHours(endH, endM, 0, 0);
+    
+    try {
+      const toIsoStr = (d: Date) => new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+      await fetchWithAuth(`/schedule-events/${eventId}/reschedule`, {
+        method: 'PUT',
+        body: JSON.stringify({ startAt: toIsoStr(startD), endAt: toIsoStr(endD) })
+      });
+      toast.success("Cours déplacé avec succès");
+      loadSchedule();
+    } catch (err) {
+      toast.error("Erreur lors du déplacement (vérifiez les conflits)");
+    }
+  };
+
+  const handleDayColClick = (e: React.MouseEvent<HTMLDivElement>, dayObj: any) => {
+    if ((e.target as HTMLElement).closest(`.${styles.eventCard}`)) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const clickedHour = (y / 80) + 8;
+    const startHour = Math.floor(clickedHour);
+    const startMinute = (clickedHour - startHour) >= 0.5 ? 30 : 0;
+    
+    const startD = new Date(dayObj.date);
+    startD.setHours(startHour, startMinute, 0, 0);
+    
+    const endD = new Date(startD);
+    endD.setMinutes(startD.getMinutes() + 90); // 1.5h par défaut
+    
+    setDefaultModalTime({ start: startD, end: endD });
+    setIsModalOpen(true);
   };
 
   if (!isMounted) return null;
@@ -379,7 +412,7 @@ export default function TimetablePage() {
             <button className="topbar-icon-btn" style={{ border: '1px solid var(--border)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>print</span>
             </button>
-            <button className="btn btn-primary" style={{ flexShrink: 0 }} onClick={() => setIsModalOpen(true)}>
+            <button className="btn btn-primary" style={{ flexShrink: 0 }} onClick={() => { setDefaultModalTime(undefined); setIsModalOpen(true); }}>
               <span className="material-symbols-outlined">add</span>
               Planifier un cours
             </button>
@@ -425,7 +458,7 @@ export default function TimetablePage() {
             <div className={styles.timetableScroll}>
               
               {/* Red Time Indicator Line (example 10:45) */}
-              {new Date().toDateString() === currentDate.toDateString() && viewMode !== 'month' && (
+              {new Date().toDateString() === currentDate.toDateString() && (
                 <div className={styles.redIndicator} style={{ top: `${(new Date().getHours() - 8) * 80 + (new Date().getMinutes() / 60) * 80}px` }}>
                   <div className={styles.redIndicatorTime}>{new Date().getHours()}:{new Date().getMinutes().toString().padStart(2, '0')}</div>
                   <div className={styles.redIndicatorDot}></div>
@@ -449,7 +482,13 @@ export default function TimetablePage() {
                   const originalDayIndex = (dayObj.date.getDay() + 6) % 7;
                   const dayEvents = events.filter(e => e.dayIndex === originalDayIndex);
                   return (
-                    <div key={dayIdx} className={styles.dayCol}>
+                    <div key={dayIdx} 
+                         className={styles.dayCol}
+                         onDragOver={(e) => e.preventDefault()}
+                         onDrop={(e) => handleDrop(e, dayObj)}
+                         onClick={(e) => handleDayColClick(e, dayObj)}
+                         style={{ cursor: 'crosshair' }}
+                    >
                       {/* Background Guidelines */}
                       <div className={styles.dayColLines}>
                         {hours.map(h => (
@@ -463,7 +502,13 @@ export default function TimetablePage() {
                       {dayEvents.map((evt) => {
                         const styleObj = getEventInlineStyle(evt);
                         return (
-                          <div key={evt.id} className={styles.eventCard} style={styleObj}>
+                          <div key={evt.id} 
+                               className={styles.eventCard} 
+                               style={styleObj}
+                               draggable={true}
+                               onDragStart={(e) => handleDragStart(e, evt)}
+                               onClick={(e) => e.stopPropagation()} // Prevent triggering grid click
+                          >
                             <div className={styles.eventHeader}>
                               {evt.isConflict ? (
                                 <span className={styles.eventBadge} style={{ background: 'var(--badge-bg)', color: 'var(--badge-text)' }}>
@@ -522,73 +567,18 @@ export default function TimetablePage() {
         </div>
       </main>
 
-      {/* ---------------- SLIDE-OVER MODAL ---------------- */}
-      {isModalOpen && (
-        <div className={styles.overlay} onClick={() => setIsModalOpen(false)}>
-          <div className={styles.slideOver} onClick={e => e.stopPropagation()}>
-            <div className={styles.slideOverHeader}>
-              <h2 className={styles.slideOverTitle}>Planifier un cours</h2>
-              <button className={styles.closeButton} onClick={() => setIsModalOpen(false)}>
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            
-            <div className={styles.slideOverBody}>
-              <form id="schedule-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Matière</label>
-                  <select className={styles.formSelect} required value={formData.subjectId} onChange={e => setFormData({...formData, subjectId: e.target.value})}>
-                    <option value="">Sélectionner une matière...</option>
-                    {subjects.map(s => <option key={s.id} value={s.id}>{s.name || s.title || s.id}</option>)}
-                  </select>
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Enseignant</label>
-                  <select className={styles.formSelect} required value={formData.teacherId} onChange={e => setFormData({...formData, teacherId: e.target.value})}>
-                    <option value="">Sélectionner un enseignant...</option>
-                    {teachers.map(t => <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>)}
-                  </select>
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Salle</label>
-                  <select className={styles.formSelect} required value={formData.roomId} onChange={e => setFormData({...formData, roomId: e.target.value})}>
-                    <option value="">Sélectionner une salle...</option>
-                    {rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                  </select>
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Groupe / Promotion</label>
-                  <select className={styles.formSelect} required value={formData.orgUnitId} onChange={e => setFormData({...formData, orgUnitId: e.target.value})}>
-                    <option value="">Sélectionner un groupe...</option>
-                    {orgUnits.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
-                  </select>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Début</label>
-                    <input type="datetime-local" className={styles.formInput} required value={formData.startAt} onChange={e => setFormData({...formData, startAt: e.target.value})} />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Fin</label>
-                    <input type="datetime-local" className={styles.formInput} required value={formData.endAt} onChange={e => setFormData({...formData, endAt: e.target.value})} />
-                  </div>
-                </div>
-
-              </form>
-            </div>
-
-            <div className={styles.slideOverFooter}>
-              <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)} style={{ background: 'transparent', border: '1px solid var(--border-strong)', padding: '0 16px', borderRadius: 'var(--radius)', color: 'var(--text-secondary)', cursor: 'pointer', height: '40px', fontWeight: 500 }}>Annuler</button>
-              <button type="submit" form="schedule-form" className="btn btn-primary">Enregistrer</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ---------------- MODAL ---------------- */}
+      <TimetableModal 
+        isOpen={isModalOpen}
+        onClose={() => { setIsModalOpen(false); setDefaultModalTime(undefined); }}
+        onSave={() => {
+          setIsModalOpen(false);
+          setDefaultModalTime(undefined);
+          loadSchedule();
+        }}
+        defaultTime={defaultModalTime}
+        orgUnits={orgUnits}
+      />
     </div>
   );
 }

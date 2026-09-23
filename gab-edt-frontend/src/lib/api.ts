@@ -1,4 +1,4 @@
-export const API_URL = 'http://localhost:8080/api/v1';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
 export async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
   // En Next.js (côté client), on lit le token depuis le localStorage
@@ -25,6 +25,7 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
     // Rediriger vers login si le token est invalide
     if (typeof window !== 'undefined') {
       localStorage.removeItem('jwt_token');
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/login';
     }
     throw new Error('Non autorisé');
@@ -39,6 +40,7 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
   return response.json();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function extractArray(res: any): any[] {
   if (Array.isArray(res)) return res;
   if (res?.data?.content && Array.isArray(res.data.content)) return res.data.content;
@@ -47,6 +49,7 @@ export function extractArray(res: any): any[] {
   return [];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function extractPageData(res: any) {
   const data = res?.data || res || {};
   return {

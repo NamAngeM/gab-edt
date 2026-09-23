@@ -2,6 +2,7 @@ package ga.gabedt.resource.dto;
 
 import lombok.Data;
 import java.util.UUID;
+import java.util.List;
 
 @Data
 public class RoomAdminDto {
@@ -10,6 +11,7 @@ public class RoomAdminDto {
     private String code;
     private Integer capacity;
     private String type;
+    private List<String> equipments;
     private boolean active;
     private UUID orgUnitId;
 }

@@ -84,3 +84,7 @@ logging:
     ga.gabedt: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+jwt:
+  secret: ${JWT_SECRET:defaultSecretKeyThatShouldBeAtLeast32BytesLongAndSecureForDevOnly}
+  expiration: 86400000

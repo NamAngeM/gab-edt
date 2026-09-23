@@ -1,38 +1,201 @@
 "use client";
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { QrCode, Download, Printer, Settings2, PlusSquare, MapPin } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+
+// Mock data for rooms
+const mockRooms = [
+  { id: 1, name: "Amphi A", capacity: 200, building: "Campus Central" },
+  { id: 2, name: "Amphi B", capacity: 150, building: "Campus Central" },
+  { id: 3, name: "Salle TD 101", capacity: 35, building: "Bâtiment IUT" },
+  { id: 4, name: "Salle Info 205", capacity: 24, building: "UFR Sciences" },
+  { id: 5, name: "Labo Physique 1", capacity: 20, building: "UFR Sciences" },
+  { id: 6, name: "Salle TD 102", capacity: 35, building: "Bâtiment IUT" },
+];
 
 export default function QrPage() {
+  const [includeLogo, setIncludeLogo] = useState(true);
+  const [includeText, setIncludeText] = useState(true);
+  const [targetBuilding, setTargetBuilding] = useState("ALL");
+
+  const filteredRooms = targetBuilding === "ALL" 
+    ? mockRooms 
+    : mockRooms.filter(r => r.building.includes(targetBuilding));
+
   return (
-    <div className="page-container">
-      <div className="breadcrumb">
-        <span>Échange de données</span>
-        <span className="breadcrumb-sep">/</span>
-        <span className="breadcrumb-current">QR Codes</span>
-      </div>
-
-      <div className="page-header">
-        <div className="page-header-left">
-          <h1 className="page-title">Générateur de QR Codes</h1>
-          <p className="page-subtitle">Créez des QR codes pour les salles de classe ou la validation de présence.</p>
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Générateur de QR Codes</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">
+            Générez et imprimez des QR Codes pour l'affichage devant les salles ou pour la validation de présence.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button variant="outline" className="shadow-sm">
+            <Printer className="w-4 h-4 mr-2" />
+            Tout imprimer
+          </Button>
+          <Button className="shadow-sm">
+            <Download className="w-4 h-4 mr-2" />
+            Télécharger ZIP
+          </Button>
         </div>
       </div>
 
-      <motion.div 
-        className="card"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div className="empty-state">
-          <span className="material-symbols-outlined empty-icon" style={{ fontSize: '4rem', color: 'var(--primary-color)' }}>qr_code_2</span>
-          <h3>Module en cours de développement</h3>
-          <p>Le module de création et de téléchargement de QR Codes en masse arrivera bientôt. Il facilitera l'affichage sur les portes de vos amphithéâtres et laboratoires.</p>
-          <button className="btn btn-primary" style={{ marginTop: '1.5rem' }} disabled>
-            Générer les QR Codes
-          </button>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-1 space-y-6">
+          <Card className="shadow-sm sticky top-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings2 className="w-5 h-5 text-brand-600" />
+                Paramètres
+              </CardTitle>
+              <CardDescription>Configurez l'apparence des QR Codes générés.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <Label>Bâtiment / Filtre</Label>
+                <Select value={targetBuilding} onValueChange={setTargetBuilding}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous les bâtiments" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">Tous les bâtiments</SelectItem>
+                    <SelectItem value="Central">Campus Central</SelectItem>
+                    <SelectItem value="IUT">Bâtiment IUT</SelectItem>
+                    <SelectItem value="Sciences">UFR Sciences</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <Label>Titre d'en-tête</Label>
+                <Input defaultValue="GAB-EDT Planning" />
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <div className="space-y-0.5">
+                  <Label>Inclure le logo</Label>
+                  <p className="text-xs text-slate-500">Au centre du QR code</p>
+                </div>
+                <Switch checked={includeLogo} onCheckedChange={setIncludeLogo} />
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <div className="space-y-0.5">
+                  <Label>Texte informatif</Label>
+                  <p className="text-xs text-slate-500">Nom de salle en bas</p>
+                </div>
+                <Switch checked={includeText} onCheckedChange={setIncludeText} />
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <Label>Format d'impression</Label>
+                <Select defaultValue="A4_4">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="A4_1">1 par page (A4 complet)</SelectItem>
+                    <SelectItem value="A4_4">4 par page (Idéal affichage)</SelectItem>
+                    <SelectItem value="A5">Format A5</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </motion.div>
+
+        <div className="lg:col-span-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {filteredRooms.map((room, idx) => (
+                <motion.div
+                  key={room.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ delay: idx * 0.05 }}
+                >
+                  <Card className="overflow-hidden border-slate-200 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-700 transition-colors shadow-sm group h-full flex flex-col">
+                    <div className="p-6 flex-1 flex flex-col items-center justify-center bg-white dark:bg-slate-950 relative">
+                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                         <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-brand-600">
+                           <Download className="w-4 h-4" />
+                         </Button>
+                      </div>
+                      
+                      {/* Fake QR Code Pattern using SVG */}
+                      <div className="relative w-40 h-40 bg-white p-2 rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
+                        <svg viewBox="0 0 100 100" className="w-full h-full fill-slate-900">
+                          {/* Top left eye */}
+                          <rect x="10" y="10" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="3"/>
+                          <rect x="15" y="15" width="10" height="10" />
+                          {/* Top right eye */}
+                          <rect x="70" y="10" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="3"/>
+                          <rect x="75" y="15" width="10" height="10" />
+                          {/* Bottom left eye */}
+                          <rect x="10" y="70" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="3"/>
+                          <rect x="15" y="75" width="10" height="10" />
+                          
+                          {/* Random dots */}
+                          <rect x="40" y="10" width="5" height="5"/>
+                          <rect x="50" y="15" width="5" height="5"/>
+                          <rect x="60" y="25" width="5" height="5"/>
+                          <rect x="40" y="30" width="15" height="5"/>
+                          <rect x="10" y="40" width="5" height="5"/>
+                          <rect x="25" y="45" width="15" height="5"/>
+                          <rect x="50" y="40" width="5" height="15"/>
+                          <rect x="65" y="45" width="5" height="5"/>
+                          <rect x="80" y="40" width="10" height="5"/>
+                          <rect x="15" y="55" width="5" height="5"/>
+                          <rect x="35" y="60" width="5" height="15"/>
+                          <rect x="50" y="65" width="10" height="5"/>
+                          <rect x="70" y="60" width="5" height="5"/>
+                          <rect x="85" y="75" width="5" height="15"/>
+                          <rect x="45" y="80" width="15" height="5"/>
+                          <rect x="70" y="85" width="5" height="5"/>
+                        </svg>
+
+                        {includeLogo && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="bg-white p-1 rounded-md shadow-sm">
+                              <QrCode className="w-6 h-6 text-brand-600" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {includeText && (
+                      <div className="bg-slate-50 dark:bg-slate-900/50 p-4 border-t border-slate-100 dark:border-slate-800 text-center mt-auto">
+                        <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200">{room.name}</h3>
+                        <p className="text-xs text-slate-500 mt-1 flex items-center justify-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {room.building} • Capacité : {room.capacity}
+                        </p>
+                      </div>
+                    )}
+                  </Card>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            
+            <Card className="border-dashed border-2 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[250px] shadow-sm">
+              <PlusSquare className="w-10 h-10 text-slate-400 mb-3" />
+              <p className="font-medium text-slate-600 dark:text-slate-400">Générer manuel</p>
+              <p className="text-xs text-slate-400 mt-1">Lien personnalisé</p>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

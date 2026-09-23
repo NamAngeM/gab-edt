@@ -2,6 +2,22 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { fetchWithAuth, extractArray, extractPageData } from '@/lib/api';
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AlertCircle } from "lucide-react";
 
 interface Teacher {
   id: string;
@@ -22,26 +38,17 @@ interface OrgUnit {
 
 type ModalMode = 'CREATE' | 'EDIT';
 
-const initForm = { id: '', firstName: '', lastName: '', email: '', employeeNumber: '', phone: '', active: true, orgUnitId: '' };
-
-function Toast({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) {
-  useEffect(() => {
-    const t = setTimeout(onClose, 3500);
-    return () => clearTimeout(t);
-  }, [onClose]);
-
-  return (
-    <div className={`toast toast-${type}`}>
-      <span className="material-symbols-outlined">
-        {type === 'success' ? 'check_circle' : 'error'}
-      </span>
-      <span style={{ flex: 1 }}>{message}</span>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', padding: 4 }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
-      </button>
-    </div>
-  );
-}
+const teacherSchema = z.object({
+  id: z.string().optional(),
+  firstName: z.string().min(1, "Le prénom est requis"),
+  lastName: z.string().min(1, "Le nom est requis"),
+  email: z.string().email("L'email est invalide").or(z.literal('')),
+  employeeNumber: z.string().min(1, "Le matricule est requis"),
+  phone: z.string().optional(),
+  active: z.boolean().optional(),
+  orgUnitId: z.string().optional(),
+});
+type TeacherFormValues = z.infer<typeof teacherSchema>;
 
 function SkeletonRows({ size }: { size: number }) {
   return (
@@ -83,7 +90,7 @@ export default function TeachersAdminPage() {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
-  const [searchInput, setSearchInput] = useState(''); // local state for input
+  const [searchInput, setSearchInput] = useState('');
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [orgFilter, setOrgFilter] = useState('');
 
@@ -95,11 +102,14 @@ export default function TeachersAdminPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>('CREATE');
-  const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState('');
-  const [formData, setFormData] = useState(initForm);
 
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const form = useForm<TeacherFormValues>({
+    resolver: zodResolver(teacherSchema),
+    defaultValues: {
+      id: '', firstName: '', lastName: '', email: '', employeeNumber: '', phone: '', active: true, orgUnitId: ''
+    }
+  });
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -140,17 +150,24 @@ export default function TeachersAdminPage() {
 
   const handleOpenCreate = () => {
     setModalMode('CREATE');
-    setFormData(initForm);
+    form.reset({
+      id: '', firstName: '', lastName: '', email: '', employeeNumber: '', phone: '', active: true, orgUnitId: ''
+    });
     setModalError('');
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (t: Teacher) => {
     setModalMode('EDIT');
-    setFormData({ 
-      id: t.id, firstName: t.firstName, lastName: t.lastName, email: t.email, 
-      employeeNumber: t.employeeNumber, phone: t.phone || '', active: t.active, 
-      orgUnitId: t.orgUnitIds?.[0] || '' 
+    form.reset({ 
+      id: t.id, 
+      firstName: t.firstName, 
+      lastName: t.lastName, 
+      email: t.email, 
+      employeeNumber: t.employeeNumber, 
+      phone: t.phone || '', 
+      active: t.active, 
+      orgUnitId: t.orgUnitIds?.[0] || 'none' 
     });
     setModalError('');
     setIsModalOpen(true);
@@ -160,9 +177,9 @@ export default function TeachersAdminPage() {
     if (!confirm('Supprimer cet enseignant ? Cette action est irréversible.')) return;
     try {
       await fetchWithAuth(`/teachers/${id}`, { method: 'DELETE' });
-      setToast({ message: 'Enseignant supprimé avec succès.', type: 'success' });
+      toast.success('Enseignant supprimé avec succès.');
       loadData();
-    } catch { setToast({ message: 'Erreur lors de la suppression.', type: 'error' }); }
+    } catch { toast.error('Erreur lors de la suppression.'); }
   };
 
   const handleBulkDelete = async () => {
@@ -172,9 +189,9 @@ export default function TeachersAdminPage() {
       await fetchWithAuth(`/teachers/bulk-delete`, { 
         method: 'POST', body: JSON.stringify(Array.from(selectedIds))
       });
-      setToast({ message: `${selectedIds.size} enseignants supprimés.`, type: 'success' });
+      toast.success(`${selectedIds.size} enseignants supprimés.`);
       loadData();
-    } catch { setToast({ message: 'Erreur lors de la suppression groupée.', type: 'error' }); }
+    } catch { toast.error('Erreur lors de la suppression groupée.'); }
   };
 
   const handleBulkStatus = async (status: boolean) => {
@@ -183,42 +200,38 @@ export default function TeachersAdminPage() {
       await fetchWithAuth(`/teachers/bulk-status`, { 
         method: 'POST', body: JSON.stringify({ ids: Array.from(selectedIds), active: status })
       });
-      setToast({ message: `Statut mis à jour pour ${selectedIds.size} enseignants.`, type: 'success' });
+      toast.success(`Statut mis à jour pour ${selectedIds.size} enseignants.`);
       loadData();
-    } catch { setToast({ message: 'Erreur lors de la mise à jour groupée.', type: 'error' }); }
+    } catch { toast.error('Erreur lors de la mise à jour groupée.'); }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFormSubmit = async (data: TeacherFormValues) => {
     setModalError('');
-    setModalLoading(true);
     try {
-      const url = modalMode === 'EDIT' ? `/teachers/${formData.id}` : `/teachers`;
+      const url = modalMode === 'EDIT' ? `/teachers/${data.id}` : `/teachers`;
       const method = modalMode === 'EDIT' ? 'PUT' : 'POST';
       await fetchWithAuth(url, {
         method,
         body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          employeeNumber: formData.employeeNumber,
-          phone: formData.phone,
-          active: formData.active,
-          orgUnitIds: formData.orgUnitId ? [formData.orgUnitId] : [],
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          employeeNumber: data.employeeNumber,
+          phone: data.phone,
+          active: data.active,
+          orgUnitIds: (data.orgUnitId && data.orgUnitId !== 'none') ? [data.orgUnitId] : [],
         }),
       });
       setIsModalOpen(false);
-      setToast({ message: modalMode === 'CREATE' ? 'Enseignant créé avec succès.' : 'Enseignant modifié avec succès.', type: 'success' });
+      toast.success(modalMode === 'CREATE' ? 'Enseignant créé avec succès.' : 'Enseignant modifié avec succès.');
       loadData();
     } catch (err: any) {
       setModalError(err.message || `Erreur lors de la ${modalMode === 'CREATE' ? 'création' : 'modification'}.`);
-    } finally {
-      setModalLoading(false);
     }
   };
 
   const getOrgUnitName = (id?: string) => {
-    if (!id) return null;
+    if (!id || id === 'none') return null;
     const unit = orgUnits.find(u => u.id === id);
     return unit ? unit.name : null;
   };
@@ -242,7 +255,6 @@ export default function TeachersAdminPage() {
   };
 
   const handleExportCSV = () => {
-    // Basic client-side CSV export logic
     const header = ['ID', 'Nom', 'Prénom', 'Email', 'Matricule', 'Téléphone', 'Statut', 'Unité'];
     const rows = teachers.map(t => [
       t.id, t.lastName, t.firstName, t.email, t.employeeNumber, t.phone, t.active ? 'Actif' : 'Inactif', getOrgUnitName(t.orgUnitIds?.[0]) || 'Non assigné'
@@ -261,8 +273,6 @@ export default function TeachersAdminPage() {
     if (!file) return;
 
     setIsImporting(true);
-    setToast(null);
-
     const formData = new FormData();
     formData.append('file', file);
 
@@ -271,10 +281,10 @@ export default function TeachersAdminPage() {
         method: 'POST',
         body: formData,
       });
-      setToast({ message: `${res.data} enregistrements importés avec succès.`, type: 'success' });
+      toast.success(`${res.data} enregistrements importés avec succès.`);
       loadData();
     } catch (err) {
-      setToast({ message: 'Erreur lors de l\'importation du fichier.', type: 'error' });
+      toast.error('Erreur lors de l\'importation du fichier.');
     } finally {
       setIsImporting(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -282,7 +292,7 @@ export default function TeachersAdminPage() {
   };
 
   return (
-    <div className="page-container">
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
       <nav className="breadcrumb">
         <span>Administration</span>
         <span className="breadcrumb-sep material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
@@ -300,18 +310,18 @@ export default function TeachersAdminPage() {
         </div>
         <div className="page-header-actions">
           <input type="file" accept=".csv" style={{ display: 'none' }} ref={fileInputRef} onChange={handleImportCSV} />
-          <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()} disabled={isImporting}>
-            <span className="material-symbols-outlined">{isImporting ? 'progress_activity' : 'upload'}</span> 
+          <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isImporting}>
+            <span className="material-symbols-outlined mr-2 text-sm">{isImporting ? 'progress_activity' : 'upload'}</span> 
             {isImporting ? 'Importation...' : 'Importer CSV'}
-          </button>
-          <button className="btn btn-secondary" onClick={handleExportCSV}>
-            <span className="material-symbols-outlined">download</span>
+          </Button>
+          <Button variant="outline" onClick={handleExportCSV}>
+            <span className="material-symbols-outlined mr-2 text-sm">download</span>
             Exporter CSV
-          </button>
-          <button className="btn btn-primary" onClick={handleOpenCreate}>
-            <span className="material-symbols-outlined">add</span>
+          </Button>
+          <Button onClick={handleOpenCreate} className="bg-brand-600 hover:bg-brand-700">
+            <span className="material-symbols-outlined mr-2 text-sm">add</span>
             Nouvel Enseignant
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -359,9 +369,9 @@ export default function TeachersAdminPage() {
             <span style={{ fontWeight: 500, color: 'var(--primary-dark)', flex: 1 }}>
               {selectedIds.size} enseignant{selectedIds.size > 1 ? 's' : ''} sélectionné{selectedIds.size > 1 ? 's' : ''}
             </span>
-            <button className="btn btn-secondary btn-sm" onClick={() => handleBulkStatus(true)}>Activer</button>
-            <button className="btn btn-secondary btn-sm" onClick={() => handleBulkStatus(false)}>Désactiver</button>
-            <button className="btn btn-danger btn-sm" onClick={handleBulkDelete}>Supprimer</button>
+            <Button variant="outline" size="sm" onClick={() => handleBulkStatus(true)}>Activer</Button>
+            <Button variant="outline" size="sm" onClick={() => handleBulkStatus(false)}>Désactiver</Button>
+            <Button variant="destructive" size="sm" onClick={handleBulkDelete}>Supprimer</Button>
           </div>
         )}
 
@@ -462,80 +472,157 @@ export default function TeachersAdminPage() {
       </div>
 
       {/* MODAL */}
-      {isModalOpen && (
-        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setIsModalOpen(false); }}>
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2 className="modal-title">{modalMode === 'CREATE' ? 'Nouvel Enseignant' : "Modifier l'Enseignant"}</h2>
-              <button className="modal-close-btn" onClick={() => setIsModalOpen(false)}><span className="material-symbols-outlined">close</span></button>
+      <Dialog open={isModalOpen} onOpenChange={(open) => !open && setIsModalOpen(false)}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{modalMode === 'CREATE' ? 'Nouvel Enseignant' : "Modifier l'Enseignant"}</DialogTitle>
+          </DialogHeader>
+
+          {modalError && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-100 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <span>{modalError}</span>
             </div>
+          )}
 
-            <form onSubmit={handleSubmit}>
-              <div className="modal-body">
-                {modalError && (
-                  <div className="alert alert-error">
-                    <span className="material-symbols-outlined">error</span>
-                    {modalError}
-                  </div>
-                )}
-
-                <div className="form-grid-2">
-                  <div className="form-group">
-                    <label className="form-label">Prénom <span className="required">*</span></label>
-                    <input type="text" required className="form-input" value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Nom <span className="required">*</span></label>
-                    <input type="text" required className="form-input" value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} />
-                  </div>
-                </div>
-
-                <div className="form-grid-2">
-                  <div className="form-group">
-                    <label className="form-label">Email <span className="required">*</span></label>
-                    <input type="email" required disabled={modalMode === 'EDIT'} className="form-input" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Téléphone</label>
-                    <input type="text" className="form-input" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
-                  </div>
-                </div>
-
-                <div className="form-grid-2">
-                  <div className="form-group">
-                    <label className="form-label">N° Employé <span className="required">*</span></label>
-                    <input type="text" required className="form-input" style={{ fontFamily: 'monospace' }} value={formData.employeeNumber} onChange={e => setFormData({ ...formData, employeeNumber: e.target.value })} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Statut</label>
-                    <select className="form-select" value={formData.active ? 'true' : 'false'} onChange={e => setFormData({ ...formData, active: e.target.value === 'true' })}>
-                      <option value="true">Actif</option>
-                      <option value="false">Inactif</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Unité d'organisation</label>
-                  <select className="form-select" value={formData.orgUnitId} onChange={e => setFormData({ ...formData, orgUnitId: e.target.value })}>
-                    <option value="">— Aucune assignation —</option>
-                    {orgUnits.map(unit => <option key={unit.id} value={unit.id}>{unit.name} ({unit.type})</option>)}
-                  </select>
-                </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-2">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prénom *</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom *</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Annuler</button>
-                <button type="submit" className="btn btn-primary" disabled={modalLoading}>
-                  {modalLoading ? 'En cours...' : 'Enregistrer'}
-                </button>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email *</FormLabel>
+                      <FormControl>
+                        <Input type="email" disabled={modalMode === 'EDIT'} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Téléphone</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="employeeNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>N° Employé *</FormLabel>
+                      <FormControl>
+                        <Input className="font-mono" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="active"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Statut</FormLabel>
+                      <Select 
+                        onValueChange={(v) => field.onChange(v === 'true')} 
+                        value={field.value ? 'true' : 'false'}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="true">Actif</SelectItem>
+                          <SelectItem value="false">Inactif</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="orgUnitId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Unité d'organisation</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || 'none'}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="— Aucune assignation —" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">— Aucune assignation —</SelectItem>
+                        {orgUnits.map(unit => (
+                          <SelectItem key={unit.id} value={unit.id}>
+                            {unit.name} ({unit.type})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                  Annuler
+                </Button>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-brand-600 hover:bg-brand-700">
+                  {form.formState.isSubmitting ? 'En cours...' : 'Enregistrer'}
+                </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {toast && <div className="toast-container"><Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} /></div>}
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

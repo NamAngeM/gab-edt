@@ -73,6 +73,13 @@ public class RoomService {
         return mapToDto(room);
     }
 
+    @Transactional(readOnly = true)
+    public List<RoomAdminDto> findAvailableRooms(java.time.LocalDateTime start, java.time.LocalDateTime end) {
+        return roomRepository.findAvailableRooms(start, end).stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
     public RoomAdminDto create(RoomAdminDto dto) {
         Room room = new Room();
         room.setName(dto.getName());
@@ -80,6 +87,11 @@ public class RoomService {
         room.setCapacity(dto.getCapacity());
         room.setType(dto.getType());
         room.setActive(dto.isActive());
+        if (dto.getEquipments() != null) {
+            room.setEquipments(new ArrayList<>(dto.getEquipments()));
+        } else {
+            room.setEquipments(new ArrayList<>());
+        }
 
         // Minimal institution setup
         Institution inst = institutionRepository.findAll().stream().findFirst()
@@ -107,6 +119,11 @@ public class RoomService {
         room.setCapacity(dto.getCapacity());
         room.setType(dto.getType());
         room.setActive(dto.isActive());
+        if (dto.getEquipments() != null) {
+            room.setEquipments(new ArrayList<>(dto.getEquipments()));
+        } else {
+            room.setEquipments(new ArrayList<>());
+        }
 
         if (dto.getOrgUnitId() != null) {
             OrganizationalUnit orgUnit = organizationalUnitRepository.findById(dto.getOrgUnitId())
@@ -197,6 +214,7 @@ public class RoomService {
         dto.setCapacity(room.getCapacity());
         dto.setType(room.getType());
         dto.setActive(room.isActive());
+        dto.setEquipments(room.getEquipments() != null ? new ArrayList<>(room.getEquipments()) : new ArrayList<>());
         if (room.getOrgUnit() != null) {
             dto.setOrgUnitId(room.getOrgUnit().getId());
         }

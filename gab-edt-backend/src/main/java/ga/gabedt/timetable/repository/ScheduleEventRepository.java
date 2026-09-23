@@ -10,8 +10,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
 @Repository
-public interface ScheduleEventRepository extends JpaRepository<ScheduleEvent, UUID> {
+public interface ScheduleEventRepository extends JpaRepository<ScheduleEvent, UUID>, JpaSpecificationExecutor<ScheduleEvent> {
     List<ScheduleEvent> findAllByDeletedFalse();
     
     // Recherche par plage de dates

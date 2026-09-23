@@ -3,6 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth, extractArray } from '@/lib/api';
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { DateTimePicker } from "@/components/ui/date-picker";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 export default function SoutenancesPage() {
   const [defenses, setDefenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +77,7 @@ export default function SoutenancesPage() {
   };
 
   return (
-    <div className="page-container">
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
       <div className="breadcrumb">
         <span>Évaluations & Examens</span>
         <span className="breadcrumb-sep">/</span>
@@ -83,10 +90,10 @@ export default function SoutenancesPage() {
           <p className="page-subtitle">Programmez les jurys et soutenance des étudiants.</p>
         </div>
         <div className="page-header-right">
-          <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-            <span className="material-symbols-outlined">add</span>
+          <Button onClick={() => setShowAddModal(true)}>
+            <span className="material-symbols-outlined mr-2">add</span>
             Nouvelle Soutenance
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -137,135 +144,137 @@ export default function SoutenancesPage() {
         )}
       </div>
 
-      {showAddModal && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '600px' }}>
-            <div className="modal-header">
-              <h2 className="modal-title">Programmer une Soutenance</h2>
-              <button className="modal-close-btn" onClick={() => setShowAddModal(false)}>
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <form onSubmit={handleAdd}>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label className="form-label">Étudiant</label>
-                  <select
-                    className="form-select"
-                    required
-                    value={formData.studentId}
-                    onChange={e => setFormData({ ...formData, studentId: e.target.value })}
-                  >
-                    <option value="">Sélectionnez...</option>
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Programmer une Soutenance</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAdd}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label>Étudiant</Label>
+                <Select
+                  required
+                  value={formData.studentId}
+                  onValueChange={v => setFormData({ ...formData, studentId: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionnez..." />
+                  </SelectTrigger>
+                  <SelectContent>
                     {students.map(s => (
-                      <option key={s.id} value={s.id}>{s.user.firstName} {s.user.lastName}</option>
+                      <SelectItem key={s.id} value={s.id}>{s.user.firstName} {s.user.lastName}</SelectItem>
                     ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Thème / Sujet PFE</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    required
-                    value={formData.topic}
-                    onChange={e => setFormData({ ...formData, topic: e.target.value })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Thème / Sujet PFE</Label>
+                <Input
+                  required
+                  value={formData.topic}
+                  onChange={e => setFormData({ ...formData, topic: e.target.value })}
+                />
+              </div>
+              
+              <div className="divider"></div>
+              <h3 className="text-sm font-semibold">Planification</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Date/Heure de début</Label>
+                  <DateTimePicker
+                    value={formData.startAt}
+                    onChange={v => setFormData({ ...formData, startAt: v })}
                   />
                 </div>
-                
-                <div className="divider"></div>
-                <h3 style={{fontSize: 14, marginBottom: 12}}>Planification</h3>
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label">Date/Heure de début</label>
-                    <input
-                      type="datetime-local"
-                      className="form-input"
-                      required
-                      value={formData.startAt}
-                      onChange={e => setFormData({ ...formData, startAt: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label">Date/Heure de fin</label>
-                    <input
-                      type="datetime-local"
-                      className="form-input"
-                      required
-                      value={formData.endAt}
-                      onChange={e => setFormData({ ...formData, endAt: e.target.value })}
-                    />
-                  </div>
+                <div className="grid gap-2">
+                  <Label>Date/Heure de fin</Label>
+                  <DateTimePicker
+                    value={formData.endAt}
+                    onChange={v => setFormData({ ...formData, endAt: v })}
+                  />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Salle</label>
-                  <select
-                    className="form-select"
-                    required
-                    value={formData.roomId}
-                    onChange={e => setFormData({ ...formData, roomId: e.target.value })}
-                  >
-                    <option value="">Sélectionnez...</option>
+              </div>
+              <div className="grid gap-2">
+                <Label>Salle</Label>
+                <Select
+                  required
+                  value={formData.roomId}
+                  onValueChange={v => setFormData({ ...formData, roomId: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionnez..." />
+                  </SelectTrigger>
+                  <SelectContent>
                     {rooms.map(r => (
-                      <option key={r.id} value={r.id}>{r.name} (Capacité: {r.capacity})</option>
+                      <SelectItem key={r.id} value={r.id}>{r.name} (Capacité: {r.capacity})</SelectItem>
                     ))}
-                  </select>
-                </div>
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <div className="divider"></div>
-                <h3 style={{fontSize: 14, marginBottom: 12}}>Jury</h3>
-                <div className="form-group">
-                  <label className="form-label">Président du Jury</label>
-                  <select
-                    className="form-select"
-                    required
-                    value={formData.presidentId}
-                    onChange={e => setFormData({ ...formData, presidentId: e.target.value })}
-                  >
-                    <option value="">Sélectionnez...</option>
+              <div className="divider"></div>
+              <h3 className="text-sm font-semibold">Jury</h3>
+              <div className="grid gap-2">
+                <Label>Président du Jury</Label>
+                <Select
+                  required
+                  value={formData.presidentId}
+                  onValueChange={v => setFormData({ ...formData, presidentId: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionnez..." />
+                  </SelectTrigger>
+                  <SelectContent>
                     {teachers.map(t => (
-                      <option key={t.id} value={t.id}>{t.user.firstName} {t.user.lastName}</option>
+                      <SelectItem key={t.id} value={t.id}>{t.user.firstName} {t.user.lastName}</SelectItem>
                     ))}
-                  </select>
-                </div>
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label">Examinateur</label>
-                    <select
-                      className="form-select"
-                      value={formData.examinerId}
-                      onChange={e => setFormData({ ...formData, examinerId: e.target.value })}
-                    >
-                      <option value="">Sélectionnez...</option>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Examinateur</Label>
+                  <Select
+                    value={formData.examinerId}
+                    onValueChange={v => setFormData({ ...formData, examinerId: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez..." />
+                    </SelectTrigger>
+                    <SelectContent>
                       {teachers.map(t => (
-                        <option key={t.id} value={t.id}>{t.user.firstName} {t.user.lastName}</option>
+                        <SelectItem key={t.id} value={t.id}>{t.user.firstName} {t.user.lastName}</SelectItem>
                       ))}
-                    </select>
-                  </div>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label">Rapporteur</label>
-                    <select
-                      className="form-select"
-                      value={formData.reporterId}
-                      onChange={e => setFormData({ ...formData, reporterId: e.target.value })}
-                    >
-                      <option value="">Sélectionnez...</option>
-                      {teachers.map(t => (
-                        <option key={t.id} value={t.id}>{t.user.firstName} {t.user.lastName}</option>
-                      ))}
-                    </select>
-                  </div>
+                    </SelectContent>
+                  </Select>
                 </div>
+                <div className="grid gap-2">
+                  <Label>Rapporteur</Label>
+                  <Select
+                    value={formData.reporterId}
+                    onValueChange={v => setFormData({ ...formData, reporterId: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teachers.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.user.firstName} {t.user.lastName}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Annuler</button>
-                <button type="submit" className="btn btn-primary">Programmer</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" type="button" onClick={() => setShowAddModal(false)}>Annuler</Button>
+              <Button type="submit">Programmer</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

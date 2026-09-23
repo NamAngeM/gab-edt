@@ -3,6 +3,35 @@
 import React, { useEffect, useState } from 'react';
 import { fetchWithAuth, API_URL } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { AlertCircle } from "lucide-react";
+
+const ORG_TYPES = [
+  'CAMPUS', 'FACULTY', 'DEPARTMENT', 'PROGRAM', 'CYCLE', 
+  'YEAR', 'LEVEL', 'SERIES', 'CLASS', 'GROUP', 'OPTION', 'SPECIALTY'
+];
+
+const orgUnitSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Le nom est requis"),
+  type: z.string().min(1, "Le type est requis"),
+  parentId: z.string().optional(),
+  institutionId: z.string().min(1, "Institution ID est requis"),
+});
+type OrgUnitFormValues = z.infer<typeof orgUnitSchema>;
 
 export default function OrganisationAdminPage() {
   const [tree, setTree] = useState<any>(null);
@@ -12,15 +41,12 @@ export default function OrganisationAdminPage() {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'CREATE' | 'EDIT'>('CREATE');
-  const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState('');
   
-  const [formData, setFormData] = useState({ id: '', name: '', type: 'CAMPUS', parentId: '', institutionId: '' });
-
-  const ORG_TYPES = [
-    'CAMPUS', 'FACULTY', 'DEPARTMENT', 'PROGRAM', 'CYCLE', 
-    'YEAR', 'LEVEL', 'SERIES', 'CLASS', 'GROUP', 'OPTION', 'SPECIALTY'
-  ];
+  const form = useForm<OrgUnitFormValues>({
+    resolver: zodResolver(orgUnitSchema),
+    defaultValues: { id: '', name: '', type: 'CAMPUS', parentId: '', institutionId: '' }
+  });
 
   const loadData = async (initialLoad = false) => {
     if (!initialLoad) setLoading(true);
@@ -40,14 +66,14 @@ export default function OrganisationAdminPage() {
 
   const handleOpenCreate = (parentId: string, institutionId: string) => {
     setModalMode('CREATE');
-    setFormData({ id: '', name: '', type: 'DEPARTMENT', parentId, institutionId });
+    form.reset({ id: '', name: '', type: 'DEPARTMENT', parentId, institutionId });
     setModalError('');
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (node: any, institutionId: string) => {
     setModalMode('EDIT');
-    setFormData({ id: node.id, name: node.name, type: node.type, parentId: '', institutionId });
+    form.reset({ id: node.id, name: node.name, type: node.type, parentId: '', institutionId });
     setModalError('');
     setIsModalOpen(true);
   };
@@ -62,25 +88,23 @@ export default function OrganisationAdminPage() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Erreur de suppression');
+      toast.success('Unité supprimée avec succès.');
       loadData();
     } catch (err) {
-      alert('Erreur lors de la suppression.');
+      toast.error('Erreur lors de la suppression.');
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFormSubmit = async (data: OrgUnitFormValues) => {
     setModalError('');
-    setModalLoading(true);
     
     try {
       const token = localStorage.getItem('jwt_token') || '';
-      
       let url = `${API_URL}/org-units`;
       let method = 'POST';
       
       if (modalMode === 'EDIT') {
-        url = `${API_URL}/org-units/${formData.id}`;
+        url = `${API_URL}/org-units/${data.id}`;
         method = 'PUT';
       }
 
@@ -91,21 +115,20 @@ export default function OrganisationAdminPage() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          name: formData.name,
-          type: formData.type,
-          parentId: formData.parentId || null,
-          institutionId: formData.institutionId
+          name: data.name,
+          type: data.type,
+          parentId: data.parentId || null,
+          institutionId: data.institutionId
         })
       });
       
       if (!response.ok) throw new Error('Erreur API');
       
       setIsModalOpen(false);
+      toast.success(modalMode === 'CREATE' ? 'Unité créée avec succès.' : 'Unité modifiée avec succès.');
       loadData();
     } catch (err) {
       setModalError(`Erreur lors de la ${modalMode === 'CREATE' ? 'création' : 'modification'}.`);
-    } finally {
-      setModalLoading(false);
     }
   };
 
@@ -193,7 +216,7 @@ export default function OrganisationAdminPage() {
   };
 
   return (
-    <div className="page-container">
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
       <div className="page-header">
         <div>
           <h1 className="page-title">Organisation Pédagogique</h1>
@@ -202,9 +225,9 @@ export default function OrganisationAdminPage() {
           </p>
         </div>
         {tree?.institution?.id && (
-          <button className="btn btn-primary" onClick={() => handleOpenCreate('', tree.institution.id)}>
-            + Unité Racine
-          </button>
+          <Button className="bg-brand-600 hover:bg-brand-700" onClick={() => handleOpenCreate('', tree.institution.id)}>
+            <span className="material-symbols-outlined mr-2 text-sm">add</span> Unité Racine
+          </Button>
         )}
       </div>
 
@@ -243,57 +266,73 @@ export default function OrganisationAdminPage() {
       )}
 
       {/* Modal CRUD */}
-      {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2 className="modal-title">
-                {modalMode === 'CREATE' ? 'Créer une Unité' : "Modifier l'Unité"}
-              </h2>
+      <Dialog open={isModalOpen} onOpenChange={(open) => !open && setIsModalOpen(false)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{modalMode === 'CREATE' ? 'Créer une Unité' : "Modifier l'Unité"}</DialogTitle>
+          </DialogHeader>
+          
+          {modalError && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-100 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <span>{modalError}</span>
             </div>
-            
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
-              <div className="modal-body">
-                {modalError && <div className="alert alert-error">{modalError}</div>}
-                
-                <div className="form-group">
-                  <label className="form-label">Nom *</label>
-                  <input 
-                    type="text" 
-                    required
-                    className="form-input"
-                    value={formData.name}
-                    onChange={e => setFormData({...formData, name: e.target.value})}
-                    placeholder="Ex: Département Mathématiques"
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label className="form-label">Type d'Unité *</label>
-                  <select
-                    className="form-select"
-                    value={formData.type}
-                    onChange={e => setFormData({...formData, type: e.target.value})}
-                  >
-                    {ORG_TYPES.map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+          )}
 
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nom *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Département Mathématiques" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type d'Unité *</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {ORG_TYPES.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                   Annuler
-                </button>
-                <button type="submit" className="btn btn-primary" disabled={modalLoading}>
-                  {modalLoading ? 'En cours...' : 'Enregistrer'}
-                </button>
+                </Button>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-brand-600 hover:bg-brand-700">
+                  {form.formState.isSubmitting ? 'En cours...' : 'Enregistrer'}
+                </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

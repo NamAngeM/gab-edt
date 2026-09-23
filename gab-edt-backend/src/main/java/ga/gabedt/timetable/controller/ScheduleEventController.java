@@ -52,8 +52,16 @@ public class ScheduleEventController {
         return ResponseEntity.ok(ApiResponse.success(scheduleEventService.updateEvent(id, dto)));
     }
 
+    @PutMapping("/{id}/reschedule")
+    @PreAuthorize("@securityAclService.canManageEvent(#id)")
+    public ResponseEntity<ApiResponse<ScheduleEventDto>> rescheduleEvent(
+            @PathVariable UUID id, 
+            @RequestBody ga.gabedt.timetable.dto.ScheduleEventRescheduleDto dto) {
+        return ResponseEntity.ok(ApiResponse.success(scheduleEventService.rescheduleEvent(id, dto)));
+    }
+
     @DeleteMapping("/{id}")
-    // Pour simplifier on autorise la suppression si l'utilisateur est authentifié. (L'idéal serait de valider via l'id)
+    @PreAuthorize("@securityAclService.canManageEvent(#id)")
     public ResponseEntity<ApiResponse<Void>> deleteEvent(@PathVariable UUID id) {
         scheduleEventService.deleteEvent(id);
         return ResponseEntity.ok(ApiResponse.success(null));

@@ -58,7 +58,7 @@ export default function AdminStatsPage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      style={{ padding: '2rem' }}
+      className="p-8 max-w-7xl mx-auto space-y-8"
     >
       <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Tableau de Bord Analytique</h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem' }}>Visualisation des ressources globales (Propulsé par Nivo)</p>

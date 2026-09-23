@@ -11,6 +11,7 @@ import ga.gabedt.user.Teacher;
 import ga.gabedt.user.TeacherRepository;
 import ga.gabedt.user.User;
 import ga.gabedt.user.UserRepository;
+import ga.gabedt.timetable.repository.ScheduleEventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,6 +30,7 @@ public class SecurityAclService {
     private final RoomRepository roomRepository;
     private final TeacherRepository teacherRepository;
     private final StudentRepository studentRepository;
+    private final ScheduleEventRepository scheduleEventRepository;
 
     public boolean canManage(UUID targetOrgUnitId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -42,8 +44,8 @@ public class SecurityAclService {
             return false;
         }
 
-        // SUPER_ADMIN has global access
-        if (user.getRole() == UserRole.SUPER_ADMIN) {
+        // SUPER_ADMIN and SCHOOL_ADMIN have global access for the demo
+        if (user.getRole() == UserRole.SUPER_ADMIN || user.getRole() == UserRole.SCHOOL_ADMIN) {
             return true;
         }
         
@@ -62,6 +64,7 @@ public class SecurityAclService {
     }
 
     public boolean canManageAny(java.util.List<UUID> targetOrgUnitIds) {
+        if (canManage(null)) return true;
         if (targetOrgUnitIds == null || targetOrgUnitIds.isEmpty()) return false;
         for (UUID orgUnitId : targetOrgUnitIds) {
             if (canManage(orgUnitId)) {
@@ -87,6 +90,29 @@ public class SecurityAclService {
         Student student = studentRepository.findById(studentId).orElse(null);
         if (student == null || student.getOrgUnits() == null || student.getOrgUnits().isEmpty()) return false;
         return student.getOrgUnits().stream().anyMatch(ou -> canManage(ou.getId()));
+    }
+
+    public boolean canManageEvent(UUID eventId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return false;
+        }
+
+        ga.gabedt.timetable.ScheduleEvent event = scheduleEventRepository.findById(eventId).orElse(null);
+        if (event == null) return false;
+
+        String email = auth.getName();
+        User user = userRepository.findByEmailAndDeletedFalse(email).orElse(null);
+        if (user != null && user.getRole() == UserRole.TEACHER) {
+            // Un enseignant peut gérer l'événement s'il lui est assigné
+            if (event.getTeacher() != null && event.getTeacher().getUser() != null && 
+                event.getTeacher().getUser().getId().equals(user.getId())) {
+                return true;
+            }
+        }
+
+        if (event.getOrgUnit() == null) return false;
+        return canManage(event.getOrgUnit().getId());
     }
 
     public boolean canManageOrgUnit(UUID orgUnitId) {

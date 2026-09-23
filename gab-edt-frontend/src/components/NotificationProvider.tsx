@@ -6,6 +6,7 @@ import SockJS from 'sockjs-client';
 import { API_URL } from '@/lib/api';
 
 interface NotificationContextType {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   notifications: any[];
 }
 
@@ -16,6 +17,7 @@ export function useNotifications() {
 }
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [notifications, setNotifications] = useState<any[]>([]);
   const [toast, setToast] = useState<{title: string, message: string, type: string} | null>(null);
 

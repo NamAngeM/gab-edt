@@ -32,6 +32,13 @@ public class RoomController {
         return ResponseEntity.ok(ApiResponse.success(service.findAll(orgUnitId, search, active, pageable)));
     }
 
+    @GetMapping("/available")
+    public ResponseEntity<ApiResponse<List<RoomAdminDto>>> findAvailable(
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime start,
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime end) {
+        return ResponseEntity.ok(ApiResponse.success(service.findAvailableRooms(start, end)));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<RoomAdminDto>> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(service.findById(id)));

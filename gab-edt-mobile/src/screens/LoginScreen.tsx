@@ -8,11 +8,13 @@ import {
   KeyboardAvoidingView, 
   Platform,
   Image,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
+import { apiClient } from '../api/client';
 
 export const LoginScreen = () => {
   const { login } = useAuth();
@@ -22,17 +24,33 @@ export const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Basic validation
+  const handleLogin = async () => {
+    // Validation basique
     if (!matricule || !password) return;
     
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Nous envoyons "matricule" dans le champ "email" de l'API (à affiner selon les vrais noms de champs du backend)
+      const response = await apiClient.post('/api/v1/auth/login', {
+        email: matricule,
+        password: password
+      });
+
+      // Le backend retourne la réponse enveloppée dans un ApiResponse (ex: response.data.data.token)
+      const token = response.data?.data?.token || response.data?.token;
+
+      if (token) {
+        await login(token);
+      } else {
+        Alert.alert('Erreur', 'Token manquant dans la réponse du serveur.');
+      }
+    } catch (error: any) {
+      console.error('Erreur de connexion', error);
+      const message = error.response?.data?.message || 'Identifiants incorrects ou erreur réseau.';
+      Alert.alert('Erreur de connexion', message);
+    } finally {
       setLoading(false);
-      // Simulate successful login with a mock token
-      login('mock-jwt-token-12345');
-    }, 1500);
+    }
   };
 
   return (

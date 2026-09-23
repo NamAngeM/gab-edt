@@ -199,7 +199,7 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .code("INTERNAL_ERROR")
-                .message("Une erreur interne est survenue : " + ex.getMessage())
+                .message("Une erreur interne est survenue.")
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }

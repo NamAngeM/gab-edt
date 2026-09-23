@@ -29,8 +29,7 @@ public class AuthService {
                     )
             );
         } catch (AuthenticationException e) {
-            e.printStackTrace();
-            throw new BadCredentialsException("Email ou mot de passe incorrect: " + e.getMessage());
+            throw new BadCredentialsException("Email ou mot de passe incorrect");
         }
 
         User user = userRepository.findByEmailAndDeletedFalse(request.getEmail())

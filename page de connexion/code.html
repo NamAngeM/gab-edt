@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Connexion — GAB-EDT | Système National Universitaire</title>
+<!-- Tailwind CSS CDN with forms and container-queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#172554',
+              950: '#0b1329',
+            },
+            gabon: {
+              green: '#009E60',
+              yellow: '#FCD116',
+              blue: '#3A75C4'
+            }
+          },
+          boxShadow: {
+            'glow': '0 20px 50px -12px rgba(37, 99, 235, 0.25)',
+            'card': '0 25px 50px -12px rgba(15, 23, 42, 0.22)'
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-decorations">
+    /* Subtle mesh ambient background inspired by institutional blue */
+    .mesh-gradient-bg {
+      background-color: #0c1c38;
+      background-image: 
+        radial-gradient(at 80% 0%, hsla(217,91%,28%,0.75) 0px, transparent 55%),
+        radial-gradient(at 20% 20%, hsla(224,76%,22%,0.9) 0px, transparent 60%),
+        radial-gradient(at 50% 100%, hsla(217,95%,45%,0.4) 0px, transparent 65%),
+        radial-gradient(at 95% 85%, hsla(220,90%,16%,0.85) 0px, transparent 50%);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="h-full font-sans text-slate-800 antialiased mesh-gradient-bg flex flex-col justify-between min-h-screen selection:bg-brand-500 selection:text-white" style="background: radial-gradient(circle at 50% 20%, rgba(37, 99, 235, 0.28), transparent 60%), linear-gradient(135deg, rgba(8, 26, 68, 0.88) 0%, rgba(3, 15, 38, 0.94) 60%, rgba(2, 8, 23, 0.98) 100%), url('https://lh3.googleusercontent.com/aida-public/AB6AXuAnypwFvtfm-htBcR266DPaEth1g5x_-9HlnjXN7UqPmF03gN5VrF996RZxEC1Ub8_VqhnvX3nOVP1eyTu57Pxu3YPzLoUgcNSbPSsqgCHSPeE9YOHPg9hq-7uwZ1h7HXATSyfWKm1rVGr4VDLxx8aE6ujMfbnK9yIFYk5knofXT1Alm0NKFHw5s8QxXwDb6PgQy13OuXVpFFxPMi-2sjW85oH1sp-VF1cp8qDw95x313SXNq0T42G6') center center / cover no-repeat fixed;">
+<!-- BEGIN: InstitutionalTopBar -->
+<header class="w-full border-b border-white/10 bg-slate-950/40 backdrop-blur-md z-20">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+<!-- Flag & Official Republic Accreditation -->
+<div class="flex items-center space-x-3.5">
+<!-- Gabon Flag Tricolor Ribbon Indicator -->
+<div class="flex flex-col w-5 h-5 rounded overflow-hidden shadow-sm ring-1 ring-white/20">
+<div class="h-1/3 bg-gabon-green"></div>
+<div class="h-1/3 bg-gabon-yellow"></div>
+<div class="h-1/3 bg-gabon-blue"></div>
+</div>
+<div class="border-l border-white/20 pl-3.5 flex flex-col">
+<span class="text-xs font-bold uppercase tracking-wider text-slate-100">République Gabonaise</span>
+<span class="text-[10px] text-blue-200/75 hidden sm:inline">Ministère de l'Enseignement Supérieur &amp; de la Recherche Scientifique</span>
+</div>
+</div>
+<!-- Right utility pills: System Health and Language -->
+<div class="flex items-center space-x-4">
+<!-- Live System Status Indicator -->
+<div class="hidden md:flex items-center space-x-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+<span class="text-[11px] font-medium text-emerald-300">Systèmes opérationnels</span>
+</div>
+<!-- Language Picker Pill -->
+<div class="flex items-center bg-white/5 border border-white/10 rounded-lg p-0.5 text-xs text-slate-300 font-medium">
+<button aria-label="Langue Française" class="px-2.5 py-1 rounded-md bg-white/20 text-white font-semibold transition">FR</button>
+<button aria-label="English Language" class="px-2 py-1 rounded-md hover:text-white transition text-slate-400">EN</button>
+</div>
+</div>
+</div>
+</header>
+<!-- END: InstitutionalTopBar -->
+<!-- BEGIN: MainContent -->
+<main class="flex-grow flex items-center justify-center px-4 py-10 sm:px-6 lg:px-8 relative z-10">
+<div class="w-full max-w-lg">
+<!-- Official Title & Institutional Brand Display -->
+<div class="text-center mb-7 space-y-2">
+<div class="inline-flex items-center justify-center p-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 shadow-inner mb-1">
+<!-- Stylized Timetable Calendar Icon -->
+<svg class="w-7 h-7 text-blue-300" fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24">
+<path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M9 15h2v2H9z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">GAB-EDT</h1>
+<p class="text-xs sm:text-sm font-medium text-blue-200/80 max-w-sm mx-auto tracking-wide">
+          Planning Supérieur • Système Institutionnel National
+        </p>
+</div>
+<!-- Authentication Card Container -->
+<div class="bg-white rounded-3xl shadow-card p-6 sm:p-9 border border-slate-100/90 relative overflow-hidden backdrop-blur-xl" style="box-shadow: 0 25px 60px -15px rgba(2, 6, 23, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.3) inset;">
+<!-- Header inside card -->
+<div class="mb-6">
+<div class="flex items-center justify-between">
+<h2 class="text-2xl font-bold text-slate-900 tracking-tight">Connexion</h2>
+<span class="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-semibold bg-blue-50 text-brand-700 border border-blue-100">
+              V 3.4.2
+            </span>
+</div>
+<p class="text-sm text-slate-500 mt-1" id="subheading-role">Accédez à votre espace institutionnel dédié</p>
+</div>
+<!-- Role Selector Tabs -->
+<div class="mb-6">
+<label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Profil utilisateur</label>
+<div aria-label="Sélection du rôle" class="grid grid-cols-3 gap-1 bg-slate-100/80 p-1 rounded-xl text-xs font-semibold text-slate-600" role="tablist">
+<button aria-selected="true" class="role-tab active-role py-2 px-2 rounded-lg text-center transition shadow-sm bg-white text-brand-700 font-bold" data-role="direction" id="tab-admin" role="tab" type="button">
+              Direction / Admin
+            </button>
+<button aria-selected="false" class="role-tab py-2 px-2 rounded-lg text-center transition hover:text-slate-900 text-slate-600" data-role="enseignant" id="tab-enseignant" role="tab" type="button">
+              Enseignants
+            </button>
+<button aria-selected="false" class="role-tab py-2 px-2 rounded-lg text-center transition hover:text-slate-900 text-slate-600" data-role="etudiant" id="tab-etudiant" role="tab" type="button">
+              Étudiants
+            </button>
+</div>
+</div>
+<!-- Form Elements -->
+<form action="#" class="space-y-4" method="POST" onsubmit="return false;">
+<!-- Identifier / Email input field -->
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1.5" for="identifier" id="identifier-label">
+              Adresse email institutionnelle
+            </label>
+<div class="relative rounded-xl shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+<svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</div>
+<input autocomplete="email" class="block w-full pl-11 pr-4 py-3 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600 focus:bg-white transition" id="identifier" name="identifier" placeholder="admin@etablissement.ga" required="" type="text"/>
+</div>
+<p class="mt-1 text-[11px] text-slate-400" id="identifier-helper">Compte officiel délivré par la DSI académique</p>
+</div>
+<!-- Password input field -->
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<label class="block text-xs font-semibold text-slate-700" for="password">
+                Mot de passe
+              </label>
+<a class="text-xs font-medium text-brand-600 hover:text-brand-700 transition hover:underline" href="#forgot">
+                Mot de passe oublié ?
+              </a>
+</div>
+<div class="relative rounded-xl shadow-sm">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+<svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</div>
+<input class="block w-full pl-11 pr-11 py-3 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600 focus:bg-white transition" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+<!-- Visibility Toggle Button -->
+<button aria-label="Afficher ou masquer le mot de passe" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none" id="toggle-password" type="button">
+<svg class="h-5 w-5" fill="none" id="eye-icon" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+<path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Options: Remember Me & SSL Badge -->
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center">
+<input class="h-4 w-4 text-brand-600 focus:ring-brand-500 border-slate-300 rounded cursor-pointer" id="remember-me" name="remember-me" type="checkbox"/>
+<label class="ml-2 block text-xs text-slate-600 select-none cursor-pointer" for="remember-me">
+                Mémoriser la session
+              </label>
+</div>
+<div class="flex items-center text-slate-400 space-x-1" title="Connexion sécurisée TLS 1.3">
+<svg class="h-3.5 w-3.5 text-emerald-500" fill="currentColor" viewbox="0 0 20 20">
+<path clip-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path>
+</svg>
+<span class="text-[10px] font-medium text-slate-500">Chiffré SSL 256-bit</span>
+</div>
+</div>
+<!-- Primary Submit Button -->
+<div class="pt-2">
+<button class="w-full flex items-center justify-center space-x-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-brand-600/30 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 active:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition duration-150 transform hover:-translate-y-0.5" type="submit">
+<svg class="w-4 h-4 transform rotate-0" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Se connecter à mon espace</span>
+</button>
+</div>
+<!-- Federated SSO Divider -->
+<div class="relative my-4">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-slate-200"></div>
+</div>
+<div class="relative flex justify-center text-[11px] uppercase">
+<span class="bg-white px-3 text-slate-400 font-semibold tracking-wider">ou authentification unique</span>
+</div>
+</div>
+<!-- SSO Gabon National Education Gateway Button -->
+<button class="w-full flex items-center justify-center space-x-2.5 py-2.5 px-4 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition" type="button">
+<!-- Government Emblem Mini Icon -->
+<div class="w-4 h-4 rounded-full bg-blue-100 text-brand-700 flex items-center justify-center font-bold text-[9px] border border-blue-200">
+              G
+            </div>
+<span>Connexion ENT Université &amp; Recherche (Gabon SSO)</span>
+</button>
+</form>
+<!-- Technical Support Assistance Box -->
+<div class="mt-6 pt-5 border-t border-slate-100 flex items-start space-x-3 bg-slate-50/60 -mx-6 -mb-6 p-4 sm:-mx-9 sm:-mb-9 sm:p-5">
+<div class="flex-shrink-0 text-brand-600 mt-0.5">
+<svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</div>
+<div class="text-xs text-slate-500">
+<p class="font-semibold text-slate-700">Besoin d'assistance technique ?</p>
+<p class="mt-0.5">Contactez le guichet DSI de votre établissement ou écrivez à <a class="text-brand-600 font-medium hover:underline" href="mailto:support@mesrs.ga">support@mesrs.ga</a></p>
+</div>
+</div>
+</div>
+<!-- Institutional Universities Sub-Notice -->
+<div class="mt-6 text-center text-xs text-blue-200/60 space-x-2">
+<span>UOB</span>
+<span>•</span>
+<span>USTM</span>
+<span>•</span>
+<span>UDSB</span>
+<span>•</span>
+<span>ENS</span>
+<span>•</span>
+<span>Instituts &amp; Grandes Écoles</span>
+</div>
+</div>
+</main>
+<!-- END: MainContent -->
+<!-- BEGIN: MainFooter -->
+<footer class="w-full border-t border-white/10 py-5 bg-slate-950/40 backdrop-blur-md relative z-10 text-xs text-blue-200/70">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+<div>
+<span class="font-semibold text-slate-300">GAB-EDT</span> • Plateforme de gestion d'emploi du temps universitaire
+      </div>
+<div class="flex items-center space-x-6 text-[11px]">
+<a class="hover:text-white transition" href="#charte">Charte informatique</a>
+<a class="hover:text-white transition" href="#rgpd">Protection des données</a>
+<a class="hover:text-white transition" href="#mentions">Mentions légales</a>
+<span class="text-slate-500 font-mono">© 2025 République Gabonaise</span>
+</div>
+</div>
+</footer>
+<!-- END: MainFooter -->
+<!-- Interactive Client Side Script for Enhanced UX -->
+<script data-purpose="role-and-toggle-interactions">
+    // Password toggle visibility
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eye-icon');
+
+    if (togglePasswordBtn && passwordInput) {
+      togglePasswordBtn.addEventListener('click', () => {
+        const isPassword = passwordInput.getAttribute('type') === 'password';
+        passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+        
+        if (isPassword) {
+          eyeIcon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+          `;
+        } else {
+          eyeIcon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          `;
+        }
+      });
+    }
+
+    // Role switching UX behavior
+    const roleTabs = document.querySelectorAll('.role-tab');
+    const identifierLabel = document.getElementById('identifier-label');
+    const identifierInput = document.getElementById('identifier');
+    const identifierHelper = document.getElementById('identifier-helper');
+    const subheadingRole = document.getElementById('subheading-role');
+
+    const roleConfigs = {
+      direction: {
+        label: "Adresse email institutionnelle",
+        placeholder: "admin@etablissement.ga",
+        helper: "Compte officiel délivré par la DSI académique",
+        subheading: "Accédez à votre espace administrateur & gouvernance"
+      },
+      enseignant: {
+        label: "Identifiant enseignant ou email",
+        placeholder: "prenom.nom@univ-edu.ga",
+        helper: "Utilisez votre identifiant de service professoral",
+        subheading: "Consultez et ajustez vos plannings de cours et TD"
+      },
+      etudiant: {
+        label: "Numéro de matricule étudiant",
+        placeholder: "ETU-2024-XXXXX",
+        helper: "Numéro national figurant sur votre carte d'étudiant",
+        subheading: "Consultez vos salles, horaires et changements d'EDT"
+      }
+    };
+
+    roleTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Reset styles for all
+        roleTabs.forEach(t => {
+          t.classList.remove('bg-white', 'text-brand-700', 'font-bold', 'shadow-sm');
+          t.classList.add('text-slate-600');
+          t.setAttribute('aria-selected', 'false');
+        });
+
+        // Activate clicked tab
+        tab.classList.remove('text-slate-600');
+        tab.classList.add('bg-white', 'text-brand-700', 'font-bold', 'shadow-sm');
+        tab.setAttribute('aria-selected', 'true');
+
+        const role = tab.getAttribute('data-role');
+        const config = roleConfigs[role];
+
+        if (config) {
+          identifierLabel.textContent = config.label;
+          identifierInput.setAttribute('placeholder', config.placeholder);
+          identifierHelper.textContent = config.helper;
+          subheadingRole.textContent = config.subheading;
+        }
+      });
+    });
+  </script>
+</body></html>

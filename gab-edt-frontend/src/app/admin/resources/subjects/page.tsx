@@ -2,6 +2,22 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { fetchWithAuth, extractArray, extractPageData } from '@/lib/api';
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AlertCircle } from "lucide-react";
 
 interface Subject {
   id: string;
@@ -21,27 +37,22 @@ interface OrgUnit {
 }
 
 type ModalMode = 'CREATE' | 'EDIT';
-const initForm = { id: '', name: '', code: '', color: '#3B82F6', credits: 3, active: true, orgUnitId: '' };
 
-
-function Toast({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) {
-  useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, [onClose]);
-  return (
-    <div className={`toast toast-${type}`}>
-      <span className="material-symbols-outlined">{type === 'success' ? 'check_circle' : 'error'}</span>
-      <span style={{ flex: 1 }}>{message}</span>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', padding: 4 }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
-      </button>
-    </div>
-  );
-}
+const subjectSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Le nom de la matière est requis"),
+  code: z.string().optional(),
+  orgUnitId: z.string().optional(),
+});
+type SubjectFormValues = z.infer<typeof subjectSchema>;
 
 function SkeletonRows() {
   return (
     <>{[1,2,3,4].map(i => (
       <tr key={i}>
-        <td style={{ width: 40, paddingRight: 0 }}></td>
+        <td style={{ width: 40, paddingRight: 0 }}>
+          <div className="skeleton" style={{ width: 18, height: 18, borderRadius: 4 }} />
+        </td>
         <td style={{ padding: '16px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div className="skeleton" style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0 }} />
@@ -50,8 +61,6 @@ function SkeletonRows() {
         </td>
         <td><div className="skeleton skeleton-text" style={{ width: '40%' }} /></td>
         <td><div className="skeleton skeleton-text" style={{ width: '30%' }} /></td>
-        <td><div className="skeleton skeleton-text" style={{ width: '40%' }} /></td>
-        <td><div className="skeleton skeleton-text" style={{ width: '60%' }} /></td>
         <td style={{ textAlign: 'right' }}>
           <div className="skeleton" style={{ width: 80, height: 30, borderRadius: 6, marginLeft: 'auto' }} />
         </td>
@@ -83,11 +92,14 @@ export default function SubjectsAdminPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>('CREATE');
-  const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState('');
-  const [formData, setFormData] = useState(initForm);
 
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const form = useForm<SubjectFormValues>({
+    resolver: zodResolver(subjectSchema),
+    defaultValues: {
+      id: '', name: '', code: '', orgUnitId: ''
+    }
+  });
 
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -120,13 +132,22 @@ export default function SubjectsAdminPage() {
   useEffect(() => { loadData(); }, [loadData]);
 
   const handleOpenCreate = () => {
-    setModalMode('CREATE'); setFormData(initForm); setModalError(''); setIsModalOpen(true);
+    setModalMode('CREATE'); 
+    form.reset({ id: '', name: '', code: '', orgUnitId: '' }); 
+    setModalError(''); 
+    setIsModalOpen(true);
   };
 
   const handleOpenEdit = (s: Subject) => {
     setModalMode('EDIT');
-    setFormData({ id: s.id, name: s.name, code: s.code || '', color: s.color || '#3B82F6', credits: s.credits || 3, active: s.active ?? true, orgUnitId: s.orgUnit?.id || '' });
-    setModalError(''); setIsModalOpen(true);
+    form.reset({ 
+      id: s.id, 
+      name: s.name, 
+      code: s.code || '', 
+      orgUnitId: s.orgUnit?.id || 'none' 
+    });
+    setModalError(''); 
+    setIsModalOpen(true);
   };
 
   const handleExportCSV = () => {
@@ -147,7 +168,6 @@ export default function SubjectsAdminPage() {
     const file = event.target.files?.[0];
     if (!file) return;
     setIsImporting(true);
-    setToast(null);
     const formData = new FormData();
     formData.append('file', file);
     try {
@@ -155,10 +175,10 @@ export default function SubjectsAdminPage() {
         method: 'POST',
         body: formData,
       });
-      setToast({ message: `${res.data} enregistrements importés avec succès.`, type: 'success' });
+      toast.success(`${res.data} enregistrements importés avec succès.`);
       loadData();
     } catch (err) {
-      setToast({ message: 'Erreur lors de l\'importation du fichier.', type: 'error' });
+      toast.error('Erreur lors de l\'importation du fichier.');
     } finally {
       setIsImporting(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -169,9 +189,9 @@ export default function SubjectsAdminPage() {
     if (!confirm('Supprimer cette matière ? Cette action est irréversible.')) return;
     try {
       await fetchWithAuth(`/subjects/${id}`, { method: 'DELETE' });
-      setToast({ message: 'Matière supprimée avec succès.', type: 'success' });
+      toast.success('Matière supprimée avec succès.');
       loadData();
-    } catch { setToast({ message: 'Erreur lors de la suppression.', type: 'error' }); }
+    } catch { toast.error('Erreur lors de la suppression.'); }
   };
 
   const handleBulkDelete = async () => {
@@ -181,40 +201,46 @@ export default function SubjectsAdminPage() {
       await fetchWithAuth(`/subjects/bulk-delete`, { 
         method: 'POST', body: JSON.stringify(Array.from(selectedIds))
       });
-      setToast({ message: `${selectedIds.size} matières supprimées.`, type: 'success' });
+      toast.success(`${selectedIds.size} matières supprimées.`);
       loadData();
-    } catch { setToast({ message: 'Erreur lors de la suppression groupée.', type: 'error' }); }
+    } catch { toast.error('Erreur lors de la suppression groupée.'); }
   };
 
-  const handleBulkStatus = async (status: boolean) => {
-    if (selectedIds.size === 0) return;
+  const handleFormSubmit = async (data: SubjectFormValues) => {
+    setModalError('');
     try {
-      await fetchWithAuth(`/subjects/bulk-status`, { 
-        method: 'POST', body: JSON.stringify({ ids: Array.from(selectedIds), active: status })
-      });
-      setToast({ message: `Statut mis à jour pour ${selectedIds.size} matières.`, type: 'success' });
-      loadData();
-    } catch { setToast({ message: 'Erreur.', type: 'error' }); }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); setModalError(''); setModalLoading(true);
-    try {
-      const url = modalMode === 'EDIT' ? `/subjects/${formData.id}` : `/subjects`;
+      const url = modalMode === 'EDIT' ? `/subjects/${data.id}` : `/subjects`;
       const method = modalMode === 'EDIT' ? 'PUT' : 'POST';
       await fetchWithAuth(url, {
         method,
         body: JSON.stringify({
-          name: formData.name, code: formData.code, color: formData.color,
-          credits: Number(formData.credits), active: formData.active,
-          orgUnitId: formData.orgUnitId || null,
+          name: data.name, 
+          code: data.code,
+          color: '#3B82F6',
+          credits: 3,
+          active: true,
+          orgUnitId: (data.orgUnitId && data.orgUnitId !== 'none') ? data.orgUnitId : null,
         }),
       });
       setIsModalOpen(false);
-      setToast({ message: modalMode === 'CREATE' ? 'Matière créée avec succès.' : 'Matière modifiée avec succès.', type: 'success' });
+      toast.success(modalMode === 'CREATE' ? 'Matière créée avec succès.' : 'Matière modifiée avec succès.');
       loadData();
     } catch (err: any) { setModalError(err.message || 'Erreur lors de la sauvegarde.'); }
-    finally { setModalLoading(false); }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === subjects.length && subjects.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(subjects.map(t => t.id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedIds(newSet);
   };
 
   const filtered = subjects.filter(s =>
@@ -222,7 +248,7 @@ export default function SubjectsAdminPage() {
   );
 
   return (
-    <div className="page-container">
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
       <nav className="breadcrumb">
         <span>Administration</span>
         <span className="breadcrumb-sep material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
@@ -235,24 +261,26 @@ export default function SubjectsAdminPage() {
         <div className="page-header-left">
           <h1 className="page-title">Matières & Modules</h1>
           <p className="page-subtitle">
-            Catalogue pédagogique • {subjects.length} matière{subjects.length !== 1 ? 's' : ''} au total
+            Catalogue pédagogique • {totalElements} matière{totalElements !== 1 ? 's' : ''} au total
           </p>
         </div>
         <div className="page-header-actions">
-          <button className="btn btn-secondary" onClick={loadData}>
-            <span className="material-symbols-outlined">refresh</span>
+          <Button variant="outline" onClick={loadData}>
+            <span className="material-symbols-outlined mr-2 text-sm">refresh</span>
             Actualiser
-          </button>
+          </Button>
           <input type="file" accept=".csv" style={{ display: 'none' }} ref={fileInputRef} onChange={handleImportCSV} />
-          <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()} disabled={isImporting}>
-            <span className="material-symbols-outlined">{isImporting ? 'progress_activity' : 'upload'}</span> 
+          <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isImporting}>
+            <span className="material-symbols-outlined mr-2 text-sm">{isImporting ? 'progress_activity' : 'upload'}</span> 
             {isImporting ? 'Importation...' : 'Importer CSV'}
-          </button>
-          <button className="btn btn-secondary" onClick={handleExportCSV}><span className="material-symbols-outlined">download</span> Exporter CSV</button>
-          <button className="btn btn-primary" onClick={handleOpenCreate}>
-            <span className="material-symbols-outlined">add</span>
+          </Button>
+          <Button variant="outline" onClick={handleExportCSV}>
+            <span className="material-symbols-outlined mr-2 text-sm">download</span> Exporter CSV
+          </Button>
+          <Button onClick={handleOpenCreate} className="bg-brand-600 hover:bg-brand-700">
+            <span className="material-symbols-outlined mr-2 text-sm">add</span>
             Nouvelle Matière
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -263,7 +291,7 @@ export default function SubjectsAdminPage() {
             <span className="stat-card-label">Total</span>
             <div className="stat-card-icon"><span className="material-symbols-outlined">menu_book</span></div>
           </div>
-          <div className="stat-card-value">{subjects.length}</div>
+          <div className="stat-card-value">{totalElements}</div>
           <div className="stat-card-trend">matières</div>
         </div>
         <div className="stat-card">
@@ -309,10 +337,18 @@ export default function SubjectsAdminPage() {
           </div>
         </div>
 
+        {selectedIds.size > 0 && (
+          <div className="bulk-actions-bar" style={{ background: 'var(--primary-light)', padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid var(--border)' }}>
+            <span style={{ fontWeight: 500, color: 'var(--primary-dark)', flex: 1 }}>{selectedIds.size} matière{selectedIds.size > 1 ? 's' : ''} sélectionnée{selectedIds.size > 1 ? 's' : ''}</span>
+            <Button variant="destructive" size="sm" onClick={handleBulkDelete}>Supprimer</Button>
+          </div>
+        )}
+
         <div className="table-container">
           <table className="data-table">
             <thead>
               <tr>
+                <th style={{ width: 40 }}><input type="checkbox" checked={selectedIds.size === filtered.length && filtered.length > 0} onChange={toggleSelectAll} /></th>
                 <th>Matière</th>
                 <th>Code</th>
                 <th>Unité organisationnelle</th>
@@ -321,16 +357,17 @@ export default function SubjectsAdminPage() {
             </thead>
             <tbody>
               {loading ? <SkeletonRows /> : filtered.length === 0 ? (
-                <tr><td colSpan={4}>
+                <tr><td colSpan={5}>
                   <div className="empty-state">
                     <div className="empty-state-icon"><span className="material-symbols-outlined">menu_book</span></div>
                     <p className="empty-state-title">{search ? 'Aucun résultat' : 'Aucune matière enregistrée'}</p>
                     <p className="empty-state-desc">{search ? `Aucune matière ne correspond à "${search}".` : 'Commencez par créer votre première matière.'}</p>
-                    {!search && <button className="btn btn-primary" onClick={handleOpenCreate} style={{ marginTop: 16 }}><span className="material-symbols-outlined">add</span>Nouvelle Matière</button>}
+                    {!search && <Button onClick={handleOpenCreate} className="mt-4 bg-brand-600 hover:bg-brand-700"><span className="material-symbols-outlined mr-2 text-sm">add</span>Nouvelle Matière</Button>}
                   </div>
                 </td></tr>
               ) : filtered.map(s => (
-                <tr key={s.id}>
+                <tr key={s.id} className={selectedIds.has(s.id) ? 'selected-row' : ''}>
+                  <td><input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelect(s.id)} /></td>
                   <td>
                     <div className="cell-name">
                       <div className="cell-avatar-icon">
@@ -367,54 +404,105 @@ export default function SubjectsAdminPage() {
         </div>
 
         {!loading && filtered.length > 0 && (
-          <div className="table-footer">
-            <span>{filtered.length} matière{filtered.length !== 1 ? 's' : ''} affichée{filtered.length !== 1 ? 's' : ''}</span>
-            <span style={{ color: 'var(--primary)', fontSize: 12 }}>Page 1 sur 1</span>
+          <div className="table-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px' }}>
+            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Affichage de {page * pageSize + 1} à {Math.min((page + 1) * pageSize, totalElements)} sur {totalElements}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button className="btn btn-secondary btn-sm" disabled={page === 0} onClick={() => setPage(p => Math.max(0, p - 1))}><span className="material-symbols-outlined">chevron_left</span></button>
+              <span style={{ fontSize: 13, fontWeight: 500 }}>Page {page + 1} sur {totalPages || 1}</span>
+              <button className="btn btn-secondary btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}><span className="material-symbols-outlined">chevron_right</span></button>
+              <select className="form-select" style={{ width: 70, height: 32, padding: '0 8px', marginLeft: 16 }} value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(0); }}>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
           </div>
         )}
       </div>
 
-      {/* MODAL */}
-      {isModalOpen && (
-        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setIsModalOpen(false); }}>
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2 className="modal-title">{modalMode === 'CREATE' ? 'Nouvelle Matière' : 'Modifier la Matière'}</h2>
-              <button className="modal-close-btn" onClick={() => setIsModalOpen(false)}><span className="material-symbols-outlined">close</span></button>
-            </div>
-            <div className="modal-body">
-              {modalError && <div className="alert alert-error"><span className="material-symbols-outlined">error</span>{modalError}</div>}
-              <div className="form-group">
-                <label className="form-label">Nom de la matière <span className="required">*</span></label>
-                <input type="text" className="form-input" placeholder="Ex: Programmation Avancée & Algorithmique" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Code (optionnel)</label>
-                <input type="text" className="form-input" placeholder="Ex: ELC3, INFO-101..." style={{ fontFamily: 'monospace' }} value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value })} />
-                <p className="form-hint">Identifiant court utilisé dans les emplois du temps et les exports.</p>
-              </div>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Unité Organisationnelle (optionnel)</label>
-                <select className="form-select" value={formData.orgUnitId} onChange={e => setFormData({ ...formData, orgUnitId: e.target.value })}>
-                  <option value="">— Globale à l'établissement —</option>
-                  {flatOrgUnits.map(u => <option key={u.id} value={u.id}>{u.label}</option>)}
-                </select>
-                <p className="form-hint">Laissez vide pour une matière accessible à toute l'institution.</p>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setIsModalOpen(false)} disabled={modalLoading}>Annuler</button>
-              <button className="btn btn-primary" onClick={handleSubmit} disabled={modalLoading}>
-                {modalLoading ? <><span className="material-symbols-outlined" style={{ fontSize: 18 }}>progress_activity</span>En cours...</> : <><span className="material-symbols-outlined">save</span>{modalMode === 'CREATE' ? 'Créer la matière' : 'Enregistrer'}</>}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Dialog open={isModalOpen} onOpenChange={(open) => !open && setIsModalOpen(false)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{modalMode === 'CREATE' ? 'Nouvelle Matière' : 'Modifier la Matière'}</DialogTitle>
+          </DialogHeader>
 
-      <div className="toast-container">
-        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      </div>
+          {modalError && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-100 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <span>{modalError}</span>
+            </div>
+          )}
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nom de la matière *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Programmation Avancée & Algorithmique" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Code (optionnel)</FormLabel>
+                    <FormControl>
+                      <Input className="font-mono" placeholder="Ex: ELC3, INFO-101..." {...field} />
+                    </FormControl>
+                    <p className="text-[13px] text-muted-foreground mt-1">Identifiant court utilisé dans les emplois du temps et les exports.</p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="orgUnitId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Unité Organisationnelle (optionnel)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || 'none'}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="— Globale à l'établissement —" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">— Globale à l'établissement —</SelectItem>
+                        {flatOrgUnits.map(unit => (
+                          <SelectItem key={unit.id} value={unit.id}>
+                            {unit.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[13px] text-muted-foreground mt-1">Laissez vide pour une matière accessible à toute l'institution.</p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                  Annuler
+                </Button>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-brand-600 hover:bg-brand-700">
+                  {form.formState.isSubmitting ? 'En cours...' : 'Enregistrer'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

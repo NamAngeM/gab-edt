@@ -2,13 +2,43 @@
 
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth, extractArray } from '@/lib/api';
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+const sessionSchema = z.object({
+  name: z.string().min(1, "Le nom est requis"),
+  orgUnitId: z.string().min(1, "La promotion est requise"),
+  startDate: z.string().min(1, "La date de début est requise"),
+  endDate: z.string().min(1, "La date de fin est requise"),
+});
+
+type SessionFormValues = z.infer<typeof sessionSchema>;
 
 export default function ExamensPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [formData, setFormData] = useState({ name: '', startDate: '', endDate: '', orgUnitId: '' });
   const [orgUnits, setOrgUnits] = useState<any[]>([]);
+
+  const form = useForm<SessionFormValues>({
+    resolver: zodResolver(sessionSchema),
+    defaultValues: {
+      name: '', startDate: '', endDate: '', orgUnitId: ''
+    }
+  });
 
   const loadData = async () => {
     try {
@@ -29,31 +59,31 @@ export default function ExamensPage() {
     loadData();
   }, []);
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleOpenAdd = () => {
+    form.reset({ name: '', startDate: '', endDate: '', orgUnitId: '' });
+    setShowAddModal(true);
+  };
+
+  const handleAdd = async (data: SessionFormValues) => {
     try {
-      const body = { ...formData } as Record<string, any>;
-      Object.keys(body).forEach(key => {
-        if (body[key] === '') body[key] = null;
-      });
       await fetchWithAuth('/exams/sessions', {
         method: 'POST',
-        body: JSON.stringify(body),
+        body: JSON.stringify(data),
       });
       setShowAddModal(false);
-      setFormData({ name: '', startDate: '', endDate: '', orgUnitId: '' });
+      toast.success('Session créée avec succès');
       loadData();
     } catch (err) {
       console.error(err);
-      alert('Erreur lors de la création');
+      toast.error('Erreur lors de la création');
     }
   };
 
   return (
-    <div className="page-container">
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
       <div className="breadcrumb">
         <span>Évaluations & Examens</span>
-        <span className="breadcrumb-sep">/</span>
+        <span className="breadcrumb-sep material-symbols-outlined text-[16px]">chevron_right</span>
         <span className="breadcrumb-current">Sessions d'examens</span>
       </div>
 
@@ -63,10 +93,10 @@ export default function ExamensPage() {
           <p className="page-subtitle">Planifiez et gérez les périodes d'évaluation.</p>
         </div>
         <div className="page-header-right">
-          <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-            <span className="material-symbols-outlined">add</span>
+          <Button className="bg-brand-600 hover:bg-brand-700" onClick={handleOpenAdd}>
+            <span className="material-symbols-outlined mr-2 text-sm">add</span>
             Nouvelle Session
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -122,73 +152,91 @@ export default function ExamensPage() {
         )}
       </div>
 
-      {showAddModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2 className="modal-title">Nouvelle Session d'Examen</h2>
-              <button className="modal-close-btn" onClick={() => setShowAddModal(false)}>
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <form onSubmit={handleAdd}>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label className="form-label">Nom de la session</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    required
-                    placeholder="Ex: Partiels Semestre 1"
-                    value={formData.name}
-                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Promotion concernée</label>
-                  <select
-                    className="form-select"
-                    required
-                    value={formData.orgUnitId}
-                    onChange={e => setFormData({ ...formData, orgUnitId: e.target.value })}
-                  >
-                    <option value="">Sélectionnez...</option>
-                    {orgUnits.map(ou => (
-                      <option key={ou.id} value={ou.id}>{ou.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label">Date de début</label>
-                    <input
-                      type="date"
-                      className="form-input"
-                      required
-                      value={formData.startDate}
-                      onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label">Date de fin</label>
-                    <input
-                      type="date"
-                      className="form-input"
-                      required
-                      value={formData.endDate}
-                      onChange={e => setFormData({ ...formData, endDate: e.target.value })}
-                    />
-                  </div>
-                </div>
+      <Dialog open={showAddModal} onOpenChange={(open) => !open && setShowAddModal(false)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Nouvelle Session d'Examen</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleAdd)} className="space-y-4 pt-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nom de la session *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Partiels Semestre 1" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="orgUnitId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Promotion concernée *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionnez..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {orgUnits.map(ou => (
+                          <SelectItem key={ou.id} value={ou.id}>{ou.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="startDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date de début *</FormLabel>
+                      <FormControl>
+                        <DatePicker value={field.value} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date de fin *</FormLabel>
+                      <FormControl>
+                        <DatePicker value={field.value} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Annuler</button>
-                <button type="submit" className="btn btn-primary">Créer</button>
+
+              <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
+                  Annuler
+                </Button>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-brand-600 hover:bg-brand-700">
+                  {form.formState.isSubmitting ? 'En cours...' : 'Créer'}
+                </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

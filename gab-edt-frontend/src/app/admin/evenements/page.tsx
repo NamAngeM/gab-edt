@@ -2,18 +2,44 @@
 
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth, extractArray } from '@/lib/api';
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { DateTimePicker } from "@/components/ui/date-picker";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { format } from "date-fns";
+
+const eventSchema = z.object({
+  title: z.string().min(1, "Le titre est requis"),
+  description: z.string().optional(),
+  startDate: z.string().min(1, "La date de début est requise"),
+  endDate: z.string().min(1, "La date de fin est requise"),
+  holiday: z.boolean().optional(),
+});
+
+type EventFormValues = z.infer<typeof eventSchema>;
 
 export default function EvenementsPage() {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    startDate: '',
-    endDate: '',
-    holiday: false
+  const form = useForm<EventFormValues>({
+    resolver: zodResolver(eventSchema),
+    defaultValues: {
+      title: '', description: '', startDate: '', endDate: '', holiday: false
+    }
   });
 
   const loadData = async () => {
@@ -23,6 +49,7 @@ export default function EvenementsPage() {
       setEvents(extractArray(res));
     } catch (err) {
       console.error(err);
+      toast.error("Erreur lors du chargement des événements");
     } finally {
       setLoading(false);
     }
@@ -32,36 +59,40 @@ export default function EvenementsPage() {
     loadData();
   }, []);
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleOpenAdd = () => {
+    form.reset({ title: '', description: '', startDate: '', endDate: '', holiday: false });
+    setShowAddModal(true);
+  };
+
+  const handleAdd = async (data: EventFormValues) => {
     try {
       await fetchWithAuth('/communication/events', {
         method: 'POST',
-        body: JSON.stringify(formData),
+        body: JSON.stringify(data),
       });
       setShowAddModal(false);
-      setFormData({ title: '', description: '', startDate: '', endDate: '', holiday: false });
+      toast.success('Événement créé avec succès');
       loadData();
     } catch (err) {
       console.error(err);
-      alert('Erreur lors de la création');
+      toast.error('Erreur lors de la création');
     }
   };
 
   const formatDateTime = (dateStr: string) => {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleString('fr-FR', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
+    try {
+      return format(new Date(dateStr), "dd/MM/yyyy HH:mm");
+    } catch {
+      return dateStr;
+    }
   };
 
   return (
-    <div className="page-container">
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
       <div className="breadcrumb">
         <span>Communication & Événements</span>
-        <span className="breadcrumb-sep">/</span>
+        <span className="breadcrumb-sep material-symbols-outlined text-[16px]">chevron_right</span>
         <span className="breadcrumb-current">Événements Académiques</span>
       </div>
 
@@ -71,10 +102,10 @@ export default function EvenementsPage() {
           <p className="page-subtitle">Gérez le calendrier institutionnel (vacances, séminaires, jours fériés).</p>
         </div>
         <div className="page-header-right">
-          <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-            <span className="material-symbols-outlined">event</span>
+          <Button className="bg-brand-600 hover:bg-brand-700" onClick={handleOpenAdd}>
+            <span className="material-symbols-outlined mr-2 text-sm">event</span>
             Nouvel Événement
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -115,7 +146,7 @@ export default function EvenementsPage() {
                         <span className="badge badge-primary">Institutionnel</span>
                       )}
                     </td>
-                    <td>{ev.description}</td>
+                    <td className="text-sm text-muted-foreground">{ev.description || '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -124,78 +155,106 @@ export default function EvenementsPage() {
         )}
       </div>
 
-      {showAddModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2 className="modal-title">Créer un Événement</h2>
-              <button className="modal-close-btn" onClick={() => setShowAddModal(false)}>
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <form onSubmit={handleAdd}>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label className="form-label">Titre de l'événement</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    required
-                    value={formData.title}
-                    onChange={e => setFormData({ ...formData, title: e.target.value })}
-                  />
-                </div>
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label">Début</label>
-                    <input
-                      type="datetime-local"
-                      className="form-input"
-                      required
-                      value={formData.startDate}
-                      onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label">Fin</label>
-                    <input
-                      type="datetime-local"
-                      className="form-input"
-                      required
-                      value={formData.endDate}
-                      onChange={e => setFormData({ ...formData, endDate: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <input
-                    type="checkbox"
-                    id="isHoliday"
-                    checked={formData.holiday}
-                    onChange={e => setFormData({ ...formData, holiday: e.target.checked })}
-                  />
-                  <label htmlFor="isHoliday" style={{ margin: 0, fontWeight: 500 }}>
-                    Marquer comme période de congés / vacances
-                  </label>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Description (optionnelle)</label>
-                  <textarea
-                    className="form-input"
-                    rows={3}
-                    value={formData.description}
-                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  ></textarea>
-                </div>
+      <Dialog open={showAddModal} onOpenChange={(open) => !open && setShowAddModal(false)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Créer un Événement</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleAdd)} className="space-y-4 pt-2">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Titre de l'événement *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Vacances de Noël, Conférence IA..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="startDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date de début *</FormLabel>
+                      <FormControl>
+                        <DateTimePicker value={field.value} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date de fin *</FormLabel>
+                      <FormControl>
+                        <DateTimePicker value={field.value} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Annuler</button>
-                <button type="submit" className="btn btn-primary">Enregistrer</button>
+
+              <FormField
+                control={form.control}
+                name="holiday"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Marquer comme période de congés / vacances
+                      </FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description (optionnelle)</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Détails supplémentaires..." 
+                        className="resize-none"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
+                  Annuler
+                </Button>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-brand-600 hover:bg-brand-700">
+                  {form.formState.isSubmitting ? 'En cours...' : 'Enregistrer'}
+                </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

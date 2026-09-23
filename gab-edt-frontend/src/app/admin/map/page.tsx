@@ -25,10 +25,10 @@ export default function AdminMapPage() {
       try {
         const treeData = await fetchWithAuth('/resources/tree');
         
-        let newNodes: any[] = [];
-        let newEdges: any[] = [];
-        let yOffset = 0;
-        let xOffsetCampus = 100;
+        const newNodes: any[] = [];
+        const newEdges: any[] = [];
+        const yOffset = 0;
+        const xOffsetCampus = 100;
         
         if (treeData && treeData.campuses) {
           treeData.campuses.forEach((campus: any, cIdx: number) => {
@@ -103,9 +103,9 @@ export default function AdminMapPage() {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}
-      style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)' }}
+      className="flex flex-col h-[calc(100vh-100px)] pt-8"
     >
-      <div style={{ padding: '0 2rem' }}>
+      <div className="px-8">
         <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Cartographie de l&apos;Organisation</h1>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Visualisation nodale propulsée par ReactFlow</p>
       </div>

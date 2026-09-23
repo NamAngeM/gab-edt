@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { fetchWithAuth, API_URL } from '@/lib/api';
+import { fetchWithAuth, API_URL, extractArray } from '@/lib/api';
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { DateTimePicker } from "@/components/ui/date-picker";
+import { Button } from "@/components/ui/button";
+import { AlertCircle } from "lucide-react";
 
 interface TimetableModalProps {
   isOpen: boolean;
@@ -10,36 +25,68 @@ interface TimetableModalProps {
   orgUnits: any[];
 }
 
+const scheduleSchema = z.object({
+  subjectId: z.string().min(1, "La matière est requise"),
+  teacherId: z.string().min(1, "L'enseignant est requis"),
+  orgUnitId: z.string().min(1, "La classe est requise"),
+  roomId: z.string().optional(),
+  startAt: z.string().min(1, "L'heure de début est requise"),
+  endAt: z.string().min(1, "L'heure de fin est requise"),
+  status: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+type ScheduleFormValues = z.infer<typeof scheduleSchema>;
+
 export const TimetableModal: React.FC<TimetableModalProps> = ({ 
   isOpen, onClose, onSave, existingEvent, defaultTime, orgUnits 
 }) => {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [rooms, setRooms] = useState<any[]>([]);
-  
-  const [formData, setFormData] = useState({
-    subjectId: '',
-    teacherId: '',
-    roomId: '',
-    orgUnitId: '',
-    startAt: '',
-    endAt: '',
-    status: 'SCHEDULED',
-    notes: ''
+  const [serverError, setServerError] = useState('');
+
+  const form = useForm<ScheduleFormValues>({
+    resolver: zodResolver(scheduleSchema),
+    defaultValues: {
+      subjectId: "",
+      teacherId: "",
+      roomId: "",
+      orgUnitId: "",
+      startAt: "",
+      endAt: "",
+      status: "SCHEDULED",
+      notes: ""
+    }
   });
-  
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  const isLoading = form.formState.isSubmitting;
+
+  async function loadResources() {
+    try {
+      const [subjRes, teachRes, roomRes] = await Promise.all([
+        fetchWithAuth('/subjects').catch(() => ({ data: [] })),
+        fetchWithAuth('/teachers').catch(() => ({ data: [] })),
+        fetchWithAuth('/rooms').catch(() => ({ data: [] }))
+      ]);
+      setSubjects(extractArray(subjRes));
+      setTeachers(extractArray(teachRes));
+      setRooms(extractArray(roomRes));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
       loadResources();
+      setServerError('');
       
       if (existingEvent) {
-        setFormData({
+        form.reset({
           subjectId: existingEvent.subject?.id || '',
           teacherId: existingEvent.teacher?.id || '',
-          roomId: existingEvent.room?.id || '',
+          roomId: existingEvent.room?.id || 'none',
           orgUnitId: existingEvent.group?.id || '',
           startAt: existingEvent.startAt.slice(0, 16),
           endAt: existingEvent.endAt.slice(0, 16),
@@ -48,34 +95,25 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
         });
       } else if (defaultTime) {
         const toLocalISOString = (d: Date) => new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-        setFormData(prev => ({
-          ...prev,
+        form.reset({
+          subjectId: '',
+          teacherId: '',
+          roomId: 'none',
+          orgUnitId: '',
           startAt: toLocalISOString(defaultTime.start),
-          endAt: toLocalISOString(defaultTime.end)
-        }));
+          endAt: toLocalISOString(defaultTime.end),
+          status: 'SCHEDULED',
+          notes: ''
+        });
       }
+    } else {
+      form.reset();
+      setServerError('');
     }
-  }, [isOpen, existingEvent, defaultTime]);
+  }, [isOpen, existingEvent, defaultTime, form]);
 
-  const loadResources = async () => {
-    try {
-      const [subjRes, teachRes, roomRes] = await Promise.all([
-        fetchWithAuth('/subjects').catch(() => ({ data: [] })),
-        fetchWithAuth('/teachers').catch(() => ({ data: [] })),
-        fetchWithAuth('/rooms').catch(() => ({ data: [] }))
-      ]);
-      setSubjects(subjRes.data || []);
-      setTeachers(teachRes.data || []);
-      setRooms(roomRes.data || []);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  const onSubmit = async (data: ScheduleFormValues) => {
+    setServerError('');
     
     try {
       const token = localStorage.getItem('jwt_token') || '';
@@ -83,14 +121,14 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
       const method = existingEvent ? 'PUT' : 'POST';
       
       // Conversion des dates pour l'API
-      const startIso = new Date(formData.startAt).toISOString();
-      const endIso = new Date(formData.endAt).toISOString();
+      const startIso = new Date(data.startAt).toISOString();
+      const endIso = new Date(data.endAt).toISOString();
       
       const payload = {
-        ...formData,
+        ...data,
         startAt: startIso,
         endAt: endIso,
-        roomId: formData.roomId || null
+        roomId: (data.roomId === 'none' || !data.roomId) ? null : data.roomId
       };
       
       const response = await fetch(url, {
@@ -113,7 +151,6 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
             throw new Error(errorData.message);
           }
         } catch (parseError: any) {
-          // Si on ne peut pas parser le JSON, ou si c'est déjà une erreur qu'on vient de throw
           if (parseError.message && parseError.message !== "Unexpected end of JSON input" && parseError.message !== "Unexpected token < in JSON at position 0") {
              throw parseError;
           }
@@ -123,92 +160,162 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
       
       onSave();
     } catch (err: any) {
-      setError(err.message || "Une erreur est survenue");
-    } finally {
-      setLoading(false);
+      setServerError(err.message || "Une erreur est survenue");
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 1000, backdropFilter: 'blur(4px)'
-    }}>
-      <div style={{
-        backgroundColor: 'var(--bg-secondary)', padding: '2rem', borderRadius: '16px',
-        width: '100%', maxWidth: '500px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
-        color: 'var(--text-primary)'
-      }}>
-        <h2 style={{ marginBottom: '1.5rem' }}>{existingEvent ? 'Modifier le cours' : 'Planifier un cours'}</h2>
-        
-        {error && <div style={{ color: 'red', marginBottom: '1rem', padding: '0.5rem', background: '#ffebee', borderRadius: '4px' }}>{error}</div>}
-        
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.3rem' }}>Matière *</label>
-            <select required value={formData.subjectId} onChange={e => setFormData({...formData, subjectId: e.target.value})}
-              style={{ width: '100%', padding: '0.5rem', borderRadius: '6px' }}>
-              <option value="">-- Sélectionner une matière --</option>
-              {subjects.map(s => <option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
-            </select>
-          </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[500px] font-plus-jakarta">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-slate-900">
+            {existingEvent ? 'Modifier le cours' : 'Planifier un cours'}
+          </DialogTitle>
+        </DialogHeader>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.3rem' }}>Enseignant *</label>
-            <select required value={formData.teacherId} onChange={e => setFormData({...formData, teacherId: e.target.value})}
-              style={{ width: '100%', padding: '0.5rem', borderRadius: '6px' }}>
-              <option value="">-- Sélectionner un enseignant --</option>
-              {teachers.map(t => <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>)}
-            </select>
+        {serverError && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-100 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <span>{serverError}</span>
           </div>
+        )}
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.3rem' }}>Groupe / Classe ciblée *</label>
-            <select required value={formData.orgUnitId} onChange={e => setFormData({...formData, orgUnitId: e.target.value})}
-              style={{ width: '100%', padding: '0.5rem', borderRadius: '6px' }}>
-              <option value="">-- Sélectionner une classe --</option>
-              {orgUnits.map(ou => <option key={ou.id} value={ou.id}>{ou.name} ({ou.type})</option>)}
-            </select>
-          </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
+            
+            <FormField
+              control={form.control}
+              name="subjectId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Matière *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="-- Sélectionner une matière --" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {subjects.map(s => (
+                        <SelectItem key={s.id} value={s.id}>{s.name} ({s.code})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.3rem' }}>Salle</label>
-            <select value={formData.roomId} onChange={e => setFormData({...formData, roomId: e.target.value})}
-              style={{ width: '100%', padding: '0.5rem', borderRadius: '6px' }}>
-              <option value="">-- À définir plus tard --</option>
-              {rooms.map(r => <option key={r.id} value={r.id}>{r.name} (Cap. {r.capacity})</option>)}
-            </select>
-          </div>
+            <FormField
+              control={form.control}
+              name="teacherId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Enseignant *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="-- Sélectionner un enseignant --" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {teachers.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.firstName} {t.lastName}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.3rem' }}>Début *</label>
-              <input type="datetime-local" required value={formData.startAt} onChange={e => setFormData({...formData, startAt: e.target.value})}
-                style={{ width: '100%', padding: '0.5rem', borderRadius: '6px' }} />
+            <FormField
+              control={form.control}
+              name="orgUnitId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Groupe / Classe ciblée *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="-- Sélectionner une classe --" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {orgUnits.map(ou => (
+                        <SelectItem key={ou.id} value={ou.id}>{ou.name} ({ou.type})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="roomId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Salle</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="-- À définir plus tard --" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">-- À définir plus tard --</SelectItem>
+                      {rooms.map(r => (
+                        <SelectItem key={r.id} value={r.id}>{r.name} (Cap. {r.capacity})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="startAt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Début *</FormLabel>
+                    <FormControl>
+                      <DateTimePicker value={field.value} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="endAt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fin *</FormLabel>
+                    <FormControl>
+                      <DateTimePicker value={field.value} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.3rem' }}>Fin *</label>
-              <input type="datetime-local" required value={formData.endAt} onChange={e => setFormData({...formData, endAt: e.target.value})}
-                style={{ width: '100%', padding: '0.5rem', borderRadius: '6px' }} />
-            </div>
-          </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-            <button type="button" onClick={onClose} style={{
-              padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'transparent', cursor: 'pointer'
-            }}>Annuler</button>
-            <button type="submit" disabled={loading} style={{
-              padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', background: 'var(--accent-primary)', color: 'white', cursor: 'pointer'
-            }}>
-              {loading ? 'Enregistrement...' : 'Enregistrer'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Annuler
+              </Button>
+              <Button type="submit" disabled={isLoading} className="bg-brand-600 hover:bg-brand-700">
+                {isLoading ? 'Enregistrement...' : 'Enregistrer'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 };

@@ -96,6 +96,30 @@ public class DataSeeder implements CommandLineRunner {
                 admin.setRole(UserRole.SCHOOL_ADMIN);
                 userRepository.save(admin);
             }
+
+            // 4. Teacher User
+            if (userRepository.findByEmailAndDeletedFalse("prof@ecole.com").isEmpty()) {
+                User prof = new User();
+                prof.setFirstName("Jean");
+                prof.setLastName("Dupont");
+                prof.setEmail("prof@ecole.com");
+                prof.setPasswordHash(passwordEncoder.encode("prof123"));
+                prof.setRole(UserRole.TEACHER);
+                userRepository.save(prof);
+                
+                // Idéalement on créerait aussi l'entité Teacher associée ici
+            }
+
+            // 5. Student User
+            if (userRepository.findByEmailAndDeletedFalse("eleve@ecole.com").isEmpty()) {
+                User student = new User();
+                student.setFirstName("Alice");
+                student.setLastName("Martin");
+                student.setEmail("eleve@ecole.com");
+                student.setPasswordHash(passwordEncoder.encode("eleve123"));
+                student.setRole(UserRole.STUDENT);
+                userRepository.save(student);
+            }
         }
     }
 }

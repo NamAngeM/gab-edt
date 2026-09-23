@@ -2,6 +2,34 @@
 
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth, extractArray } from '@/lib/api';
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+
+const announcementSchema = z.object({
+  title: z.string().min(1, "Le titre est requis"),
+  content: z.string().min(1, "Le contenu est requis"),
+  targetAudience: z.string(),
+  validUntil: z.string().optional(),
+  authorId: z.string().min(1, "L'auteur est requis"),
+});
+
+type AnnouncementFormValues = z.infer<typeof announcementSchema>;
 
 export default function AnnoncesPage() {
   const [announcements, setAnnouncements] = useState<any[]>([]);
@@ -9,12 +37,11 @@ export default function AnnoncesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [teachers, setTeachers] = useState<any[]>([]);
   
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    targetAudience: 'ALL',
-    validUntil: '',
-    authorId: ''
+  const form = useForm<AnnouncementFormValues>({
+    resolver: zodResolver(announcementSchema),
+    defaultValues: {
+      title: '', content: '', targetAudience: 'ALL', validUntil: '', authorId: ''
+    }
   });
 
   const loadData = async () => {
@@ -28,6 +55,7 @@ export default function AnnoncesPage() {
       setTeachers(extractArray(tRes));
     } catch (err) {
       console.error(err);
+      toast.error('Erreur lors du chargement des annonces');
     } finally {
       setLoading(false);
     }
@@ -37,10 +65,14 @@ export default function AnnoncesPage() {
     loadData();
   }, []);
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleOpenAdd = () => {
+    form.reset({ title: '', content: '', targetAudience: 'ALL', validUntil: '', authorId: '' });
+    setShowAddModal(true);
+  };
+
+  const handleAdd = async (data: AnnouncementFormValues) => {
     try {
-      const body = { ...formData } as Record<string, any>;
+      const body = { ...data } as Record<string, any>;
       Object.keys(body).forEach(key => {
         if (body[key] === '') body[key] = null;
       });
@@ -49,19 +81,19 @@ export default function AnnoncesPage() {
         body: JSON.stringify(body),
       });
       setShowAddModal(false);
-      setFormData({ title: '', content: '', targetAudience: 'ALL', validUntil: '', authorId: '' });
+      toast.success('Annonce publiée avec succès');
       loadData();
     } catch (err) {
       console.error(err);
-      alert('Erreur lors de la création');
+      toast.error('Erreur lors de la création');
     }
   };
 
   return (
-    <div className="page-container">
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
       <div className="breadcrumb">
         <span>Communication & Événements</span>
-        <span className="breadcrumb-sep">/</span>
+        <span className="breadcrumb-sep material-symbols-outlined text-[16px]">chevron_right</span>
         <span className="breadcrumb-current">Annonces & Actualités</span>
       </div>
 
@@ -71,10 +103,10 @@ export default function AnnoncesPage() {
           <p className="page-subtitle">Communiquez avec les étudiants, professeurs et le personnel.</p>
         </div>
         <div className="page-header-right">
-          <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-            <span className="material-symbols-outlined">campaign</span>
+          <Button className="bg-brand-600 hover:bg-brand-700" onClick={handleOpenAdd}>
+            <span className="material-symbols-outlined mr-2 text-sm">campaign</span>
             Nouvelle Annonce
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -122,84 +154,124 @@ export default function AnnoncesPage() {
         )}
       </div>
 
-      {showAddModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2 className="modal-title">Créer une Annonce</h2>
-              <button className="modal-close-btn" onClick={() => setShowAddModal(false)}>
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <form onSubmit={handleAdd}>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label className="form-label">Titre de l'annonce</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    required
-                    value={formData.title}
-                    onChange={e => setFormData({ ...formData, title: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Contenu</label>
-                  <textarea
-                    className="form-input"
-                    required
-                    rows={4}
-                    value={formData.content}
-                    onChange={e => setFormData({ ...formData, content: e.target.value })}
-                  ></textarea>
-                </div>
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label">Audience Cible</label>
-                    <select
-                      className="form-select"
-                      value={formData.targetAudience}
-                      onChange={e => setFormData({ ...formData, targetAudience: e.target.value })}
-                    >
-                      <option value="ALL">Tous</option>
-                      <option value="STUDENTS">Étudiants</option>
-                      <option value="TEACHERS">Enseignants</option>
-                      <option value="STAFF">Personnel / Admin</option>
-                    </select>
-                  </div>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label className="form-label">Valide jusqu'au</label>
-                    <input
-                      type="date"
-                      className="form-input"
-                      value={formData.validUntil}
-                      onChange={e => setFormData({ ...formData, validUntil: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Auteur (Professeur/Admin)</label>
-                  <select
-                    className="form-select"
-                    required
-                    value={formData.authorId}
-                    onChange={e => setFormData({ ...formData, authorId: e.target.value })}
-                  >
-                    <option value="">Sélectionnez un auteur...</option>
-                    {teachers.map(t => (
-                      <option key={t.id} value={t.user.id}>{t.user.firstName} {t.user.lastName}</option>
-                    ))}
-                  </select>
-                </div>
+      <Dialog open={showAddModal} onOpenChange={(open) => !open && setShowAddModal(false)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Créer une Annonce</DialogTitle>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleAdd)} className="space-y-4 pt-2">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Titre de l'annonce *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Fermeture exceptionnelle..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contenu *</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        rows={4} 
+                        placeholder="Le contenu de votre annonce..." 
+                        className="resize-none"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="targetAudience"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Audience Cible</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="ALL">Tous</SelectItem>
+                          <SelectItem value="STUDENTS">Étudiants</SelectItem>
+                          <SelectItem value="TEACHERS">Enseignants</SelectItem>
+                          <SelectItem value="STAFF">Personnel / Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="validUntil"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valide jusqu'au</FormLabel>
+                      <FormControl>
+                        <DatePicker value={field.value} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Annuler</button>
-                <button type="submit" className="btn btn-primary">Publier</button>
+
+              <FormField
+                control={form.control}
+                name="authorId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Auteur (Professeur/Admin) *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionnez un auteur..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {teachers.map(t => (
+                          <SelectItem key={t.id} value={t.user.id}>
+                            {t.user.firstName} {t.user.lastName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
+                  Annuler
+                </Button>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-brand-600 hover:bg-brand-700">
+                  {form.formState.isSubmitting ? 'Publication...' : 'Publier'}
+                </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

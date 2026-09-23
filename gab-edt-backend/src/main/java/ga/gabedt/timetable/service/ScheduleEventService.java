@@ -1,5 +1,9 @@
 package ga.gabedt.timetable.service;
 
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.JoinType;
+import java.util.ArrayList;
 import ga.gabedt.timetable.ScheduleEvent;
 import ga.gabedt.timetable.dto.*;
 import ga.gabedt.timetable.repository.ScheduleEventRepository;
@@ -50,13 +54,34 @@ public class ScheduleEventService {
         LocalDateTime start = (startDate != null) ? startDate.atStartOfDay() : LocalDateTime.now().minusMonths(1);
         LocalDateTime end = (endDate != null) ? endDate.atTime(23, 59, 59) : LocalDateTime.now().plusMonths(1);
         
-        List<ScheduleEvent> events = scheduleEventRepository.findByStartAtBetweenAndDeletedFalse(start, end);
+        Specification<ScheduleEvent> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.isFalse(root.get("deleted")));
+            predicates.add(cb.between(root.get("startAt"), start, end));
+            
+            if (groupId != null) {
+                predicates.add(cb.equal(root.get("orgUnit").get("id"), groupId));
+            }
+            if (teacherId != null) {
+                predicates.add(cb.equal(root.get("teacher").get("id"), teacherId));
+            }
+            if (roomId != null) {
+                predicates.add(cb.equal(root.get("room").get("id"), roomId));
+            }
+            
+            if (Long.class != query.getResultType() && long.class != query.getResultType()) {
+                root.fetch("course", JoinType.LEFT).fetch("subject", JoinType.LEFT);
+                root.fetch("teacher", JoinType.LEFT).fetch("user", JoinType.LEFT);
+                root.fetch("orgUnit", JoinType.LEFT);
+                root.fetch("room", JoinType.LEFT);
+            }
+            
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        List<ScheduleEvent> events = scheduleEventRepository.findAll(spec);
         
-        // Filtrage manuel pour simplifier
         return events.stream()
-                .filter(e -> groupId == null || e.getOrgUnit().getId().equals(groupId))
-                .filter(e -> teacherId == null || e.getTeacher().getId().equals(teacherId))
-                .filter(e -> roomId == null || (e.getRoom() != null && e.getRoom().getId().equals(roomId)))
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
@@ -264,6 +289,25 @@ public class ScheduleEventService {
         event.setEndAt(dto.getEndAt());
         if (dto.getStatus() != null) event.setStatus(dto.getStatus());
         event.setNotes(dto.getNotes());
+        
+        ScheduleEvent savedEvent = scheduleEventRepository.save(event);
+        return mapToDto(savedEvent);
+    }
+
+    @Transactional
+    public ScheduleEventDto rescheduleEvent(UUID id, ScheduleEventRescheduleDto dto) {
+        ScheduleEvent event = scheduleEventRepository.findById(id)
+                .filter(e -> !e.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("ScheduleEvent not found"));
+
+        UUID teacherId = event.getTeacher() != null ? event.getTeacher().getId() : null;
+        UUID roomId = event.getRoom() != null ? event.getRoom().getId() : null;
+        UUID orgUnitId = event.getOrgUnit() != null ? event.getOrgUnit().getId() : null;
+
+        validateNoConflict(teacherId, roomId, orgUnitId, dto.getStartAt(), dto.getEndAt(), id);
+
+        event.setStartAt(dto.getStartAt());
+        event.setEndAt(dto.getEndAt());
         
         ScheduleEvent savedEvent = scheduleEventRepository.save(event);
         return mapToDto(savedEvent);
