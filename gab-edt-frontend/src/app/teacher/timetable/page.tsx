@@ -49,7 +49,7 @@ const formatWeekRange = (monday: Date, sunday: Date) => {
 };
 
 export default function TeacherTimetablePage() {
-  const hours = Array.from({ length: 11 }, (_, i) => i + 8);
+  const hours = Array.from({ length: 15 }, (_, i) => i + 6); // 6 à 20
 
   const [isMounted, setIsMounted] = useState(false);
   const [events, setEvents] = useState<UIMockupEvent[]>([]);
@@ -138,7 +138,7 @@ export default function TeacherTimetablePage() {
     bg = colors.bg; border = colors.border; text = colors.text;
     badgeBg = colors.border; badgeText = "white";
 
-    const top = (evt.startHour - 8) * 80;
+    const top = (evt.startHour - 6) * 80;
     const height = (evt.endHour - evt.startHour) * 80;
 
     return {
@@ -172,7 +172,7 @@ export default function TeacherTimetablePage() {
 
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
-    const droppedHour = (y / 80) + 8;
+    const droppedHour = (y / 80) + 6;
     
     // Snap to 15 mins (0.25)
     const snappedHour = Math.round(droppedHour * 4) / 4;
@@ -305,7 +305,7 @@ export default function TeacherTimetablePage() {
 
           <div className={styles.timetableScroll}>
             {new Date().toDateString() === currentDate.toDateString() && (
-              <div className={styles.redIndicator} style={{ top: `${(new Date().getHours() - 8) * 80 + (new Date().getMinutes() / 60) * 80}px` }}>
+              <div className={styles.redIndicator} style={{ top: `${(new Date().getHours() - 6) * 80 + (new Date().getMinutes() / 60) * 80}px` }}>
                 <div className={styles.redIndicatorTime}>{new Date().getHours()}:{new Date().getMinutes().toString().padStart(2, '0')}</div>
                 <div className={styles.redIndicatorDot}></div>
                 <div className={styles.redIndicatorLine}></div>

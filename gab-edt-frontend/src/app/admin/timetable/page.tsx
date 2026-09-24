@@ -44,7 +44,7 @@ const formatWeekRange = (monday: Date, sunday: Date) => {
 };
 
 export default function TimetablePage() {
-  const hours = Array.from({ length: 11 }, (_, i) => i + 8); // 8 à 18
+  const hours = Array.from({ length: 15 }, (_, i) => i + 6); // 6 à 20
 
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
@@ -207,7 +207,7 @@ export default function TimetablePage() {
 
     // Geometry
     // 1 hour = 80px, starting at 8h
-    const top = (evt.startHour - 8) * 80;
+    const top = (evt.startHour - 6) * 80;
     const height = (evt.endHour - evt.startHour) * 80;
 
     return {
@@ -241,7 +241,7 @@ export default function TimetablePage() {
 
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
-    const droppedHour = (y / 80) + 8;
+    const droppedHour = (y / 80) + 6;
     
     // Snap to 15 mins (0.25)
     const snappedHour = Math.round(droppedHour * 4) / 4;
@@ -276,7 +276,7 @@ export default function TimetablePage() {
     
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
-    const clickedHour = (y / 80) + 8;
+    const clickedHour = (y / 80) + 6;
     const startHour = Math.floor(clickedHour);
     const startMinute = (clickedHour - startHour) >= 0.5 ? 30 : 0;
     
@@ -473,7 +473,7 @@ export default function TimetablePage() {
               
               {/* Red Time Indicator Line (example 10:45) */}
               {new Date().toDateString() === currentDate.toDateString() && (
-                <div className={styles.redIndicator} style={{ top: `${(new Date().getHours() - 8) * 80 + (new Date().getMinutes() / 60) * 80}px` }}>
+                <div className={styles.redIndicator} style={{ top: `${(new Date().getHours() - 6) * 80 + (new Date().getMinutes() / 60) * 80}px` }}>
                   <div className={styles.redIndicatorTime}>{new Date().getHours()}:{new Date().getMinutes().toString().padStart(2, '0')}</div>
                   <div className={styles.redIndicatorDot}></div>
                   <div className={styles.redIndicatorLine}></div>
