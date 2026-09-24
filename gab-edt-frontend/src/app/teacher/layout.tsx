@@ -1,111 +1,156 @@
-"use client";
+﻿"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { Toaster } from "sonner";
 
-export default function TeacherLayout({ children }: { children: React.ReactNode }) {
-  const [userName, setUserName] = useState('');
-  const [isClient, setIsClient] = useState(false);
-  const pathname = usePathname();
+const navItems = [
+  { label: "Tableau de bord",  icon: "space_dashboard", href: "/teacher" },
+  { label: "Mon Planning",     icon: "calendar_month",  href: "/teacher/timetable" },
+  { label: "Mes Classes",      icon: "groups",           href: "/teacher/evaluations" },
+  { label: "Appels & Présences", icon: "checklist",     href: "/teacher/attendance" },
+  { label: "Paramètres",       icon: "settings",         href: "/teacher/settings" },
+];
+
+function Sidebar({ pathname }: { pathname: string }) {
+  return (
+    <aside className="sidebar">
+      {/* Logo */}
+      <div className="sidebar-logo">
+        <div className="sidebar-logo-icon">G</div>
+        <div className="sidebar-logo-text">
+          <span className="sidebar-logo-name">GAB-EDT</span>
+          <span className="sidebar-logo-tagline">Espace Enseignant</span>
+        </div>
+      </div>
+
+      <nav className="sidebar-nav">
+        <div className="sidebar-section-label">Navigation</div>
+        {navItems.map((item) => {
+          const isActive =
+            pathname === item.href ||
+            (item.href !== "/teacher" && pathname.startsWith(item.href));
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`sidebar-link${isActive ? " active" : ""}`}
+            >
+              <span className="material-symbols-outlined">{item.icon}</span>
+              <span className="sidebar-link-label">{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="sidebar-status">
+        <div className="sidebar-status-row">
+          <span className="sidebar-status-online">
+            <span className="sidebar-status-dot" />
+            En ligne
+          </span>
+          <span className="sidebar-status-pill">S38 Publié</span>
+        </div>
+        <div className="sidebar-status-sync">Synchronisé à l&apos;instant</div>
+      </div>
+    </aside>
+  );
+}
+
+function Topbar() {
   const router = useRouter();
+  const [userName, setUserName] = useState("");
+  const [initials, setInitials] = useState("");
 
   useEffect(() => {
-    setIsClient(true);
     try {
-      const user = JSON.parse(localStorage.getItem('user_data') || '{}');
-      setUserName(user.firstName || 'Enseignant');
+      const user = JSON.parse(localStorage.getItem("user_data") || "{}");
+      const name = user.firstName
+        ? `${user.firstName} ${user.lastName || ""}`.trim()
+        : "Enseignant";
+      setUserName(name);
+      setInitials(
+        name
+          .split(" ")
+          .map((n: string) => n[0])
+          .join("")
+          .substring(0, 2)
+          .toUpperCase()
+      );
     } catch {
-      setUserName('Enseignant');
+      setUserName("Enseignant");
+      setInitials("EN");
     }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('jwt_token');
-    localStorage.removeItem('user_data');
-    router.push('/login');
+    localStorage.removeItem("jwt_token");
+    localStorage.removeItem("user_data");
+    router.push("/login");
   };
 
-  if (!isClient) return null;
-
-  const navItems = [
-    { label: 'Tableau de Bord', href: '/teacher', icon: 'dashboard' },
-    { label: 'Mon Planning', href: '/teacher/timetable', icon: 'calendar_month' },
-    { label: 'Mes Classes', href: '/teacher/evaluations', icon: 'groups' },
-    { label: 'Paramètres', href: '/teacher/settings', icon: 'settings' },
-  ];
-
   return (
-    <div className="min-h-screen bg-slate-50 font-plus-jakarta text-slate-800">
-      <Toaster position="top-center" richColors />
-      
-      {/* Top Navigation */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            
-            {/* Brand / Logo */}
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20 text-white">
-                <span className="material-symbols-outlined font-bold">cast_for_education</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xl font-bold text-slate-900 tracking-tight leading-none">GAB-EDT</span>
-                <span className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">Espace Enseignant</span>
-              </div>
-            </div>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-1 border border-slate-100 bg-slate-50/50 p-1 rounded-xl">
-              {navItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link 
-                    key={item.href} 
-                    href={item.href}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ease-in-out ${
-                      isActive 
-                        ? 'bg-white text-amber-700 shadow-sm ring-1 ring-slate-200/50' 
-                        : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/50'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Profile Dropdown */}
-            <div className="flex items-center space-x-4">
-              <div className="hidden sm:flex items-center space-x-3 text-right">
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold text-slate-900 leading-tight">{userName}</span>
-                  <span className="text-[11px] text-slate-500 font-medium">Professeur</span>
-                </div>
-                <div className="h-9 w-9 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm border-2 border-white ring-2 ring-amber-50">
-                  {userName.charAt(0).toUpperCase()}
-                </div>
-              </div>
-              
-              <button 
-                onClick={handleLogout}
-                className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                title="Se déconnecter"
-              >
-                <span className="material-symbols-outlined">logout</span>
-              </button>
-            </div>
-
+    <header className="topbar">
+      <div className="topbar-left">
+        <div className="topbar-institution">
+          <span className="material-symbols-outlined">school</span>
+          <div className="topbar-institution-text">
+            <span className="topbar-institution-label">Établissement</span>
+            <span className="topbar-institution-name">Univ. Omar Bongo</span>
           </div>
         </div>
-      </header>
+        <div className="topbar-semester">
+          <span className="material-symbols-outlined">event</span>
+          <span>2026–2027 • Semestre 1</span>
+        </div>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
-        {children}
-      </main>
+      <div className="topbar-right">
+        <div className="topbar-search">
+          <span className="material-symbols-outlined topbar-search-icon">search</span>
+          <input type="text" placeholder="Rechercher un cours, une salle..." />
+          <span className="topbar-search-shortcut">⌘K</span>
+        </div>
+
+        <button className="topbar-icon-btn" aria-label="Notifications">
+          <span className="material-symbols-outlined">notifications</span>
+          <span className="notif-dot" />
+        </button>
+
+        <div
+          className="topbar-profile"
+          title="Se déconnecter"
+          onClick={handleLogout}
+          style={{ cursor: "pointer" }}
+        >
+          <div className="topbar-profile-text">
+            <span className="topbar-profile-name">{userName}</span>
+            <span className="topbar-profile-role">Enseignant</span>
+          </div>
+          <div className="topbar-avatar">{initials}</div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export default function TeacherLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => setIsClient(true), []);
+  if (!isClient) return null;
+
+  return (
+    <div style={{ display: "flex", height: "100vh", width: "100vw", overflow: "hidden", background: "var(--background)" }}>
+      <Toaster position="top-center" richColors />
+      <Sidebar pathname={pathname} />
+      <div className="main-wrapper">
+        <Topbar />
+        <main className="page-content">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
