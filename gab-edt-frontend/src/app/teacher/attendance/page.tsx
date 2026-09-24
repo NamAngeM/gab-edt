@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { fetchWithAuth, extractArray } from "@/lib/api";
+import { fetchWithAuth, extractArray , formatDateLocal} from "@/lib/api";
 
 interface CourseEvent {
   id: string;
@@ -24,12 +24,12 @@ export default function AttendancePage() {
       setLoading(true);
       try {
         const now = new Date();
-        const start = now.toISOString().split("T")[0];
+        const start = formatDateLocal(now);
         let end = start;
         if (filter === "week") {
           const endDate = new Date(now);
           endDate.setDate(now.getDate() + 6);
-          end = endDate.toISOString().split("T")[0];
+          end = formatDateLocal(endDate);
         }
         const res = await fetchWithAuth(
           `/schedule-events?startDate=${start}&endDate=${end}`

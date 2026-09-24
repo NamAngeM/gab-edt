@@ -99,9 +99,13 @@ export default function TimetablePage() {
 
   const gridStyle = { gridTemplateColumns: `60px repeat(${displayedDays.length}, minmax(140px, 1fr))` };
 
+  const formatDateLocal = (d: Date) => {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
   const loadSchedule = async () => {
-    const start = weekDays[0].date.toISOString().split('T')[0];
-    const end = weekDays[6].date.toISOString().split('T')[0];
+    const start = formatDateLocal(weekDays[0].date);
+    const end = formatDateLocal(weekDays[6].date);
     const params = new URLSearchParams({ startDate: start, endDate: end });
     if (filters.groupId) params.append('groupId', filters.groupId);
     if (filters.teacherId) params.append('teacherId', filters.teacherId);

@@ -120,14 +120,10 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
       const url = existingEvent ? `${API_URL}/schedule-events/${existingEvent.id}` : `${API_URL}/schedule-events`;
       const method = existingEvent ? 'PUT' : 'POST';
       
-      // Conversion des dates pour l'API
-      const startIso = new Date(data.startAt).toISOString();
-      const endIso = new Date(data.endAt).toISOString();
-      
       const payload = {
         ...data,
-        startAt: startIso,
-        endAt: endIso,
+        startAt: data.startAt,
+        endAt: data.endAt,
         roomId: (data.roomId === 'none' || !data.roomId) ? null : data.roomId
       };
       

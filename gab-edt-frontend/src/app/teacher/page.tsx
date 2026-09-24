@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { fetchWithAuth, extractArray } from "@/lib/api";
+import { fetchWithAuth, extractArray , formatDateLocal} from "@/lib/api";
 import { useRouter } from "next/navigation";
 
 export default function TeacherDashboard() {
@@ -22,7 +22,7 @@ export default function TeacherDashboard() {
     const loadTodayEvents = async () => {
       setLoading(true);
       try {
-        const today = new Date().toISOString().split("T")[0];
+        const today = formatDateLocal(new Date());
         const res = await fetchWithAuth(
           `/schedule-events?startDate=${today}&endDate=${today}`
         );

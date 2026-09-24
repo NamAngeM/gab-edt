@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { fetchWithAuth, extractArray } from '@/lib/api';
+import { fetchWithAuth, extractArray , formatDateLocal} from '@/lib/api';
 
 export default function StudentDashboardPage() {
   const [userName, setUserName] = useState('');
@@ -21,7 +21,7 @@ export default function StudentDashboardPage() {
     const loadDashboardData = async () => {
       setLoading(true);
       try {
-        const today = new Date().toISOString().split('T')[0];
+        const today = formatDateLocal(new Date());
         const [eventsRes, annRes] = await Promise.all([
           fetchWithAuth(`/schedule-events?startDate=${today}&endDate=${today}`),
           fetchWithAuth('/communication/announcements').catch(() => ({ data: [] }))

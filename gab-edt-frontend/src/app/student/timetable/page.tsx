@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import styles from '@/app/admin/timetable/timetable.module.css';
-import { fetchWithAuth } from '@/lib/api';
+import { fetchWithAuth , formatDateLocal} from '@/lib/api';
 
 type CourseType = 'cm' | 'td' | 'tp' | 'transversal' | 'conflict';
 
@@ -53,8 +53,8 @@ export default function StudentTimetablePage() {
   const gridStyle = { gridTemplateColumns: `60px repeat(${weekDays.length}, minmax(140px, 1fr))` };
 
   const loadSchedule = async () => {
-    const start = weekDays[0].date.toISOString().split('T')[0];
-    const end = weekDays[6].date.toISOString().split('T')[0];
+    const start = weekDays[0].formatDateLocal(date);
+    const end = weekDays[6].formatDateLocal(date);
     
     // Pour l'étudiant, on récupère le planning de sa semaine
     // Le backend devrait filtrer en fonction du JWT si on ne passe pas de filtres (ou si on lui passe un endpoint spécifique).

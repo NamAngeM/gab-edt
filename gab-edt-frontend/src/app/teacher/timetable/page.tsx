@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import styles from '@/app/admin/timetable/timetable.module.css';
-import { fetchWithAuth } from '@/lib/api';
+import { fetchWithAuth , formatDateLocal} from '@/lib/api';
 import { TimetableModal } from '@/app/components/TimetableModal';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -65,8 +65,8 @@ export default function TeacherTimetablePage() {
   const gridStyle = { gridTemplateColumns: `60px repeat(${weekDays.length}, minmax(140px, 1fr))` };
 
   const loadSchedule = async () => {
-    const start = weekDays[0].date.toISOString().split('T')[0];
-    const end = weekDays[6].date.toISOString().split('T')[0];
+    const start = weekDays[0].formatDateLocal(date);
+    const end = weekDays[6].formatDateLocal(date);
     
     // Le backend devra filtrer les events pour l'enseignant connecté
     const params = new URLSearchParams({ startDate: start, endDate: end });
