@@ -120,6 +120,17 @@
 .timeCol {
   border-right: 1px solid var(--border);
   background: var(--surface);
+  position: sticky;
+  left: 0;
+  z-index: 10;
+}
+
+.timeColumnHeader {
+  position: sticky;
+  left: 0;
+  z-index: 20;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
 .timeSlot {
