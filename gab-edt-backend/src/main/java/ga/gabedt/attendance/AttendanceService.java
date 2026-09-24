@@ -32,7 +32,7 @@ public class AttendanceService {
                 .filter(e -> !e.isDeleted())
                 .orElseThrow(() -> new ResourceNotFoundException("ScheduleEvent not found"));
 
-        List<Student> students = studentRepository.findByOrgUnits_IdAndDeletedFalse(event.getOrganizationalUnit().getId());
+        List<Student> students = studentRepository.findByOrgUnits_IdAndDeletedFalse(event.getOrgUnit().getId());
         List<Attendance> existingRecords = attendanceRepository.findByScheduleEventIdAndDeletedFalse(eventId);
 
         Map<UUID, Attendance> recordsMap = existingRecords.stream()
@@ -87,7 +87,7 @@ public class AttendanceService {
                 String title = "Avis d'absence";
                 String message = String.format("L'élève %s a été noté(e) ABSENT(E) au cours de %s.",
                         attendance.getStudent().getUser().getFirstName(),
-                        event.getSubject().getName());
+                        event.getCourse().getSubject().getName());
                 
                 notificationService.sendPersonalAlert(attendance.getStudent(), title, message, "ERROR");
             }

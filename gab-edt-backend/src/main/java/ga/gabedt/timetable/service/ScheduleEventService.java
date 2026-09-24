@@ -182,7 +182,10 @@ public class ScheduleEventService {
                 event.getPublicationStatus(),
                 false,
                 null,
-                event.getDelayMinutes()
+                event.getDelayMinutes(),
+                null,
+                null,
+                false
         );
     }
 

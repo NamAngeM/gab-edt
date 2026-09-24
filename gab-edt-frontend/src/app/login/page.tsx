@@ -40,7 +40,7 @@ const roleConfigs = {
   }
 };
 
-const loginSchema = z.object({
+export const loginSchema = z.object({
   email: z.string().min(1, "Veuillez saisir votre identifiant."),
   password: z.string().min(1, "Veuillez saisir votre mot de passe."),
   rememberMe: z.boolean().default(false).optional(),
