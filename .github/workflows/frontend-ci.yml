@@ -1,0 +1,43 @@
+﻿name: "🎨 Frontend CI - Tests & Coverage"
+
+on:
+  push:
+    branches: [ master, main, develop ]
+    paths:
+      - 'gab-edt-frontend/**'
+  pull_request:
+    branches: [ master, main ]
+    paths:
+      - 'gab-edt-frontend/**'
+
+jobs:
+  test:
+    name: Next.js Tests (Node.js 20)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "📥 Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "🟢 Set up Node.js 20"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: gab-edt-frontend/package-lock.json
+
+      - name: "📦 Install dependencies"
+        working-directory: gab-edt-frontend
+        run: npm ci
+
+      - name: "🧪 Run Jest tests with coverage"
+        working-directory: gab-edt-frontend
+        run: npm run test -- --coverage --coverageReporters=lcov --coverageReporters=text
+
+      - name: "📊 Upload Coverage Report"
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jest-coverage-report
+          path: gab-edt-frontend/coverage/
+          retention-days: 7

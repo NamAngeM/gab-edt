@@ -1,0 +1,52 @@
+﻿name: "🧪 Backend CI - Tests & Coverage"
+
+on:
+  push:
+    branches: [ master, main, develop ]
+    paths:
+      - 'gab-edt-backend/**'
+  pull_request:
+    branches: [ master, main ]
+    paths:
+      - 'gab-edt-backend/**'
+
+jobs:
+  test:
+    name: Spring Boot Tests (Java 21)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "📥 Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "☕ Set up Java 21"
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: "🏗️ Build & Run Tests with JaCoCo"
+        working-directory: gab-edt-backend
+        run: ./mvnw clean test jacoco:report -B
+        env:
+          SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+          SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
+          JWT_SECRET: ci_secret_key_for_tests_only
+
+      - name: "📊 Upload JaCoCo Coverage Report"
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco-report
+          path: gab-edt-backend/target/site/jacoco/
+          retention-days: 7
+
+      - name: "📋 Publish Test Results"
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Backend JUnit Tests
+          path: gab-edt-backend/target/surefire-reports/*.xml
+          reporter: java-junit
