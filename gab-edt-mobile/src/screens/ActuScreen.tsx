@@ -17,16 +17,22 @@ export const ActuScreen = () => {
   const { userRole } = useAuth();
   const navigation = useNavigation<any>();
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAnnouncements = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/api/v1/communication/announcements');
-      // CommunicationController renvoie directement la liste, pas dans `data.data`
-      const data = Array.isArray(response.data) ? response.data : [];
+      const [annRes, notifRes] = await Promise.all([
+        apiClient.get('/api/v1/communication/announcements'),
+        apiClient.get('/api/v1/notifications')
+      ]);
+      const annData = Array.isArray(annRes.data) ? annRes.data : [];
+      const notifData = notifRes.data?.data || notifRes.data || [];
+      
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      setAnnouncements(data);
+      setAnnouncements(annData);
+      setNotifications(Array.isArray(notifData) ? notifData : []);
     } catch (error) {
       console.error("Erreur récupération actualités:", error);
     } finally {
@@ -87,8 +93,23 @@ export const ActuScreen = () => {
           <ActuSkeleton />
           <ActuSkeleton />
         </View>
-      ) : announcements.length > 0 ? (
-        announcements.map((ann, index) => (
+      ) : (
+        <>
+          {notifications.length > 0 && notifications.map((notif, index) => (
+            <TouchableOpacity key={`notif-${notif.id || index}`} style={styles.notificationCard}>
+              <View style={styles.notificationIconContainer}>
+                <MaterialIcons name={notif.type === 'ERROR' ? 'error' : 'notifications'} size={24} color={notif.type === 'ERROR' ? COLORS.error : COLORS.primary} />
+              </View>
+              <View style={styles.notificationContent}>
+                <Text style={styles.notificationTitle}>{notif.title}</Text>
+                <Text style={styles.notificationDesc}>{notif.message}</Text>
+                <Text style={styles.notificationTime}>{new Date(notif.createdAt).toLocaleString()}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+          
+          {announcements.length > 0 ? (
+            announcements.map((ann, index) => (
           <TouchableOpacity key={ann.id || index} style={index === 0 ? styles.heroCard : styles.articleCard} activeOpacity={0.9}>
             <View style={index === 0 ? styles.heroImageContainer : styles.articleHeader}>
               {index === 0 ? (
@@ -125,9 +146,11 @@ export const ActuScreen = () => {
               </View>
             </View>
           </TouchableOpacity>
-        ))
-      ) : (
-        <Text style={{ textAlign: 'center', color: COLORS.slate500, marginTop: 20 }}>Aucune actualité disponible.</Text>
+          ))
+          ) : (
+            <Text style={{ textAlign: 'center', color: COLORS.slate500, marginTop: 20 }}>Aucune actualité disponible.</Text>
+          )}
+        </>
       )}
       <View style={{ height: 80 }} />
       </ScrollView>
@@ -487,5 +510,43 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 8,
+  },
+  notificationCard: {
+    backgroundColor: COLORS.errorContainer,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255,0,0,0.1)'
+  },
+  notificationIconContainer: {
+    marginRight: 12,
+    marginTop: 2,
+  },
+  notificationContent: {
+    flex: 1,
+  },
+  notificationTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.onErrorContainer,
+    marginBottom: 4,
+  },
+  notificationDesc: {
+    fontSize: 12,
+    color: COLORS.onErrorContainer,
+    marginBottom: 6,
+    lineHeight: 16,
+  },
+  notificationTime: {
+    fontSize: 10,
+    color: COLORS.outline,
   }
 });

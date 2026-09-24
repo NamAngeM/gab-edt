@@ -4,6 +4,7 @@ import styles from '@/app/admin/timetable/timetable.module.css';
 import { fetchWithAuth } from '@/lib/api';
 import { TimetableModal } from '@/app/components/TimetableModal';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 type CourseType = 'cm' | 'td' | 'tp' | 'transversal' | 'conflict';
 
@@ -53,6 +54,7 @@ export default function TeacherTimetablePage() {
   const [isMounted, setIsMounted] = useState(false);
   const [events, setEvents] = useState<UIMockupEvent[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const router = useRouter();
   
   // MODAL & FORM STATE
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -227,6 +229,11 @@ export default function TeacherTimetablePage() {
     }
   };
 
+  const handleAttendance = (e: React.MouseEvent, evt: UIMockupEvent) => {
+    e.stopPropagation();
+    router.push(`/teacher/attendance/${evt.id}`);
+  };
+
   const handleEventClick = (evt: UIMockupEvent) => {
     // Reconstruct full event object for Modal
     const fullEvent = {
@@ -359,6 +366,13 @@ export default function TeacherTimetablePage() {
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: '4px', marginTop: 'auto', paddingTop: '6px' }}>
+                            <button 
+                              onClick={(e) => handleAttendance(e, evt)}
+                              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyItems: 'center', gap: '4px', padding: '4px', fontSize: '10px', background: 'rgba(59, 130, 246, 0.9)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                              title="Faire l'appel"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 13, margin: '0 auto' }}>checklist</span>
+                            </button>
                             <button 
                               onClick={(e) => handleReportDelay(e, evt)}
                               style={{ flex: 1, display: 'flex', alignItems: 'center', justifyItems: 'center', gap: '4px', padding: '4px', fontSize: '10px', background: 'rgba(245, 158, 11, 0.9)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}

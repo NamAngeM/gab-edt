@@ -7,6 +7,7 @@ import { fetchWithAuth, extractArray } from '@/lib/api';
 export default function StudentDashboardPage() {
   const [userName, setUserName] = useState('');
   const [events, setEvents] = useState<any[]>([]);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,16 +18,21 @@ export default function StudentDashboardPage() {
       setUserName('Étudiant');
     }
 
-    const loadTodayEvents = async () => {
+    const loadDashboardData = async () => {
       setLoading(true);
       try {
         const today = new Date().toISOString().split('T')[0];
-        const res = await fetchWithAuth(`/schedule-events?startDate=${today}&endDate=${today}`);
-        const allEvents = extractArray(res);
+        const [eventsRes, annRes] = await Promise.all([
+          fetchWithAuth(`/schedule-events?startDate=${today}&endDate=${today}`),
+          fetchWithAuth('/communication/announcements').catch(() => ({ data: [] }))
+        ]);
         
-        // Trier par date de début
+        const allEvents = extractArray(eventsRes);
         allEvents.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
-        setEvents(allEvents.slice(0, 4)); // Garder les 4 prochains
+        setEvents(allEvents.slice(0, 4));
+
+        const annData = extractArray(annRes);
+        setAnnouncements(annData.slice(0, 3));
       } catch (e) {
         console.error(e);
       } finally {
@@ -34,7 +40,7 @@ export default function StudentDashboardPage() {
       }
     };
 
-    loadTodayEvents();
+    loadDashboardData();
   }, []);
 
   const formatTime = (isoString: string) => {
@@ -153,22 +159,26 @@ export default function StudentDashboardPage() {
             </div>
             
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-orange-50/50 border border-orange-100/50">
-                <div className="flex items-start justify-between mb-1">
-                  <h4 className="font-semibold text-slate-800 text-sm">Fermeture de la BU</h4>
-                  <span className="text-[10px] font-medium text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded">Important</span>
+              {announcements.length > 0 ? announcements.map((ann, idx) => (
+                <div key={ann.id || idx} className="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                  <div className="flex items-start justify-between mb-1">
+                    <h4 className="font-semibold text-slate-800 text-sm">{ann.title}</h4>
+                    {ann.targetAudience && (
+                      <span className="text-[10px] font-medium text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded">
+                        {ann.targetAudience}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-600 line-clamp-2">{ann.content}</p>
+                  <span className="text-[10px] text-slate-400 mt-2 block">
+                    {new Date(ann.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
-                <p className="text-xs text-slate-600">La bibliothèque universitaire fermera exceptionnellement à 16h ce vendredi.</p>
-                <span className="text-[10px] text-slate-400 mt-2 block">Hier, 14:30</span>
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="flex items-start justify-between mb-1">
-                  <h4 className="font-semibold text-slate-800 text-sm">Inscriptions Semestre 2</h4>
+              )) : (
+                <div className="text-center py-6 text-sm text-slate-500">
+                  Aucune annonce récente.
                 </div>
-                <p className="text-xs text-slate-600">Les choix d'options pour le semestre 2 sont ouverts sur l'ENT jusqu'au 15 Octobre.</p>
-                <span className="text-[10px] text-slate-400 mt-2 block">Il y a 3 jours</span>
-              </div>
+              )}
             </div>
             
             <button className="w-full mt-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">

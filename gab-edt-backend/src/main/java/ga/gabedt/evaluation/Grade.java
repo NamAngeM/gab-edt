@@ -2,6 +2,7 @@ package ga.gabedt.evaluation;
 
 import ga.gabedt.common.entity.TenantAwareEntity;
 import ga.gabedt.user.Student;
+import ga.gabedt.resource.Subject;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,4 +27,8 @@ public class Grade extends TenantAwareEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject_id")
+    private Subject subject;
 }

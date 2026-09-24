@@ -6,6 +6,7 @@ import { Feather } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
 
 // Screens
+import { DashboardScreen } from '../screens/DashboardScreen';
 import { PlanningScreen } from '../screens/PlanningScreen';
 import { ActuScreen } from '../screens/ActuScreen';
 import { ServicesScreen } from '../screens/ServicesScreen';
@@ -23,7 +24,7 @@ const CustomHeader = () => {
   // To highlight the active top tab, we need the current route name.
   // A hacky but effective way in a custom header is to read the state.
   const state = navigation.getState();
-  const activeTab = state ? state.routes[state.index].name : 'Planning';
+  const activeTab = state ? state.routes[state.index].name : 'Dashboard';
 
   return (
     <SafeAreaView style={styles.headerSafeArea}>
@@ -62,10 +63,10 @@ const CustomHeader = () => {
 
         {/* TOP NAVIGATION TABS */}
         <View style={styles.topTabs}>
-          {['Planning', 'Actu', 'Services', 'Notes', 'Liaison']
+          {['Dashboard', 'Planning', 'Actu', 'Services', 'Notes', 'Liaison']
             .filter(tab => {
               if (userRole === 'PARENT') {
-                return tab === 'Planning' || tab === 'Notes' || tab === 'Liaison';
+                return tab === 'Dashboard' || tab === 'Planning' || tab === 'Notes' || tab === 'Liaison';
               }
               return tab !== 'Liaison';
             })
@@ -95,6 +96,7 @@ export const TabNavigator = () => {
         tabBarStyle: { display: 'none' },
       })}
     >
+      <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Planning" component={PlanningScreen} />
       <Tab.Screen name="Actu" component={ActuScreen} />
       <Tab.Screen name="Services" component={ServicesScreen} />

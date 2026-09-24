@@ -27,6 +27,11 @@ jest.mock('expo-constants', () => ({
       },
     },
   },
+  ExecutionEnvironment: {
+    StoreClient: 'StoreClient',
+    Standalone: 'Standalone',
+  },
+  executionEnvironment: 'Standalone',
 }));
 
 jest.mock('react-native', () => ({

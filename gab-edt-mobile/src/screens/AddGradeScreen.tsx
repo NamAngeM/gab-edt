@@ -5,7 +5,7 @@ import { COLORS } from '../theme/colors';
 import { apiClient } from '../api/client';
 
 export const AddGradeScreen = ({ route, navigation }: any) => {
-  const { className } = route.params || { className: 'Ma Classe' };
+  const { className, subjectId } = route.params || { className: 'Ma Classe', subjectId: null };
   
   const [title, setTitle] = useState('');
   const [coef, setCoef] = useState('1');
@@ -61,6 +61,7 @@ export const AddGradeScreen = ({ route, navigation }: any) => {
       await apiClient.post('/api/v1/grades/bulk', {
         title,
         coefficient: parseFloat(coef) || 1.0,
+        subjectId,
         grades: payloadGrades
       });
       Alert.alert("Succès", "Les notes ont été enregistrées avec succès.");

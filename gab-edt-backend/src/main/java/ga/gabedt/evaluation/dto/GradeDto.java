@@ -9,5 +9,6 @@ public class GradeDto {
     private String title;
     private Double value;
     private Double coefficient;
-    private UUID studentId;
+    private UUID subjectId;
+    private String subjectName;
 }

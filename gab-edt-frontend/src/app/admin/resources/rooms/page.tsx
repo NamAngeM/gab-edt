@@ -663,17 +663,31 @@ export default function RoomsAdminPage() {
                           <div className="font-semibold text-gray-900">{room.name}</div>
                           <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{room.code}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-sm text-gray-600 mb-2">
+                        <div className="flex items-center gap-1.5 text-sm text-gray-600 mb-3">
                           <span className="material-symbols-outlined text-[16px]">people</span>
                           <span>{room.capacity} places</span>
                           <span className="mx-1">•</span>
                           <span className={`badge ${ROOM_TYPE_BADGES[room.type] || 'badge-gray'} !text-[10px] !py-0`}>{ROOM_TYPE_LABELS[room.type] || room.type}</span>
                         </div>
-                        {room.equipments && room.equipments.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-auto pt-2 border-t border-gray-100">
-                            {room.equipments.map((eq, i) => <span key={i} className="text-[10px] bg-gray-50 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200">{eq}</span>)}
+                        
+                        <div className="mt-auto pt-3 border-t border-gray-100 flex justify-between items-center">
+                          <div className="flex flex-wrap gap-1">
+                            {room.equipments && room.equipments.length > 0 ? (
+                              room.equipments.map((eq, i) => <span key={i} className="text-[10px] bg-gray-50 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200">{eq}</span>)
+                            ) : (
+                              <span className="text-[10px] text-gray-400 italic">Aucun équipement</span>
+                            )}
                           </div>
-                        )}
+                          <Button 
+                            size="sm" 
+                            className="bg-slate-900 hover:bg-slate-800 h-7 text-xs px-3 shadow-none ml-2 shrink-0"
+                            onClick={() => {
+                              window.location.href = `/admin/timetable?action=new&roomId=${room.id}&date=${searchDate}&start=${searchStartHour}&end=${searchEndHour}`;
+                            }}
+                          >
+                            Réserver
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>

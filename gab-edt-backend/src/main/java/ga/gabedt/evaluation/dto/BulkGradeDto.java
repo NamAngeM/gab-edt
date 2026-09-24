@@ -7,6 +7,7 @@ import java.util.List;
 public class BulkGradeDto {
     private String title;
     private Double coefficient;
+    private String subjectId;
     private List<GradeEntry> grades;
 
     @Data

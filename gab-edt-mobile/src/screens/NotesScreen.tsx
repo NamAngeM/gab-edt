@@ -16,19 +16,33 @@ export const NotesScreen = () => {
   const fetchSubjects = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/api/v1/subjects');
+      const [responseSubjects, responseGrades] = await Promise.all([
+        apiClient.get('/api/v1/subjects'),
+        userRole === 'STUDENT' || userRole === 'PARENT' ? apiClient.get('/api/v1/grades/mine').catch(() => ({ data: { data: [] } })) : Promise.resolve({ data: { data: [] } })
+      ]);
       
-      if (response.data?.success) {
+      if (responseSubjects.data?.success) {
         const colors = [COLORS.primary, COLORS.secondary, COLORS.tertiary, COLORS.outline, COLORS.td];
+        const grades = responseGrades.data?.data || [];
         
-        const mapped = response.data.data.map((sub: any, index: number) => ({
-          id: sub.id,
-          title: sub.name || "Matière",
-          coef: sub.coefficient?.toString() || "1",
-          teacher: sub.department?.name || "Non assigné", // En attendant la liaison prof-matière
-          color: colors[index % colors.length],
-          notes: [] // Les notes réelles devront provenir d'un autre endpoint
-        }));
+        const mapped = responseSubjects.data.data.map((sub: any, index: number) => {
+          // Find grades for this subject
+          const subjectGrades = grades.filter((g: any) => g.subjectId === sub.id).map((g: any) => ({
+            id: g.id,
+            value: g.value,
+            coef: g.coefficient || 1,
+            label: g.title || "Évaluation"
+          }));
+
+          return {
+            id: sub.id,
+            title: sub.name || "Matière",
+            coef: sub.coefficient?.toString() || "1",
+            teacher: sub.department?.name || "Non assigné",
+            color: colors[index % colors.length],
+            notes: subjectGrades
+          };
+        });
         
         setSubjectsData(mapped);
       }
@@ -115,33 +129,22 @@ export const NotesScreen = () => {
           <Text style={styles.subjectsSectionSubtitle}>Sélectionnez une classe pour saisir des notes</Text>
         </View>
 
-        <TouchableOpacity 
-          style={styles.teacherClassCard}
-          onPress={() => navigation.navigate('AddGrade', { className: 'Terminale Scientifique S2' })}
-        >
-          <View style={styles.teacherClassIcon}>
-            <Feather name="users" size={24} color={COLORS.primary} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.teacherClassName}>Terminale Scientifique S2</Text>
-            <Text style={styles.teacherClassInfo}>Mathématiques • 35 élèves</Text>
-          </View>
-          <Feather name="chevron-right" size={20} color={COLORS.outline} />
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.teacherClassCard}
-          onPress={() => navigation.navigate('AddGrade', { className: '1ère ES' })}
-        >
-          <View style={styles.teacherClassIcon}>
-            <Feather name="users" size={24} color={COLORS.tertiary} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.teacherClassName}>1ère ES</Text>
-            <Text style={styles.teacherClassInfo}>Mathématiques • 28 élèves</Text>
-          </View>
-          <Feather name="chevron-right" size={20} color={COLORS.outline} />
-        </TouchableOpacity>
+        {subjectsData.map((sub) => (
+          <TouchableOpacity 
+            key={sub.id}
+            style={styles.teacherClassCard}
+            onPress={() => navigation.navigate('AddGrade', { className: sub.title, subjectId: sub.id })}
+          >
+            <View style={styles.teacherClassIcon}>
+              <Feather name="book-open" size={24} color={COLORS.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.teacherClassName}>{sub.title}</Text>
+              <Text style={styles.teacherClassInfo}>{sub.teacher}</Text>
+            </View>
+            <Feather name="chevron-right" size={20} color={COLORS.outline} />
+          </TouchableOpacity>
+        ))}
       </View>
     );
   }
