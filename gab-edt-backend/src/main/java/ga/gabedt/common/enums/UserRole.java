@@ -17,5 +17,6 @@ public enum UserRole {
     SCHOOL_ADMIN,
     PEDAGOGICAL_MANAGER,
     TEACHER,
-    STUDENT
+    STUDENT,
+    PARENT
 }

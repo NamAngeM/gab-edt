@@ -17,6 +17,8 @@ interface UIMockupEvent {
   endHour: number;
   extraInfo?: string;
   isConflict?: boolean;
+  isCancelled?: boolean;
+  delayMinutes?: number;
 }
 
 const getWeekDays = (date: Date) => {
@@ -76,7 +78,10 @@ export default function StudentTimetablePage() {
           dayIndex: (dStart.getDay() + 6) % 7,
           startHour: dStart.getHours() + (dStart.getMinutes() / 60),
           endHour: dEnd.getHours() + (dEnd.getMinutes() / 60),
-          isConflict: evt.status === 'CANCELLED',
+          endHour: dEnd.getHours() + (dEnd.getMinutes() / 60),
+          isConflict: evt.status === 'CONFLICT',
+          isCancelled: evt.status === 'CANCELLED',
+          delayMinutes: evt.delayMinutes || 0,
         };
       });
       setEvents(mapped);
@@ -115,10 +120,11 @@ export default function StudentTimetablePage() {
     return {
       top: `${top}px`,
       height: `${height}px`,
-      backgroundColor: bg,
-      borderLeftColor: border,
-      color: text,
-      '--badge-bg': badgeBg,
+      backgroundColor: evt.isCancelled ? '#f1f5f9' : bg,
+      borderLeftColor: evt.isCancelled ? '#94a3b8' : border,
+      color: evt.isCancelled ? '#64748b' : text,
+      opacity: evt.isCancelled ? 0.7 : 1,
+      '--badge-bg': evt.isCancelled ? '#94a3b8' : badgeBg,
       '--badge-text': badgeText,
     } as React.CSSProperties;
   };
@@ -215,10 +221,16 @@ export default function StudentTimetablePage() {
                       return (
                         <div key={evt.id} className={styles.eventCard} style={styleObj}>
                           <div className={styles.eventHeader}>
-                            <span className={styles.eventBadge} style={{ background: 'var(--badge-bg)', color: 'var(--badge-text)' }}>{evt.type}</span>
-                            <span className={styles.eventTime}>{formatHourString(evt.startHour)} - {formatHourString(evt.endHour)}</span>
+                            <div style={{display: 'flex', gap: '4px', flexWrap: 'wrap'}}>
+                              <span className={styles.eventBadge} style={{ background: 'var(--badge-bg)', color: 'var(--badge-text)' }}>{evt.type}</span>
+                              {evt.isCancelled && <span className={styles.eventBadge} style={{ background: '#ef4444', color: 'white' }}>ANNULÉ</span>}
+                              {!!evt.delayMinutes && <span className={styles.eventBadge} style={{ background: '#f59e0b', color: 'white' }}>+{evt.delayMinutes} MIN</span>}
+                            </div>
+                            <span className={styles.eventTime} style={{ textDecoration: evt.isCancelled ? 'line-through' : 'none' }}>
+                              {formatHourString(evt.startHour)} - {formatHourString(evt.endHour)}
+                            </span>
                           </div>
-                          <div className={styles.eventTitle}>{evt.title}</div>
+                          <div className={styles.eventTitle} style={{ textDecoration: evt.isCancelled ? 'line-through' : 'none' }}>{evt.title}</div>
                           <div className={styles.eventDetails}>
                             <div className={styles.eventDetailRow}>
                               <span className="material-symbols-outlined" style={{ fontSize: 12, opacity: 0.7 }}>person</span>

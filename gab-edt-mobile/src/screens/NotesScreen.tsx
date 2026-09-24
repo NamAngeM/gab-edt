@@ -1,64 +1,48 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
-
+import { apiClient } from '../api/client';
 import { SubjectCard } from '../components/SubjectCard';
-
-const SUBJECTS_DATA = [
-  {
-    id: 'maths',
-    title: "Mathématiques",
-    coef: "6",
-    teacher: "M. Ndong Mba",
-    color: COLORS.primary,
-    notes: [
-      { title: 'Devoir Surveillé 1', date: '18 Sept', coef: 2, score: '17' },
-      { title: 'Interrogation écrite', date: '05 Oct', coef: 1, score: '14,5' },
-    ]
-  },
-  {
-    id: 'physique',
-    title: "Sciences Physiques",
-    coef: "5",
-    teacher: "Mme Ondo",
-    color: COLORS.tertiary,
-    notes: [
-      { title: 'TP Pratique Optique', date: '02 Oct', coef: 1, score: '15,5' },
-    ]
-  },
-  {
-    id: 'svt',
-    title: "SVT",
-    coef: "5",
-    teacher: "Sciences de la Vie et de la Terre",
-    color: COLORS.secondary,
-    notes: [
-      { title: 'Évaluation de synthèse', date: '25 Sept', coef: 2, score: '16' },
-      { title: 'Exposé', date: '10 Oct', coef: 1, score: '14' },
-    ]
-  },
-  {
-    id: 'anglais',
-    title: "Anglais (LV1)",
-    coef: "2",
-    teacher: "Mme Walker",
-    color: COLORS.td,
-    notes: [
-      { title: 'Compréhension orale', date: '28 Sept', coef: 1, score: '18' },
-    ]
-  },
-  {
-    id: 'histoire',
-    title: "Histoire-Géographie",
-    coef: "3",
-    teacher: "M. Essone",
-    color: COLORS.outline,
-    notes: []
-  }
-];
+import { useAuth } from '../context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
 
 export const NotesScreen = () => {
+  const { userRole } = useAuth();
+  const navigation = useNavigation<any>();
+  const [subjectsData, setSubjectsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchSubjects = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/api/v1/subjects');
+      
+      if (response.data?.success) {
+        const colors = [COLORS.primary, COLORS.secondary, COLORS.tertiary, COLORS.outline, COLORS.td];
+        
+        const mapped = response.data.data.map((sub: any, index: number) => ({
+          id: sub.id,
+          title: sub.name || "Matière",
+          coef: sub.coefficient?.toString() || "1",
+          teacher: sub.department?.name || "Non assigné", // En attendant la liaison prof-matière
+          color: colors[index % colors.length],
+          notes: [] // Les notes réelles devront provenir d'un autre endpoint
+        }));
+        
+        setSubjectsData(mapped);
+      }
+    } catch (error) {
+      console.error("Erreur récupération matières:", error);
+      Alert.alert("Erreur", "Impossible de charger les enseignements.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
 
   const renderHeader = () => (
     <>
@@ -96,7 +80,7 @@ export const NotesScreen = () => {
       {/* Matières */}
       <View style={styles.subjectsSectionHeader}>
         <Text style={styles.subjectsSectionTitle}>Détail des Matières</Text>
-        <Text style={styles.subjectsSectionSubtitle}>{SUBJECTS_DATA.length} Enseignements</Text>
+        <Text style={styles.subjectsSectionSubtitle}>{subjectsData.length} Enseignements</Text>
       </View>
     </>
   );
@@ -115,9 +99,56 @@ export const NotesScreen = () => {
     </>
   );
 
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  if (userRole === 'TEACHER') {
+    return (
+      <View style={[styles.container, { flex: 1 }]}>
+        <View style={styles.subjectsSectionHeader}>
+          <Text style={styles.subjectsSectionTitle}>Mes Classes (Évaluations)</Text>
+          <Text style={styles.subjectsSectionSubtitle}>Sélectionnez une classe pour saisir des notes</Text>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.teacherClassCard}
+          onPress={() => navigation.navigate('AddGrade', { className: 'Terminale Scientifique S2' })}
+        >
+          <View style={styles.teacherClassIcon}>
+            <Feather name="users" size={24} color={COLORS.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.teacherClassName}>Terminale Scientifique S2</Text>
+            <Text style={styles.teacherClassInfo}>Mathématiques • 35 élèves</Text>
+          </View>
+          <Feather name="chevron-right" size={20} color={COLORS.outline} />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.teacherClassCard}
+          onPress={() => navigation.navigate('AddGrade', { className: '1ère ES' })}
+        >
+          <View style={styles.teacherClassIcon}>
+            <Feather name="users" size={24} color={COLORS.tertiary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.teacherClassName}>1ère ES</Text>
+            <Text style={styles.teacherClassInfo}>Mathématiques • 28 élèves</Text>
+          </View>
+          <Feather name="chevron-right" size={20} color={COLORS.outline} />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <FlatList
-      data={SUBJECTS_DATA}
+      data={subjectsData}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <SubjectCard 
@@ -132,6 +163,7 @@ export const NotesScreen = () => {
       ListFooterComponent={renderFooter}
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
+      ListEmptyComponent={<Text style={{textAlign: 'center', marginTop: 20, color: COLORS.slate500}}>Aucune matière trouvée.</Text>}
     />
   );
 };
@@ -283,5 +315,34 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORS.onSurfaceVariant,
     marginBottom: 16,
+  },
+  teacherClassCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.outlineVariant,
+  },
+  teacherClassIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.surfaceContainerLowest,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  teacherClassName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.onSurface,
+  },
+  teacherClassInfo: {
+    fontSize: 13,
+    color: COLORS.outline,
+    marginTop: 4,
   }
 });

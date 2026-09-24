@@ -54,38 +54,24 @@ mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev
 
 ## Structure du projet
 
+Le projet est organisé autour de **domaines fonctionnels majeurs** (consolidation récente) :
+
 ```
 src/main/java/ga/gabedt/
 ├── GabEdtApplication.java    # Point d'entrée
-├── config/                   # Configurations (Security, CORS, OpenAPI)
+├── config/                   # Configurations (Security, CORS, OpenAPI, WebSocket)
 ├── common/                   # Code partagé (entités de base, exceptions, DTOs)
-│   ├── entity/               # BaseEntity, TenantAwareEntity
-│   ├── enums/                # UserRole, EventStatus, etc.
-│   ├── exception/            # GlobalExceptionHandler
-│   ├── response/             # ApiResponse, ApiError, PageResponse
-│   └── security/             # Utilitaires sécurité
-├── auth/                     # Authentification JWT
-├── tenant/                   # Multi-tenant
-├── user/                     # Utilisateurs
-├── school/                   # Établissements
-├── campus/                   # Campus
-├── department/               # Départements
-├── program/                  # Formations
-├── academic/                 # Années académiques
-├── level/                    # Niveaux
-├── classgroup/               # Classes
-├── studentgroup/             # Groupes
-├── teacher/                  # Enseignants
-├── student/                  # Étudiants
-├── subject/                  # Matières
-├── room/                     # Salles
-├── course/                   # Cours
-├── schedule/                 # Événements calendrier
-├── conflict/                 # Détection de conflits
-├── notification/             # Notifications
-├── importexcel/              # Import Excel
-├── export/                   # Export PDF/Excel
-└── audit/                    # Journal d'audit
+├── auth/                     # Authentification JWT et rôles
+├── tenant/                   # Multi-tenant (Isolation des données)
+├── user/                     # Utilisateurs (Admin, Professeurs, Élèves)
+├── structure/                # Structures (Institution, Départements, Classes)
+├── resource/                 # Ressources physiques (Salles, Matières)
+├── timetable/                # Moteur d'emploi du temps et détection de conflits
+├── exam/                     # Gestion des sessions d'examens
+├── defense/                  # Gestion des soutenances
+├── dashboard/                # Statistiques et métriques
+├── notification/             # Alertes temps-réel via WebSockets
+└── communication/            # Annonces globales
 ```
 
 ## Tests

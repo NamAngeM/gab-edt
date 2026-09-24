@@ -21,8 +21,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import ga.gabedt.timetable.enums.EventStatus;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,6 +47,7 @@ public class DashboardService {
         stats.setStudentCount(studentRepository.countByDeletedFalse());
         stats.setRoomCount(roomRepository.countByDeletedFalse());
         stats.setSubjectCount(subjectRepository.countByDeletedFalse());
+        stats.setRescheduledCount(scheduleEventRepository.countByStatusInAndDeletedFalse(Arrays.asList(EventStatus.POSTPONED, EventStatus.MOVED)));
 
         // 2. Événements du jour
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
@@ -132,14 +135,29 @@ public class DashboardService {
         bOccupations.sort((b1, b2) -> Integer.compare(b2.getPct(), b1.getPct()));
         stats.setBuildingOccupations(bOccupations.size() > 4 ? bOccupations.subList(0, 4) : bOccupations);
 
-        // 3. Activités récentes (Mock pour le moment car l'audit n'est pas encore modélisé en table)
+        // 3. Activités récentes (basé sur les 5 dernières modifications d'emploi du temps)
         List<ActivityDto> activities = new ArrayList<>();
-        ActivityDto act1 = new ActivityDto();
-        act1.setIcon("check_circle");
-        act1.setText("Système prêt.");
-        act1.setTime(LocalDateTime.now().minusMinutes(5));
-        act1.setType("SUCCESS");
-        activities.add(act1);
+        List<ScheduleEvent> recentEvents = scheduleEventRepository.findTop5ByDeletedFalseOrderByUpdatedAtDesc();
+        
+        for (ScheduleEvent event : recentEvents) {
+            ActivityDto act = new ActivityDto();
+            act.setIcon("event_available");
+            act.setType("UPDATE");
+            act.setTime(event.getUpdatedAt() != null ? event.getUpdatedAt() : event.getCreatedAt());
+            String subjectName = (event.getCourse() != null && event.getCourse().getSubject() != null) ? event.getCourse().getSubject().getName() : "Un cours";
+            act.setText("Mise à jour de " + subjectName);
+            activities.add(act);
+        }
+        
+        if (activities.isEmpty()) {
+            ActivityDto act1 = new ActivityDto();
+            act1.setIcon("check_circle");
+            act1.setText("Système prêt.");
+            act1.setTime(LocalDateTime.now());
+            act1.setType("SUCCESS");
+            activities.add(act1);
+        }
+        
         stats.setRecentActivity(activities);
 
         return stats;

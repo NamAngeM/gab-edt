@@ -66,4 +66,18 @@ public class ScheduleEventController {
         scheduleEventService.deleteEvent(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    @PutMapping("/{id}/delay")
+    @PreAuthorize("@securityAclService.canManageEvent(#id)")
+    public ResponseEntity<ApiResponse<ScheduleEventDto>> reportDelay(
+            @PathVariable UUID id, 
+            @RequestParam int minutes) {
+        return ResponseEntity.ok(ApiResponse.success(scheduleEventService.reportDelay(id, minutes)));
+    }
+
+    @PutMapping("/{id}/cancel")
+    @PreAuthorize("@securityAclService.canManageEvent(#id)")
+    public ResponseEntity<ApiResponse<ScheduleEventDto>> cancelEvent(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success(scheduleEventService.cancelEvent(id)));
+    }
 }

@@ -60,4 +60,7 @@ public class ScheduleEvent extends TenantAwareEntity {
     private String recurrenceRule;
 
     private String notes;
+
+    @Column(name = "delay_minutes")
+    private Integer delayMinutes = 0;
 }

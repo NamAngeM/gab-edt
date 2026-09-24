@@ -144,6 +144,16 @@ export default function AdminDashboardPage() {
   const activeEvents = stats?.todayEvents || [];
   const conflicts = activeEvents.filter(e => e.conflict);
 
+  const [selectedTab, setSelectedTab] = useState('Tous');
+
+  const filteredEvents = activeEvents.filter(e => {
+    if (selectedTab === 'Tous') return true;
+    if (selectedTab === 'Amphis' && e.roomName.toLowerCase().includes('amphi')) return true;
+    if (selectedTab === 'Labos Info' && (e.roomName.toLowerCase().includes('lab') || e.roomName.toLowerCase().includes('info'))) return true;
+    if (selectedTab === 'TD Sciences' && e.roomName.toLowerCase().includes('td')) return true;
+    return false;
+  });
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
       {/* Welcome header */}
@@ -219,9 +229,9 @@ export default function AdminDashboardPage() {
         />
         <StatCard
           label="Réaménagements"
-          value={14}
+          value={loading ? '—' : (stats?.rescheduledCount ?? 0)}
           icon="autorenew"
-          trend="en 24h"
+          trend="cette semaine"
           iconBg="#FFFBEB"
           iconColor="var(--warning)"
         />
@@ -284,13 +294,15 @@ export default function AdminDashboardPage() {
               </div>
               <div style={{ display: 'flex', gap: 4 }}>
                 {['Tous', 'Amphis', 'Labos Info', 'TD Sciences'].map((tab, i) => (
-                  <button key={tab} style={{
+                  <button key={tab} 
+                    onClick={() => setSelectedTab(tab)}
+                    style={{
                     padding: '4px 10px',
                     border: '1px solid var(--border)',
                     borderRadius: 6,
                     fontSize: 12,
-                    background: i === 0 ? 'var(--primary)' : 'var(--surface)',
-                    color: i === 0 ? 'white' : 'var(--text-secondary)',
+                    background: tab === selectedTab ? 'var(--primary)' : 'var(--surface)',
+                    color: tab === selectedTab ? 'white' : 'var(--text-secondary)',
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                   }}>
@@ -311,7 +323,7 @@ export default function AdminDashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {activeEvents.length > 0 ? activeEvents.map((row, i) => (
+                    {filteredEvents.length > 0 ? filteredEvents.map((row, i) => (
                       <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
                         <td style={{ padding: '10px 16px', fontWeight: 600, fontSize: 12, color: row.conflict ? 'var(--danger)' : 'var(--text-primary)', whiteSpace: 'nowrap' }}>
                           {row.roomName}
@@ -377,7 +389,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <h2 className="card-title" style={{ margin: 0 }}>Flux d'activité récente</h2>
               </div>
-              <button className="btn btn-ghost btn-sm">Voir tout</button>
+              <Link href="/admin/audit" className="btn btn-ghost btn-sm" style={{ textDecoration: 'none' }}>Voir tout</Link>
             </div>
             <div style={{ padding: '4px 0 0 0' }}>
               {(stats?.recentActivity || []).length > 0 ? (stats?.recentActivity || []).map((item, i) => (

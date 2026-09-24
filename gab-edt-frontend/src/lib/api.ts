@@ -1,19 +1,16 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
 export async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
-  // En Next.js (côté client), on lit le token depuis le localStorage
-  let token = '';
-  if (typeof window !== 'undefined') {
-    token = localStorage.getItem('jwt_token') || '';
-  }
-
   const headers = new Headers(options.headers);
   if (!(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
   }
-  
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
+
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('jwt_token');
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
   }
 
   const response = await fetch(`${API_URL}${endpoint}`, {

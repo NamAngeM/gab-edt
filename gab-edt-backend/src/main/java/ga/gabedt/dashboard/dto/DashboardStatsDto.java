@@ -11,6 +11,7 @@ public class DashboardStatsDto {
     private long roomCount;
     
     private long activeConflictsCount;
+    private long rescheduledCount;
     
     private List<TodayEventDto> todayEvents;
     private List<ActivityDto> recentActivity;

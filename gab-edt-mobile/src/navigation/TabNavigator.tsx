@@ -10,12 +10,14 @@ import { PlanningScreen } from '../screens/PlanningScreen';
 import { ActuScreen } from '../screens/ActuScreen';
 import { ServicesScreen } from '../screens/ServicesScreen';
 import { NotesScreen } from '../screens/NotesScreen';
+import { NotificationsScreen } from '../screens/NotificationsScreen';
+import { LiaisonScreen } from '../screens/LiaisonScreen';
 import { useAuth } from '../context/AuthContext';
 
 const Tab = createBottomTabNavigator();
 
 const CustomHeader = () => {
-  const { logout } = useAuth();
+  const { logout, userRole } = useAuth();
   const navigation = useNavigation<any>();
   
   // To highlight the active top tab, we need the current route name.
@@ -48,7 +50,7 @@ const CustomHeader = () => {
             </View>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.iconBtn}>
+            <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Notifications')}>
               <Feather name="bell" size={18} color="#FFF" />
               <View style={styles.notificationDot} />
             </TouchableOpacity>
@@ -60,7 +62,14 @@ const CustomHeader = () => {
 
         {/* TOP NAVIGATION TABS */}
         <View style={styles.topTabs}>
-          {['Planning', 'Actu', 'Services', 'Notes'].map(tab => (
+          {['Planning', 'Actu', 'Services', 'Notes', 'Liaison']
+            .filter(tab => {
+              if (userRole === 'PARENT') {
+                return tab === 'Planning' || tab === 'Notes' || tab === 'Liaison';
+              }
+              return tab !== 'Liaison';
+            })
+            .map(tab => (
             <TouchableOpacity 
               key={tab} 
               style={styles.topTab} 
@@ -90,6 +99,8 @@ export const TabNavigator = () => {
       <Tab.Screen name="Actu" component={ActuScreen} />
       <Tab.Screen name="Services" component={ServicesScreen} />
       <Tab.Screen name="Notes" component={NotesScreen} />
+      <Tab.Screen name="Notifications" component={NotificationsScreen} />
+      <Tab.Screen name="Liaison" component={LiaisonScreen} />
     </Tab.Navigator>
   );
 };

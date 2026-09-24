@@ -86,5 +86,6 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
 jwt:
-  secret: ${JWT_SECRET:defaultSecretKeyThatShouldBeAtLeast32BytesLongAndSecureForDevOnly}
+  # En production, JWT_SECRET DOIT être défini en variable d'environnement (ex: 64 caractères aléatoires)
+  secret: ${JWT_SECRET:d3f4uLtS3cr3tK3yTh4t1sAtL3ast32Byt3sL0ng4ndS3cur3F0rD3v0nly!}
   expiration: 86400000

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QrCode, Download, Printer, Settings2, PlusSquare, MapPin } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -9,25 +9,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-
-// Mock data for rooms
-const mockRooms = [
-  { id: 1, name: "Amphi A", capacity: 200, building: "Campus Central" },
-  { id: 2, name: "Amphi B", capacity: 150, building: "Campus Central" },
-  { id: 3, name: "Salle TD 101", capacity: 35, building: "Bâtiment IUT" },
-  { id: 4, name: "Salle Info 205", capacity: 24, building: "UFR Sciences" },
-  { id: 5, name: "Labo Physique 1", capacity: 20, building: "UFR Sciences" },
-  { id: 6, name: "Salle TD 102", capacity: 35, building: "Bâtiment IUT" },
-];
+import { fetchWithAuth } from '@/lib/api';
 
 export default function QrPage() {
   const [includeLogo, setIncludeLogo] = useState(true);
   const [includeText, setIncludeText] = useState(true);
   const [targetBuilding, setTargetBuilding] = useState("ALL");
+  const [rooms, setRooms] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchWithAuth('/rooms')
+      .then(res => setRooms(res.data || []))
+      .catch(console.error);
+  }, []);
 
   const filteredRooms = targetBuilding === "ALL" 
-    ? mockRooms 
-    : mockRooms.filter(r => r.building.includes(targetBuilding));
+    ? rooms 
+    : rooms.filter(r => (r.type || '').includes(targetBuilding) || (r.name || '').includes(targetBuilding));
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
@@ -39,7 +37,7 @@ export default function QrPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="shadow-sm">
+          <Button variant="outline" className="shadow-sm" onClick={() => window.print()}>
             <Printer className="w-4 h-4 mr-2" />
             Tout imprimer
           </Button>
@@ -133,37 +131,13 @@ export default function QrPage() {
                          </Button>
                       </div>
                       
-                      {/* Fake QR Code Pattern using SVG */}
+                      {/* Real QR Code using external API */}
                       <div className="relative w-40 h-40 bg-white p-2 rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
-                        <svg viewBox="0 0 100 100" className="w-full h-full fill-slate-900">
-                          {/* Top left eye */}
-                          <rect x="10" y="10" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="3"/>
-                          <rect x="15" y="15" width="10" height="10" />
-                          {/* Top right eye */}
-                          <rect x="70" y="10" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="3"/>
-                          <rect x="75" y="15" width="10" height="10" />
-                          {/* Bottom left eye */}
-                          <rect x="10" y="70" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="3"/>
-                          <rect x="15" y="75" width="10" height="10" />
-                          
-                          {/* Random dots */}
-                          <rect x="40" y="10" width="5" height="5"/>
-                          <rect x="50" y="15" width="5" height="5"/>
-                          <rect x="60" y="25" width="5" height="5"/>
-                          <rect x="40" y="30" width="15" height="5"/>
-                          <rect x="10" y="40" width="5" height="5"/>
-                          <rect x="25" y="45" width="15" height="5"/>
-                          <rect x="50" y="40" width="5" height="15"/>
-                          <rect x="65" y="45" width="5" height="5"/>
-                          <rect x="80" y="40" width="10" height="5"/>
-                          <rect x="15" y="55" width="5" height="5"/>
-                          <rect x="35" y="60" width="5" height="15"/>
-                          <rect x="50" y="65" width="10" height="5"/>
-                          <rect x="70" y="60" width="5" height="5"/>
-                          <rect x="85" y="75" width="5" height="15"/>
-                          <rect x="45" y="80" width="15" height="5"/>
-                          <rect x="70" y="85" width="5" height="5"/>
-                        </svg>
+                        <img 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(JSON.stringify({ type: 'ROOM', id: room.id, name: room.name }))}`}
+                          alt={`QR Code pour ${room.name}`}
+                          className="w-full h-full object-contain"
+                        />
 
                         {includeLogo && (
                           <div className="absolute inset-0 flex items-center justify-center">
@@ -179,7 +153,7 @@ export default function QrPage() {
                         <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200">{room.name}</h3>
                         <p className="text-xs text-slate-500 mt-1 flex items-center justify-center gap-1">
                           <MapPin className="w-3 h-3" />
-                          {room.building} • Capacité : {room.capacity}
+                          {room.type || 'Salle'} • Capacité : {room.capacity}
                         </p>
                       </div>
                     )}

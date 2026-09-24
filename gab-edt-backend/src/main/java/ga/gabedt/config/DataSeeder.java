@@ -86,13 +86,30 @@ public class DataSeeder implements CommandLineRunner {
             tC.setInstitution(lycee);
             orgUnitRepository.save(tC);
             
+            // Récupération des mots de passe depuis l'environnement ou utilisation de valeurs par défaut (avec log d'avertissement)
+            String adminPassword = System.getenv("SEEDER_ADMIN_PWD");
+            if (adminPassword == null || adminPassword.isEmpty()) {
+                adminPassword = "admin123"; // Fallback pour dev
+                System.err.println("ATTENTION: Utilisation du mot de passe admin par défaut. À changer en production !");
+            }
+            
+            String profPassword = System.getenv("SEEDER_PROF_PWD");
+            if (profPassword == null || profPassword.isEmpty()) {
+                profPassword = "prof123"; // Fallback pour dev
+            }
+            
+            String elevePassword = System.getenv("SEEDER_ELEVE_PWD");
+            if (elevePassword == null || elevePassword.isEmpty()) {
+                elevePassword = "eleve123"; // Fallback pour dev
+            }
+
             // 3. Admin User
             if (userRepository.findByEmailAndDeletedFalse("admin@ecole.com").isEmpty()) {
                 User admin = new User();
                 admin.setFirstName("Super");
                 admin.setLastName("Admin");
                 admin.setEmail("admin@ecole.com");
-                admin.setPasswordHash(passwordEncoder.encode("admin123"));
+                admin.setPasswordHash(passwordEncoder.encode(adminPassword));
                 admin.setRole(UserRole.SCHOOL_ADMIN);
                 userRepository.save(admin);
             }
@@ -103,7 +120,7 @@ public class DataSeeder implements CommandLineRunner {
                 prof.setFirstName("Jean");
                 prof.setLastName("Dupont");
                 prof.setEmail("prof@ecole.com");
-                prof.setPasswordHash(passwordEncoder.encode("prof123"));
+                prof.setPasswordHash(passwordEncoder.encode(profPassword));
                 prof.setRole(UserRole.TEACHER);
                 userRepository.save(prof);
                 
@@ -116,7 +133,7 @@ public class DataSeeder implements CommandLineRunner {
                 student.setFirstName("Alice");
                 student.setLastName("Martin");
                 student.setEmail("eleve@ecole.com");
-                student.setPasswordHash(passwordEncoder.encode("eleve123"));
+                student.setPasswordHash(passwordEncoder.encode(elevePassword));
                 student.setRole(UserRole.STUDENT);
                 userRepository.save(student);
             }

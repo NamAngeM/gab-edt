@@ -200,6 +200,33 @@ export default function TeacherTimetablePage() {
     }
   };
 
+  const handleReportDelay = async (e: React.MouseEvent, evt: UIMockupEvent) => {
+    e.stopPropagation();
+    const minutes = prompt(`Signaler un retard pour ${evt.title} (en minutes):`, "15");
+    if (minutes) {
+      try {
+        await fetchWithAuth(`/schedule-events/${evt.id}/delay?minutes=${minutes}`, { method: 'PUT' });
+        toast.success(`Un retard de ${minutes} min a été signalé et notifié aux élèves.`);
+        loadSchedule();
+      } catch (err: any) {
+        toast.error(err.message || "Erreur lors du signalement du retard");
+      }
+    }
+  };
+
+  const handleCancelClass = async (e: React.MouseEvent, evt: UIMockupEvent) => {
+    e.stopPropagation();
+    if (confirm(`Êtes-vous sûr de vouloir annuler le cours de ${evt.title} ? Une notification sera envoyée.`)) {
+      try {
+        await fetchWithAuth(`/schedule-events/${evt.id}/cancel`, { method: 'PUT' });
+        toast.success("Le cours a été annulé avec succès.");
+        loadSchedule();
+      } catch (err: any) {
+        toast.error(err.message || "Erreur lors de l'annulation du cours");
+      }
+    }
+  };
+
   const handleEventClick = (evt: UIMockupEvent) => {
     // Reconstruct full event object for Modal
     const fullEvent = {
@@ -330,6 +357,22 @@ export default function TeacherTimetablePage() {
                               <span className="material-symbols-outlined" style={{ fontSize: 12, opacity: 0.7 }}>location_on</span>
                               <span style={{ fontWeight: 600 }}>{evt.location}</span>
                             </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '4px', marginTop: 'auto', paddingTop: '6px' }}>
+                            <button 
+                              onClick={(e) => handleReportDelay(e, evt)}
+                              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyItems: 'center', gap: '4px', padding: '4px', fontSize: '10px', background: 'rgba(245, 158, 11, 0.9)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                              title="Signaler un retard"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 13, margin: '0 auto' }}>schedule</span>
+                            </button>
+                            <button 
+                              onClick={(e) => handleCancelClass(e, evt)}
+                              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyItems: 'center', gap: '4px', padding: '4px', fontSize: '10px', background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}
+                              title="Annuler le cours"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 13, margin: '0 auto' }}>cancel</span>
+                            </button>
                           </div>
                         </div>
                       );

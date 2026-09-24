@@ -4,7 +4,7 @@ import ga.gabedt.common.response.ApiResponse;
 import ga.gabedt.user.dto.UserAdminDto;
 import ga.gabedt.user.dto.UserCreateDto;
 import ga.gabedt.user.dto.UserUpdateDto;
-import ga.gabedt.user.service.UserService;
+import ga.gabedt.user.dto.PushTokenDto;
 import ga.gabedt.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -44,5 +44,12 @@ public class UserController {
     @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('SCHOOL_ADMIN')")
     public ResponseEntity<ApiResponse<UserAdminDto>> updateUser(@PathVariable UUID id, @RequestBody UserUpdateDto dto) {
         return ResponseEntity.ok(ApiResponse.success(userService.updateUser(id, dto)));
+    }
+
+    @PutMapping("/push-token")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> updatePushToken(@RequestBody PushTokenDto dto) {
+        userService.updatePushToken(dto.getToken());
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

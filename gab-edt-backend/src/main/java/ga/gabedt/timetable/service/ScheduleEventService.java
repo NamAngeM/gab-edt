@@ -25,6 +25,17 @@ import ga.gabedt.user.Teacher;
 import ga.gabedt.user.TeacherRepository;
 import ga.gabedt.timetable.Course;
 import ga.gabedt.timetable.repository.CourseRepository;
+import ga.gabedt.homework.Homework;
+import ga.gabedt.homework.HomeworkRepository;
+import ga.gabedt.homework.HomeworkStatus;
+import ga.gabedt.homework.HomeworkStatusRepository;
+import ga.gabedt.user.Student;
+import ga.gabedt.user.StudentRepository;
+import ga.gabedt.user.User;
+import ga.gabedt.user.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +59,10 @@ public class ScheduleEventService {
     private final OrganizationalUnitRepository orgUnitRepository;
     private final InstitutionRepository institutionRepository;
     private final ga.gabedt.notification.NotificationService notificationService;
+    private final HomeworkRepository homeworkRepository;
+    private final HomeworkStatusRepository homeworkStatusRepository;
+    private final UserRepository userRepository;
+    private final StudentRepository studentRepository;
 
     public List<ScheduleEventDto> searchEvents(UUID groupId, UUID teacherId, UUID roomId, LocalDate startDate, LocalDate endDate) {
         
@@ -81,9 +96,43 @@ public class ScheduleEventService {
 
         List<ScheduleEvent> events = scheduleEventRepository.findAll(spec);
         
-        return events.stream()
+        List<ScheduleEventDto> dtos = events.stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
+
+        // Populate homework for student if applicable
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            try {
+                User user = userRepository.findByEmailAndDeletedFalse(auth.getName()).orElse(null);
+                if (user != null && (user.getRole().name().equals("STUDENT") || user.getRole().name().equals("PARENT"))) {
+                    Student student = studentRepository.findByUserIdAndDeletedFalse(user.getId()).orElse(null);
+                    if (student != null) {
+                        for (ScheduleEventDto dto : dtos) {
+                            Homework hw = homeworkRepository.findByScheduleEventIdAndDeletedFalseOrderByIdDesc(dto.getId()).orElse(null);
+                            if (hw != null) {
+                                dto.setHomeworkId(hw.getId());
+                                dto.setHomeworkTitle(hw.getTitle());
+                                HomeworkStatus status = homeworkStatusRepository.findByHomeworkIdAndStudentIdAndDeletedFalse(hw.getId(), student.getId()).orElse(null);
+                                dto.setHomeworkDone(status != null && status.isCompleted());
+                            }
+                        }
+                    }
+                } else if (user != null && user.getRole().name().equals("TEACHER")) {
+                    for (ScheduleEventDto dto : dtos) {
+                        Homework hw = homeworkRepository.findByScheduleEventIdAndDeletedFalseOrderByIdDesc(dto.getId()).orElse(null);
+                        if (hw != null) {
+                            dto.setHomeworkId(hw.getId());
+                            dto.setHomeworkTitle(hw.getTitle());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
+        
+        return dtos;
     }
 
     private ScheduleEventDto mapToDto(ScheduleEvent event) {
@@ -132,7 +181,8 @@ public class ScheduleEventService {
                 event.getStatus(),
                 event.getPublicationStatus(),
                 false,
-                null
+                null,
+                event.getDelayMinutes()
         );
     }
 
@@ -321,6 +371,48 @@ public class ScheduleEventService {
         
         event.setDeleted(true);
         scheduleEventRepository.save(event);
+    }
+
+    @Transactional
+    public ScheduleEventDto reportDelay(UUID id, int minutes) {
+        ScheduleEvent event = scheduleEventRepository.findById(id)
+                .filter(e -> !e.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("ScheduleEvent not found"));
+
+        event.setDelayMinutes(minutes);
+        ScheduleEvent savedEvent = scheduleEventRepository.save(event);
+
+        if (event.getOrgUnit() != null) {
+            notificationService.sendClassAlert(
+                event.getOrgUnit().getId(),
+                "Retard signalé",
+                "Le cours de " + event.getCourse().getSubject().getName() + " aura un retard de " + minutes + " minutes.",
+                "WARNING"
+            );
+        }
+
+        return mapToDto(savedEvent);
+    }
+
+    @Transactional
+    public ScheduleEventDto cancelEvent(UUID id) {
+        ScheduleEvent event = scheduleEventRepository.findById(id)
+                .filter(e -> !e.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("ScheduleEvent not found"));
+
+        event.setStatus(ga.gabedt.timetable.enums.EventStatus.CANCELLED);
+        ScheduleEvent savedEvent = scheduleEventRepository.save(event);
+
+        if (event.getOrgUnit() != null) {
+            notificationService.sendClassAlert(
+                event.getOrgUnit().getId(),
+                "Cours annulé",
+                "Le cours de " + event.getCourse().getSubject().getName() + " a été annulé.",
+                "ERROR"
+            );
+        }
+
+        return mapToDto(savedEvent);
     }
 
     private void validateNoConflict(UUID teacherId, UUID roomId, UUID orgUnitId, LocalDateTime start, LocalDateTime end, UUID excludeId) {

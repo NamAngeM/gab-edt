@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GAB-EDT Frontend (Next.js)
 
-## Getting Started
+Application web du projet GAB-EDT, offrant trois portails distincts :
+- **Espace Administrateur** (`/admin`) : Gestion complète (emplois du temps, utilisateurs, ressources).
+- **Espace Enseignant** (`/teacher`) : Consultation du planning et des classes.
+- **Espace Étudiant** (`/student`) : Consultation des cours de la journée.
 
-First, run the development server:
+## Stack technique
 
+- **Framework** : Next.js 14 (App Router)
+- **Langage** : TypeScript
+- **Styling** : Tailwind CSS + Variables CSS (`globals.css`)
+- **Composants UI** : Radix UI (shadcn/ui-like)
+- **Formulaires** : React Hook Form + Zod (Validation)
+- **Icônes** : Material Symbols Rounded
+- **Sécurité** : JWT stocké via Cookie `HttpOnly` protégé par Middleware (bibliothèque `jose`)
+
+## Démarrage rapide
+
+1. **Installer les dépendances**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Lancer le serveur de développement**
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Accéder à l'application**
+Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Architecture des dossiers
 
-## Learn More
+```
+src/
+├── app/                  # App Router Next.js
+│   ├── admin/            # Pages réservées aux administrateurs
+│   ├── teacher/          # Pages réservées aux enseignants
+│   ├── student/          # Pages réservées aux étudiants
+│   ├── login/            # Page de connexion
+│   ├── api/auth/         # Route Handler Backend-For-Frontend (BFF)
+│   ├── layout.tsx        # Layout global
+│   └── globals.css       # Design System & Tailwind
+├── components/           # Composants UI réutilisables (Boutons, Modals, Inputs)
+├── lib/                  # Utilitaires globaux
+│   ├── api.ts            # Client API (fetchWithAuth)
+│   └── utils.ts          # Helpers divers (formatage de dates, fusions de classes)
+└── middleware.ts         # Protection des routes et validation cryptographique du JWT
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Intégration API
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Toutes les requêtes vers le backend (Spring Boot) doivent passer par la fonction `fetchWithAuth(endpoint, options)` située dans `src/lib/api.ts`.
+Cette fonction configure automatiquement :
+- L'inclusion des credentials (cookies HttpOnly) pour l'authentification.
+- La gestion des erreurs globales (redirection vers `/login` sur 401/403).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**URL du Backend** : Définie par la variable d'environnement `NEXT_PUBLIC_API_URL` (par défaut `http://localhost:8080/api/v1`).

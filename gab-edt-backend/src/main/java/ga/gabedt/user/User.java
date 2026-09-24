@@ -43,6 +43,9 @@ public class User extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Column(name = "expo_push_token")
+    private String expoPushToken;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_managed_org_units",

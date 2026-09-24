@@ -92,6 +92,18 @@ public class UserService {
         return mapToDto(saved);
     }
 
+    @Transactional
+    public void updatePushToken(String token) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) throw new UnauthorizedAccessException("Not authenticated");
+        
+        User user = userRepository.findByEmailAndDeletedFalse(auth.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        user.setExpoPushToken(token);
+        userRepository.save(user);
+    }
+
     private UserAdminDto mapToDto(User user) {
         UserAdminDto dto = new UserAdminDto();
         dto.setId(user.getId());

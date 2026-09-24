@@ -26,4 +26,9 @@ public class ScheduleEventDto {
     // Conflict Info
     private boolean conflict;
     private String conflictDetails;
+    
+    private Integer delayMinutes;
+    private UUID homeworkId;
+    private String homeworkTitle;
+    private boolean isHomeworkDone;
 }

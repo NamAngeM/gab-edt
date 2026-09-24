@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 // L'URL de base dépend de l'environnement d'exécution (émulateur Android, iOS, ou appareil physique)
 // 10.0.2.2 est l'alias spécial pour localhost sur l'émulateur Android.
 // Pour tester sur un vrai téléphone, remplacez par l'adresse IP locale de votre ordinateur (ex: 192.168.1.XX)
-const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
+const BASE_URL = 'http://192.168.1.124:8080';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

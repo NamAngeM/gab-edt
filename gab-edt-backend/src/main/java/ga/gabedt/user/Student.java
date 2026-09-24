@@ -22,6 +22,9 @@ public class Student extends TenantAwareEntity {
     @Column(name = "student_number")
     private String studentNumber;
 
+    @Column(name = "parent_password_hash")
+    private String parentPasswordHash;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "institution_id", nullable = false)
     private Institution institution;

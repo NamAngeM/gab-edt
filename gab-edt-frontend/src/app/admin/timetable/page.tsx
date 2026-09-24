@@ -61,6 +61,7 @@ export default function TimetablePage() {
   const [resourceTree, setResourceTree] = useState<any>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [filters, setFilters] = useState({ groupId: '', teacherId: '', roomId: '' });
+  const [editingEvent, setEditingEvent] = useState<any>(undefined);
   
   // NEW INTERACTIVE STATES
   const [viewMode, setViewMode] = useState<'day'|'week'|'month'>('week');
@@ -123,7 +124,8 @@ export default function TimetablePage() {
           startHour: dStart.getHours() + (dStart.getMinutes() / 60),
           endHour: dEnd.getHours() + (dEnd.getMinutes() / 60),
           isConflict: evt.status === 'CANCELLED',
-          conflictDetails: evt.status === 'CANCELLED' ? 'Annulé' : ''
+          conflictDetails: evt.status === 'CANCELLED' ? 'Annulé' : '',
+          rawEvent: evt // Keep the original API event for editing
         };
       });
       setEvents(mapped);
@@ -280,7 +282,15 @@ export default function TimetablePage() {
     const endD = new Date(startD);
     endD.setMinutes(startD.getMinutes() + 90); // 1.5h par défaut
     
+    setEditingEvent(undefined);
     setDefaultModalTime({ start: startD, end: endD });
+    setIsModalOpen(true);
+  };
+
+  const handleEventClick = (e: React.MouseEvent, evt: any) => {
+    e.stopPropagation(); // Prevent triggering grid click
+    setEditingEvent(evt.rawEvent);
+    setDefaultModalTime(undefined);
     setIsModalOpen(true);
   };
 
@@ -412,7 +422,7 @@ export default function TimetablePage() {
             <button className="topbar-icon-btn" style={{ border: '1px solid var(--border)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>print</span>
             </button>
-            <button className="btn btn-primary" style={{ flexShrink: 0 }} onClick={() => { setDefaultModalTime(undefined); setIsModalOpen(true); }}>
+            <button className="btn btn-primary" style={{ flexShrink: 0 }} onClick={() => { setEditingEvent(undefined); setDefaultModalTime(undefined); setIsModalOpen(true); }}>
               <span className="material-symbols-outlined">add</span>
               Planifier un cours
             </button>
@@ -507,7 +517,7 @@ export default function TimetablePage() {
                                style={styleObj}
                                draggable={true}
                                onDragStart={(e) => handleDragStart(e, evt)}
-                               onClick={(e) => e.stopPropagation()} // Prevent triggering grid click
+                               onClick={(e) => handleEventClick(e, evt)} // Open edit modal
                           >
                             <div className={styles.eventHeader}>
                               {evt.isConflict ? (
@@ -570,13 +580,15 @@ export default function TimetablePage() {
       {/* ---------------- MODAL ---------------- */}
       <TimetableModal 
         isOpen={isModalOpen}
-        onClose={() => { setIsModalOpen(false); setDefaultModalTime(undefined); }}
+        onClose={() => { setIsModalOpen(false); setDefaultModalTime(undefined); setEditingEvent(undefined); }}
         onSave={() => {
           setIsModalOpen(false);
           setDefaultModalTime(undefined);
+          setEditingEvent(undefined);
           loadSchedule();
         }}
         defaultTime={defaultModalTime}
+        existingEvent={editingEvent}
         orgUnits={orgUnits}
       />
     </div>

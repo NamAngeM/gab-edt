@@ -59,6 +59,12 @@ const navSections: NavSection[] = [
     ],
   },
   {
+    label: 'Vie Scolaire',
+    items: [
+      { label: "Justificatifs d'absences", icon: 'fact_check', href: '/admin/justificatifs', badge: 2 },
+    ],
+  },
+  {
     label: 'Échange de données',
     items: [
       { label: 'Import Excel / CSV', icon: 'upload_file', href: '/admin/import' },

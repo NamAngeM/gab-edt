@@ -1,11 +1,48 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image, TextInput } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
+import { apiClient } from '../api/client';
+import { ActuSkeleton } from '../components/Skeleton';
+import { LayoutAnimation, UIManager, Platform } from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export const ActuScreen = () => {
+  const { userRole } = useAuth();
+  const navigation = useNavigation<any>();
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/api/v1/communication/announcements');
+      // CommunicationController renvoie directement la liste, pas dans `data.data`
+      const data = Array.isArray(response.data) ? response.data : [];
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setAnnouncements(data);
+    } catch (error) {
+      console.error("Erreur récupération actualités:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchAnnouncements();
+    }, [])
+  );
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <View style={{ flex: 1, backgroundColor: COLORS.surfaceContainerLowest }}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       
       {/* Search and Filters */}
       <View style={styles.searchSection}>
@@ -32,9 +69,6 @@ export const ActuScreen = () => {
           <TouchableOpacity style={styles.filterPillInactive}>
             <Text style={styles.filterPillInactiveText}>Vie Scolaire</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.filterPillInactive}>
-            <Text style={styles.filterPillInactiveText}>Examens & Bacs</Text>
-          </TouchableOpacity>
         </ScrollView>
       </View>
 
@@ -47,118 +81,66 @@ export const ActuScreen = () => {
         <Text style={styles.headerLive}>En direct</Text>
       </View>
 
-      <TouchableOpacity style={styles.heroCard} activeOpacity={0.9}>
-        <View style={styles.heroImageContainer}>
-          <Image 
-            source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD5Wyuzoti8Rl8w855jiWpndQngIoki3sHnGAT75A1CVXu5RycYoMlVFsMGSjnFd07ui5_O9p4evgtpxci2-GuDFFAUm8q4mQLnuPKg2Hm-MqpelOOkwdEzOriDEslCuPS5pHODDQtN3jvxFYSM_Fi6oeFkywj6oRIQJ5YWmGcpaz9Tz5MXFWl19zucFlR99H23Sdakq6Cc5j4Y6JJD1o0y76c5jwURSXuWPgSfr9qewH-ms7Z58Lqd' }}
-            style={styles.heroImage}
-          />
-          <View style={styles.heroOverlay} />
-          <View style={styles.heroImportantBadge}>
-            <View style={styles.whitePulseDot} />
-            <Text style={styles.heroImportantText}>IMPORTANT</Text>
-          </View>
-          <View style={styles.heroReadTimeBadge}>
-            <MaterialIcons name="schedule" size={14} color={COLORS.inverseOnSurface} />
-            <Text style={styles.heroReadTimeText}>2 min</Text>
-          </View>
-          <View style={styles.heroTextContainer}>
-            <Text style={styles.heroSub}>Note Officielle N° 402/DES-LNLM</Text>
-            <Text style={styles.heroMain}>Calendrier des devoirs surveillés - 1er Trimestre</Text>
-          </View>
+      {loading ? (
+        <View style={{ marginTop: 12 }}>
+          <ActuSkeleton />
+          <ActuSkeleton />
+          <ActuSkeleton />
         </View>
-        <View style={styles.heroContent}>
-          <Text style={styles.heroDescription} numberOfLines={2}>
-            La Direction des Études informe l'ensemble des professeurs principaux et des élèves de Seconde, Première et Terminale que la première vague d'évaluations communes débutera dès le 14 Octobre.
-          </Text>
-          <View style={styles.heroFooter}>
-            <View style={styles.heroTimeRow}>
-              <MaterialIcons name="history" size={16} color={COLORS.outline} />
-              <Text style={styles.heroTimeText}>Publié il y a 2h</Text>
+      ) : announcements.length > 0 ? (
+        announcements.map((ann, index) => (
+          <TouchableOpacity key={ann.id || index} style={index === 0 ? styles.heroCard : styles.articleCard} activeOpacity={0.9}>
+            <View style={index === 0 ? styles.heroImageContainer : styles.articleHeader}>
+              {index === 0 ? (
+                <>
+                  <Image 
+                    source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD5Wyuzoti8Rl8w855jiWpndQngIoki3sHnGAT75A1CVXu5RycYoMlVFsMGSjnFd07ui5_O9p4evgtpxci2-GuDFFAUm8q4mQLnuPKg2Hm-MqpelOOkwdEzOriDEslCuPS5pHODDQtN3jvxFYSM_Fi6oeFkywj6oRIQJ5YWmGcpaz9Tz5MXFWl19zucFlR99H23Sdakq6Cc5j4Y6JJD1o0y76c5jwURSXuWPgSfr9qewH-ms7Z58Lqd' }}
+                    style={styles.heroImage}
+                  />
+                  <View style={styles.heroOverlay} />
+                  <View style={styles.heroTextContainer}>
+                    <Text style={styles.heroSub}>{ann.authorName || 'Direction'}</Text>
+                    <Text style={styles.heroMain}>{ann.title}</Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={[styles.articleCategoryBadge, { backgroundColor: COLORS.primaryFixed }]}>
+                    <Text style={[styles.articleCategoryText, { color: COLORS.onPrimaryFixed }]}>{ann.targetAudience || 'Général'}</Text>
+                  </View>
+                  <Text style={styles.articleDate}>{new Date(ann.createdAt).toLocaleDateString()}</Text>
+                </>
+              )}
             </View>
-            <View style={styles.heroActionRow}>
-              <Text style={styles.heroActionText}>Consulter</Text>
-              <MaterialIcons name="arrow-forward" size={16} color={COLORS.primary} />
+            <View style={index === 0 ? styles.heroContent : styles.articleBody}>
+              {index !== 0 && <Text style={styles.articleTitle} numberOfLines={2}>{ann.title}</Text>}
+              <Text style={index === 0 ? styles.heroDescription : styles.articleDesc} numberOfLines={2}>
+                {ann.content}
+              </Text>
+              <View style={index === 0 ? styles.heroFooter : undefined}>
+                <View style={index === 0 ? styles.heroTimeRow : undefined}>
+                  <MaterialIcons name="history" size={16} color={index === 0 ? COLORS.outline : COLORS.primary} />
+                  <Text style={index === 0 ? styles.heroTimeText : undefined}>{new Date(ann.createdAt).toLocaleDateString()}</Text>
+                </View>
+              </View>
             </View>
-          </View>
-        </View>
-      </TouchableOpacity>
-
-      {/* Flux de l'établissement */}
-      <View style={[styles.headerRow, { marginTop: 16 }]}>
-        <Text style={styles.sectionTitle}>Flux de l'Établissement</Text>
-        <Text style={styles.headerLive}>Cette semaine</Text>
-      </View>
-
-      <TouchableOpacity style={styles.articleCard} activeOpacity={0.8}>
-        <View style={styles.articleHeader}>
-          <View style={[styles.articleCategoryBadge, { backgroundColor: COLORS.primaryFixed }]}>
-            <Text style={[styles.articleCategoryText, { color: COLORS.onPrimaryFixed }]}>Vie Scolaire</Text>
-          </View>
-          <Text style={styles.articleDate}>22 Sept • 14:30</Text>
-        </View>
-        <View style={styles.articleBody}>
-          <Image 
-            source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCyBJQTE5KXeZsTH8OI4dzut1CDrVSp443G6OqmMUPqf7usPRFhGw5qw8euiSJ8Ds1orpOC4AxyedXa6Tykz6DjhWuxDfDpukGt0wbCslnAjqMb-k11KoOhEIPPc5pNuH358ioElfrmgF-OfPdVsExi8NEYbudDIG0_Zz0aeDopgNocUXCPQJdFvJ_9awuV4_LLhlY_nb5S4KG7Jm9_AC7t0-B5kf9pHWt9Tbm9bC8YU167jDkXOICp' }}
-            style={styles.articleImage}
-          />
-          <View style={styles.articleTextContent}>
-            <Text style={styles.articleTitle} numberOfLines={2}>
-              Cérémonie de remise des prix d'excellence scientifique
-            </Text>
-            <Text style={styles.articleDesc} numberOfLines={2}>
-              Félicitations aux 18 lauréats du Club Robotique et Olympiades de Physique qui ont brillé au concours national.
-            </Text>
-          </View>
-        </View>
-        <View style={styles.articleFooter}>
-          <View style={styles.articleHighlight}>
-            <MaterialIcons name="military-tech" size={16} color={COLORS.secondary} />
-            <Text style={styles.articleHighlightText}>18 Lauréats honorés</Text>
-          </View>
-          <View style={styles.articleActionBox}>
-            <Text style={styles.articleActionBtn}>Lire la suite</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.articleCard} activeOpacity={0.8}>
-        <View style={styles.articleHeader}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={[styles.articleCategoryBadge, { backgroundColor: COLORS.secondaryContainer, marginRight: 6 }]}>
-              <Text style={[styles.articleCategoryText, { color: COLORS.onSecondaryContainer }]}>Scolarité</Text>
-            </View>
-            <View style={[styles.articleCategoryBadge, { backgroundColor: COLORS.surfaceContainerHighest }]}>
-              <MaterialIcons name="verified" size={12} color={COLORS.onPrimaryFixedVariant} style={{ marginRight: 2 }} />
-              <Text style={[styles.articleCategoryText, { color: COLORS.onPrimaryFixedVariant }]}>Ministère</Text>
-            </View>
-          </View>
-          <Text style={styles.articleDate}>20 Sept</Text>
-        </View>
-        <View style={styles.articleBodyNoImage}>
-          <Text style={styles.articleTitle} numberOfLines={2}>
-            Avis aux élèves de Terminale : Inscription aux épreuves du Baccalauréat 2026/2027
-          </Text>
-          <Text style={styles.articleDesc} numberOfLines={2}>
-            La vérification des pièces d'état civil est ouverte auprès du secrétariat du Proviseur Adjoint jusqu'au 5 Novembre.
-          </Text>
-        </View>
-        <View style={styles.documentCard}>
-          <View style={styles.documentInfo}>
-            <MaterialIcons name="assignment" size={20} color={COLORS.primary} style={{ marginRight: 8 }} />
-            <View>
-              <Text style={styles.documentTitle}>Dossier candidature Bac</Text>
-              <Text style={styles.documentMeta}>Format PDF • 1.4 Mo</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.downloadBtn}>
-            <MaterialIcons name="download" size={20} color={COLORS.primary} />
           </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
+        ))
+      ) : (
+        <Text style={{ textAlign: 'center', color: COLORS.slate500, marginTop: 20 }}>Aucune actualité disponible.</Text>
+      )}
+      <View style={{ height: 80 }} />
+      </ScrollView>
 
-      <View style={{ height: 40 }} />
-    </ScrollView>
+      {userRole === 'TEACHER' && (
+        <TouchableOpacity 
+          style={styles.fab} 
+          onPress={() => navigation.navigate('CreateAnnouncement')}
+        >
+          <Feather name="edit-2" size={24} color="#FFF" />
+        </TouchableOpacity>
+      )}
+    </View>
   );
 };
 
@@ -489,5 +471,21 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 16,
     backgroundColor: COLORS.surfaceContainerLowest,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
   }
 });

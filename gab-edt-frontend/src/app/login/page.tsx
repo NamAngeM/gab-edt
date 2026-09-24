@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 
-type Role = 'direction' | 'enseignant' | 'etudiant';
+type Role = 'direction' | 'enseignant' | 'etudiant' | 'parent';
 
 const roleConfigs = {
   direction: {
@@ -31,6 +31,12 @@ const roleConfigs = {
     placeholder: "prenom.nom@etudiant.ga",
     helper: "Utilisez l'adresse email associée à votre compte",
     subheading: "Consultez vos salles, horaires et changements d'EDT"
+  },
+  parent: {
+    label: "Matricule ou email de l'étudiant",
+    placeholder: "prenom.nom@etudiant.ga",
+    helper: "Connectez-vous pour suivre l'emploi du temps de votre enfant",
+    subheading: "Consultez les plannings et les notes de vos enfants"
   }
 };
 
@@ -66,7 +72,7 @@ export default function LoginPage() {
         const userData = JSON.parse(userDataStr);
         const roles = userData.roles || [];
         const userRole = userData.role || '';
-        if (roles.includes('STUDENT') || roles.includes('ROLE_STUDENT') || userRole === 'STUDENT' || userRole === 'ROLE_STUDENT') {
+        if (roles.includes('STUDENT') || roles.includes('ROLE_STUDENT') || userRole === 'STUDENT' || userRole === 'ROLE_STUDENT' || roles.includes('PARENT') || roles.includes('ROLE_PARENT') || userRole === 'PARENT' || userRole === 'ROLE_PARENT') {
           router.push('/student');
         } else if (roles.includes('TEACHER') || roles.includes('ROLE_TEACHER') || userRole === 'TEACHER' || userRole === 'ROLE_TEACHER') {
           router.push('/teacher');
@@ -84,7 +90,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormValues) => {
     setServerError('');
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: data.email, password: data.password }), 
@@ -92,16 +98,19 @@ export default function LoginPage() {
 
       if (res.ok) {
         const payload = await res.json();
-        localStorage.setItem('jwt_token', payload.data.token);
-        // eslint-disable-next-line react-hooks/immutability
-        document.cookie = `jwt_token=${payload.data.token}; path=/; max-age=86400; SameSite=Lax`;
+        // Le token est maintenant géré par cookie HttpOnly via la route API
+        
         // Le backend renvoie les informations utilisateur directement dans payload.data
         const userData = payload.data;
+        const token = payload.data?.token || payload.token;
         if (userData) {
           localStorage.setItem('user_data', JSON.stringify(userData));
+          if (token) {
+            localStorage.setItem('jwt_token', token);
+          }
           const roles = userData.roles || [];
           const userRole = userData.role || '';
-          if (roles.includes('STUDENT') || roles.includes('ROLE_STUDENT') || userRole === 'STUDENT' || userRole === 'ROLE_STUDENT') {
+          if (roles.includes('STUDENT') || roles.includes('ROLE_STUDENT') || userRole === 'STUDENT' || userRole === 'ROLE_STUDENT' || roles.includes('PARENT') || roles.includes('ROLE_PARENT') || userRole === 'PARENT' || userRole === 'ROLE_PARENT') {
             router.push('/student');
           } else if (roles.includes('TEACHER') || roles.includes('ROLE_TEACHER') || userRole === 'TEACHER' || userRole === 'ROLE_TEACHER') {
             router.push('/teacher');
@@ -204,11 +213,11 @@ export default function LoginPage() {
               </div>
 
               <div className="mb-4">
-                <div aria-label="Sélection du rôle" className="grid grid-cols-3 gap-1 bg-slate-100/80 p-1 rounded-xl text-xs font-semibold text-slate-600" role="tablist">
+                <div aria-label="Sélection du rôle" className="grid grid-cols-4 gap-1 bg-slate-100/80 p-1 rounded-xl text-[11px] font-semibold text-slate-600" role="tablist">
                   <button 
                     onClick={() => { setRole('direction'); form.resetField('email'); form.clearErrors(); }}
                     aria-selected={role === 'direction'} 
-                    className={`py-1.5 px-2 rounded-lg text-center transition ${role === 'direction' ? 'shadow-sm bg-white text-brand-700 font-bold' : 'hover:text-slate-900 text-slate-600'}`} 
+                    className={`py-1.5 px-1 rounded-lg text-center transition ${role === 'direction' ? 'shadow-sm bg-white text-brand-700 font-bold' : 'hover:text-slate-900 text-slate-600'}`} 
                     role="tab" type="button"
                   >
                     Admin
@@ -216,7 +225,7 @@ export default function LoginPage() {
                   <button 
                     onClick={() => { setRole('enseignant'); form.resetField('email'); form.clearErrors(); }}
                     aria-selected={role === 'enseignant'} 
-                    className={`py-1.5 px-2 rounded-lg text-center transition ${role === 'enseignant' ? 'shadow-sm bg-white text-brand-700 font-bold' : 'hover:text-slate-900 text-slate-600'}`} 
+                    className={`py-1.5 px-1 rounded-lg text-center transition ${role === 'enseignant' ? 'shadow-sm bg-white text-brand-700 font-bold' : 'hover:text-slate-900 text-slate-600'}`} 
                     role="tab" type="button"
                   >
                     Enseignant
@@ -224,10 +233,18 @@ export default function LoginPage() {
                   <button 
                     onClick={() => { setRole('etudiant'); form.resetField('email'); form.clearErrors(); }}
                     aria-selected={role === 'etudiant'} 
-                    className={`py-1.5 px-2 rounded-lg text-center transition ${role === 'etudiant' ? 'shadow-sm bg-white text-brand-700 font-bold' : 'hover:text-slate-900 text-slate-600'}`} 
+                    className={`py-1.5 px-1 rounded-lg text-center transition ${role === 'etudiant' ? 'shadow-sm bg-white text-brand-700 font-bold' : 'hover:text-slate-900 text-slate-600'}`} 
                     role="tab" type="button"
                   >
                     Étudiant
+                  </button>
+                  <button 
+                    onClick={() => { setRole('parent'); form.resetField('email'); form.clearErrors(); }}
+                    aria-selected={role === 'parent'} 
+                    className={`py-1.5 px-1 rounded-lg text-center transition ${role === 'parent' ? 'shadow-sm bg-white text-brand-700 font-bold' : 'hover:text-slate-900 text-slate-600'}`} 
+                    role="tab" type="button"
+                  >
+                    Parent
                   </button>
                 </div>
               </div>

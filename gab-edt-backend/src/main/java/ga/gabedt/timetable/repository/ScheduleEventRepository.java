@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import ga.gabedt.timetable.enums.EventStatus;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -16,6 +17,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 public interface ScheduleEventRepository extends JpaRepository<ScheduleEvent, UUID>, JpaSpecificationExecutor<ScheduleEvent> {
     List<ScheduleEvent> findAllByDeletedFalse();
     
+    // Pour le dashboard
+    long countByStatusInAndDeletedFalse(List<EventStatus> statuses);
+    List<ScheduleEvent> findTop5ByDeletedFalseOrderByUpdatedAtDesc();
+
     // Recherche par plage de dates
     List<ScheduleEvent> findByStartAtBetweenAndDeletedFalse(LocalDateTime start, LocalDateTime end);
     

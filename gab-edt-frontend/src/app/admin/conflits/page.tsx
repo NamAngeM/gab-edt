@@ -6,12 +6,24 @@ import { fetchWithAuth } from '@/lib/api';
 export default function ConflictsAdminPage() {
   const [conflicts, setConflicts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [resolvingConflict, setResolvingConflict] = useState<any>(null);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [editData, setEditData] = useState({ roomId: '', teacherId: '', startAt: '', endAt: '' });
+  const [saving, setSaving] = useState(false);
 
-  const loadConflicts = async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const res = await fetchWithAuth('/schedule-events/conflicts');
-      setConflicts(res.data || []);
+      const [resConflicts, resTeachers, resRooms] = await Promise.all([
+        fetchWithAuth('/schedule-events/conflicts'),
+        fetchWithAuth('/teachers').catch(() => ({ data: [] })),
+        fetchWithAuth('/rooms').catch(() => ({ data: [] }))
+      ]);
+      setConflicts(resConflicts.data || []);
+      setTeachers(resTeachers.data || []);
+      setRooms(resRooms.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -20,7 +32,7 @@ export default function ConflictsAdminPage() {
   };
 
   useEffect(() => {
-    loadConflicts();
+    loadData();
   }, []);
 
   const formatDate = (dateString: string) => {
@@ -31,8 +43,45 @@ export default function ConflictsAdminPage() {
     }).format(date);
   };
 
-  const handleResolve = (id: string) => {
-    alert("Ouverture de l'outil de résolution des conflits pour l'événement " + id);
+  const handleResolveClick = (conflict: any) => {
+    setResolvingConflict(conflict);
+    setEditData({
+      roomId: conflict.room?.id || '',
+      teacherId: conflict.teacher?.id || '',
+      startAt: conflict.startAt.slice(0, 16), // datetime-local format
+      endAt: conflict.endAt.slice(0, 16)
+    });
+  };
+
+  const handleSaveResolution = async () => {
+    if (!resolvingConflict) return;
+    setSaving(true);
+    try {
+      // Rebuild the full DTO since PUT replaces everything
+      const dto = {
+        subjectId: resolvingConflict.subject?.id,
+        orgUnitId: resolvingConflict.orgUnitId, // Make sure orgUnitId is present if possible, backend might require it
+        teacherId: editData.teacherId || null,
+        roomId: editData.roomId || null,
+        startAt: editData.startAt + ':00',
+        endAt: editData.endAt + ':00',
+        status: resolvingConflict.status,
+        notes: resolvingConflict.notes
+      };
+      
+      await fetchWithAuth(`/schedule-events/${resolvingConflict.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(dto)
+      });
+      
+      setResolvingConflict(null);
+      await loadData();
+    } catch (e) {
+      console.error(e);
+      alert("Erreur lors de la résolution du conflit.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -50,7 +99,7 @@ export default function ConflictsAdminPage() {
           display: 'flex', alignItems: 'center', gap: '8px',
           background: 'var(--primary)', color: 'white', border: 'none', padding: '10px 16px', 
           borderRadius: '12px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 12px rgba(13, 110, 253, 0.2)' 
-        }} onClick={loadConflicts}>
+        }} onClick={loadData}>
           <span className="material-symbols-outlined" style={{ fontSize: 20 }}>refresh</span>
           Analyser
         </button>
@@ -97,11 +146,85 @@ export default function ConflictsAdminPage() {
               <button style={{ 
                 background: 'var(--surface-container-high)', color: 'var(--text-primary)', border: '1px solid var(--border)', 
                 padding: '8px 16px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' 
-              }} onClick={() => handleResolve(conflict.id)}>
+              }} onClick={() => handleResolveClick(conflict)}>
                 Résoudre
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {resolvingConflict && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '16px', width: '500px', maxWidth: '90vw' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '16px' }}>Résolution du conflit</h2>
+            <div style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: '12px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px', fontWeight: 500 }}>
+              {resolvingConflict.conflictDetails}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px', color: 'var(--text-secondary)' }}>Enseignant</label>
+                <select 
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-container)' }}
+                  value={editData.teacherId} 
+                  onChange={e => setEditData({...editData, teacherId: e.target.value})}
+                >
+                  <option value="">-- Non assigné --</option>
+                  {teachers.map(t => <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px', color: 'var(--text-secondary)' }}>Salle</label>
+                <select 
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-container)' }}
+                  value={editData.roomId} 
+                  onChange={e => setEditData({...editData, roomId: e.target.value})}
+                >
+                  <option value="">-- Non assignée --</option>
+                  {rooms.map(r => <option key={r.id} value={r.id}>{r.name} ({r.capacity} places)</option>)}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px', color: 'var(--text-secondary)' }}>Début</label>
+                  <input 
+                    type="datetime-local" 
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-container)' }}
+                    value={editData.startAt} 
+                    onChange={e => setEditData({...editData, startAt: e.target.value})}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px', color: 'var(--text-secondary)' }}>Fin</label>
+                  <input 
+                    type="datetime-local" 
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-container)' }}
+                    value={editData.endAt} 
+                    onChange={e => setEditData({...editData, endAt: e.target.value})}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+              <button 
+                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 600, color: 'var(--text-secondary)' }}
+                onClick={() => setResolvingConflict(null)}
+              >
+                Annuler
+              </button>
+              <button 
+                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer', fontWeight: 600 }}
+                onClick={handleSaveResolution}
+                disabled={saving}
+              >
+                {saving ? 'Sauvegarde...' : 'Appliquer les modifications'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
