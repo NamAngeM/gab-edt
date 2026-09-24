@@ -1,81 +1,130 @@
-"use client";
+﻿"use client";
 
-import React from 'react';
+import React, { useState } from "react";
 
 export default function SettingsPage() {
+  const [maint, setMaint]       = useState(false);
+  const [smtpHost, setSmtpHost] = useState("smtp.gabedt.ga");
+  const [smtpPort, setSmtpPort] = useState("587");
+  const [smtpUser, setSmtpUser] = useState("noreply@gabedt.ga");
+  const [jwtExp,   setJwtExp]   = useState("86400");
+  const [s3Bucket, setS3Bucket] = useState("gabedt-prod-storage");
+  const [saved, setSaved]       = useState(false);
+
+  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 3000); };
+
   return (
-    <div className="animate-fade-in" style={{ paddingBottom: 'var(--space-3xl)' }}>
-      <header style={{ marginBottom: 'var(--space-xl)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="animate-fade-in" style={{ paddingBottom: "var(--space-3xl)" }}>
+      <header style={{ marginBottom: "var(--space-xl)", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 'var(--space-xs)' }}>
-            Paramètres Serveur
-          </h1>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            Configuration de l'infrastructure et intégrations tierces.
-          </p>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "4px" }}>Paramètres Serveur</h1>
+          <p style={{ color: "var(--text-secondary)" }}>Configuration globale de la plateforme GAB-EDT.</p>
         </div>
-        <button className="btn btn-primary">Sauvegarder</button>
+        <button onClick={handleSave} className="btn btn-primary" style={{ display: "flex", alignItems: "center", gap: "6px", background: saved ? "#16A34A" : undefined, border: saved ? "none" : undefined }}>
+          <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>{saved ? "check" : "save"}</span>
+          {saved ? "Sauvegardé !" : "Sauvegarder"}
+        </button>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-lg)' }}>
-        
-        {/* DATABASE SETTINGS */}
-        <div className="card" style={{ padding: 'var(--space-lg)' }}>
-          <h2 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: 'var(--space-lg)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>database</span>
-            Base de données (PostgreSQL)
-          </h2>
-          
-          <div className="form-group" style={{ marginBottom: 'var(--space-md)' }}>
-            <label className="form-label">URL de connexion</label>
-            <input type="text" className="form-input" value="jdbc:postgresql://postgres:5432/gabedt" disabled />
+      {/* Maintenance mode */}
+      <div className="card" style={{ padding: "var(--space-lg)", marginBottom: "var(--space-lg)", border: maint ? "2px solid #DC2626" : "1px solid var(--border)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <h2 style={{ fontSize: "1.05rem", fontWeight: 700, color: maint ? "#DC2626" : "var(--text-primary)", marginBottom: "4px" }}>
+              {maint ? "⚠️ Mode Maintenance ACTIF" : "Mode Maintenance"}
+            </h2>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
+              {maint
+                ? "La plateforme affiche une page de maintenance à tous les utilisateurs sauf les Super Admins."
+                : "Activez pour bloquer temporairement l'accès à tous les utilisateurs non-admins."}
+            </p>
           </div>
-          
-          <div className="form-group" style={{ marginBottom: 'var(--space-md)' }}>
-            <label className="form-label">Utilisateur DB</label>
-            <input type="text" className="form-input" value="gabedt" disabled />
-          </div>
-
-          <button className="btn btn-outline" style={{ width: '100%' }}>Lancer un Backup Manuel</button>
-        </div>
-
-        {/* EXTERNAL APIS */}
-        <div className="card" style={{ padding: 'var(--space-lg)' }}>
-          <h2 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: 'var(--space-lg)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="material-symbols-outlined" style={{ color: 'var(--warning)' }}>key</span>
-            Clés API & Intégrations
-          </h2>
-          
-          <div className="form-group" style={{ marginBottom: 'var(--space-md)' }}>
-            <label className="form-label">Stripe Secret Key (Paiements)</label>
-            <input type="password" className="form-input" defaultValue="sk_test_123456789" />
-          </div>
-          
-          <div className="form-group" style={{ marginBottom: 'var(--space-md)' }}>
-            <label className="form-label">SendGrid API Key (Emails SMTP)</label>
-            <input type="password" className="form-input" defaultValue="SG.xxxxxxxxxxxx" />
-          </div>
-
-          <div className="form-group" style={{ marginBottom: 'var(--space-md)' }}>
-            <label className="form-label">Firebase Server Key (Push Mobile)</label>
-            <input type="password" className="form-input" defaultValue="AAAAxxxxxxx:APA91b..." />
+          <div onClick={() => setMaint(v => !v)} style={{
+            width: 52, height: 28, borderRadius: "99px", cursor: "pointer",
+            background: maint ? "#DC2626" : "var(--surface-container-high)",
+            position: "relative", transition: "background 0.3s", flexShrink: 0
+          }}>
+            <div style={{ width: 22, height: 22, borderRadius: "50%", background: "white", position: "absolute", top: 3, left: maint ? 27 : 3, transition: "left 0.3s", boxShadow: "0 1px 4px rgba(0,0,0,0.3)" }} />
           </div>
         </div>
-        
-        {/* CACHE & PERFORMANCE */}
-        <div className="card" style={{ padding: 'var(--space-lg)' }}>
-          <h2 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: 'var(--space-lg)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="material-symbols-outlined" style={{ color: 'var(--danger)' }}>speed</span>
-            Cache & Performances (Redis)
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '16px' }}>
-            Purgez le cache manuellement si les emplois du temps ne se synchronisent pas correctement sur le réseau.
-          </p>
-          <button className="btn btn-outline" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }}>
-            Purger le cache global Redis
-          </button>
-        </div>
+      </div>
 
+      {/* SMTP */}
+      <div className="card" style={{ padding: "var(--space-lg)", marginBottom: "var(--space-lg)" }}>
+        <h2 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "var(--space-lg)" }}>
+          <span className="material-symbols-outlined" style={{ verticalAlign: "middle", marginRight: "6px", fontSize: "1.1rem" }}>mail</span>
+          Configuration SMTP (Messagerie)
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "var(--space-md)" }}>
+          <div>
+            <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>Serveur SMTP</label>
+            <input type="text" value={smtpHost} onChange={e => setSmtpHost(e.target.value)}
+              style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--background)", color: "var(--text-primary)", fontSize: "0.875rem", outline: "none", boxSizing: "border-box" }} />
+          </div>
+          <div>
+            <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>Port</label>
+            <input type="text" value={smtpPort} onChange={e => setSmtpPort(e.target.value)}
+              style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--background)", color: "var(--text-primary)", fontSize: "0.875rem", outline: "none", boxSizing: "border-box" }} />
+          </div>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>Email expéditeur</label>
+            <input type="email" value={smtpUser} onChange={e => setSmtpUser(e.target.value)}
+              style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--background)", color: "var(--text-primary)", fontSize: "0.875rem", outline: "none", boxSizing: "border-box" }} />
+          </div>
+        </div>
+        <button className="btn btn-outline" style={{ marginTop: "var(--space-md)", display: "flex", alignItems: "center", gap: "6px" }}>
+          <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>send</span>
+          Tester la connexion SMTP
+        </button>
+      </div>
+
+      {/* JWT & Security */}
+      <div className="card" style={{ padding: "var(--space-lg)", marginBottom: "var(--space-lg)" }}>
+        <h2 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "var(--space-lg)" }}>
+          <span className="material-symbols-outlined" style={{ verticalAlign: "middle", marginRight: "6px", fontSize: "1.1rem" }}>security</span>
+          Sécurité & JWT
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)" }}>
+          <div>
+            <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>Durée expiration JWT (secondes)</label>
+            <input type="number" value={jwtExp} onChange={e => setJwtExp(e.target.value)}
+              style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--background)", color: "var(--text-primary)", fontSize: "0.875rem", outline: "none", boxSizing: "border-box" }} />
+            <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px" }}>= {Math.round(Number(jwtExp)/3600)}h · Actuellement : {jwtExp}s</div>
+          </div>
+          <div>
+            <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>Clé secrète JWT</label>
+            <input type="password" value="••••••••••••••••••••••••••••••••"
+              readOnly style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface-container-lowest)", color: "var(--text-muted)", fontSize: "0.875rem", outline: "none", cursor: "not-allowed", boxSizing: "border-box" }} />
+            <div style={{ fontSize: "0.75rem", color: "#B45309", marginTop: "4px" }}>Modifiable uniquement via variable ENV</div>
+          </div>
+        </div>
+      </div>
+
+      {/* S3 / Storage */}
+      <div className="card" style={{ padding: "var(--space-lg)" }}>
+        <h2 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "var(--space-lg)" }}>
+          <span className="material-symbols-outlined" style={{ verticalAlign: "middle", marginRight: "6px", fontSize: "1.1rem" }}>cloud_upload</span>
+          Stockage Fichiers (S3 / Object Storage)
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)" }}>
+          <div>
+            <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>Nom du bucket</label>
+            <input type="text" value={s3Bucket} onChange={e => setS3Bucket(e.target.value)}
+              style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--background)", color: "var(--text-primary)", fontSize: "0.875rem", outline: "none", boxSizing: "border-box" }} />
+          </div>
+          <div>
+            <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>Région</label>
+            <select style={{ width: "100%", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--background)", color: "var(--text-primary)", fontSize: "0.875rem", outline: "none", boxSizing: "border-box" }}>
+              <option>af-south-1 (Afrique du Sud)</option>
+              <option>eu-west-3 (Paris)</option>
+              <option>us-east-1 (USA)</option>
+            </select>
+          </div>
+        </div>
+        <div style={{ marginTop: "var(--space-md)", padding: "12px 16px", borderRadius: "10px", background: "#F0FDF4", border: "1px solid #86EFAC", display: "flex", alignItems: "center", gap: "10px" }}>
+          <span className="material-symbols-outlined" style={{ color: "#16A34A" }}>check_circle</span>
+          <span style={{ fontSize: "0.875rem", color: "#15803D", fontWeight: 500 }}>Connexion au bucket S3 : opérationnelle (latence : 42ms)</span>
+        </div>
       </div>
     </div>
   );
