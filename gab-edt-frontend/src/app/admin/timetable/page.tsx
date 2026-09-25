@@ -43,7 +43,8 @@ const formatWeekRange = (monday: Date, sunday: Date) => {
   return `${monday.getDate()}–${sunday.getDate()} ${months[monday.getMonth()]}`;
 };
 
-export default function TimetablePage() {
+export default function TimetablePage({ searchParams }: { searchParams?: { tv?: string } }) {
+  const isTvMode = searchParams?.tv === 'true';
   const hours = Array.from({ length: 16 }, (_, i) => i + 6); // 6 à 21
 
   const [isMounted, setIsMounted] = useState(false);
@@ -303,6 +304,7 @@ export default function TimetablePage() {
   return (
     <div className={styles.container}>
       {/* ---------------- PANNEAU GAUCHE ---------------- */}
+      {!isTvMode && (
       <aside className={styles.sidebar}>
         {/* MINI CALENDRIER */}
         <div style={{ padding: 'var(--space-lg)', borderBottom: '1px solid var(--border)' }}>
@@ -400,10 +402,12 @@ export default function TimetablePage() {
           </div>
         </div>
       </aside>
+      )}
 
       {/* ---------------- ESPACE PRINCIPAL ---------------- */}
       <main className={styles.mainArea}>
         {/* TOP TOOLBAR */}
+        {!isTvMode && (
         <div className={styles.toolbar}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', background: 'var(--surface-container-low)', padding: '2px', borderRadius: '8px', border: '1px solid var(--border)' }}>
@@ -432,6 +436,17 @@ export default function TimetablePage() {
             </button>
           </div>
         </div>
+        )}
+
+        {/* TV HEADER INSTEAD OF TOOLBAR */}
+        {isTvMode && (
+          <div style={{ padding: '16px 24px', background: 'var(--surface)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800 }}>Emploi du temps - Campus Central</h1>
+            <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--primary)' }}>
+              Semaine du {formatWeekRange(weekDays[0].date, weekDays[6].date)}
+            </div>
+          </div>
+        )}
 
         {/* TIMETABLE SCROLL AREA */}
         <div className={styles.scrollArea}>
