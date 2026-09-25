@@ -23,8 +23,9 @@ const navSections: NavSection[] = [
     items: [
       { label: 'Tableau de bord', icon: 'space_dashboard', href: '/admin' },
       { label: 'Emploi du temps', icon: 'calendar_month', href: '/admin/timetable' },
+      { label: 'Réservations & Salles', icon: 'event_seat', href: '/admin/reservations', badge: 3 },
       { label: 'Cours & Séances', icon: 'auto_stories', href: '/admin/cours' },
-      { label: 'Conflits', icon: 'warning', href: '/admin/conflits', badge: 3 },
+      { label: 'Conflits', icon: 'warning', href: '/admin/conflits', badge: 1 },
     ],
   },
   {
