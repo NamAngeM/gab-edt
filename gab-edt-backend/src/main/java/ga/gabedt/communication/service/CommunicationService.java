@@ -32,11 +32,17 @@ public class CommunicationService {
 
     public List<AnnouncementDto> getAllAnnouncements() {
         return announcementRepository.findByDeletedFalseOrderByCreatedAtDesc().stream()
-                .map(a -> new AnnouncementDto(
-                        a.getId(), a.getTitle(), a.getContent(), a.getTargetAudience(),
-                        a.getValidUntil(), a.getAuthor().getFirstName() + " " + a.getAuthor().getLastName(),
-                        a.getCreatedAt()
-                )).collect(Collectors.toList());
+                .map(a -> {
+                    String authorName = "Système";
+                    if (a.getAuthor() != null) {
+                        authorName = a.getAuthor().getFirstName() + " " + a.getAuthor().getLastName();
+                    }
+                    return new AnnouncementDto(
+                            a.getId(), a.getTitle(), a.getContent(), a.getTargetAudience(),
+                            a.getValidUntil(), authorName,
+                            a.getCreatedAt()
+                    );
+                }).collect(Collectors.toList());
     }
 
     @Transactional

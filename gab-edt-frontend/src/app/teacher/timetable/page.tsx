@@ -49,7 +49,7 @@ const formatWeekRange = (monday: Date, sunday: Date) => {
 };
 
 export default function TeacherTimetablePage() {
-  const hours = Array.from({ length: 15 }, (_, i) => i + 6); // 6 à 20
+  const hours = Array.from({ length: 16 }, (_, i) => i + 6); // 6 à 21
 
   const [isMounted, setIsMounted] = useState(false);
   const [events, setEvents] = useState<UIMockupEvent[]>([]);
