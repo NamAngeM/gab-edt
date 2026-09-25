@@ -206,11 +206,56 @@ export default function ExportPage() {
                 </div>
               </CardContent>
               <CardFooter className="flex gap-3 border-t pt-6 bg-slate-50/50 dark:bg-slate-900/20">
-                <Button className="flex-1 shadow-sm" variant="default">
+                <Button 
+                  className="flex-1 shadow-sm" 
+                  variant="default"
+                  onClick={async () => {
+                    try {
+                      // Fetch the PDF using the token (replace with your actual auth token logic)
+                      const token = localStorage.getItem('token') || '';
+                      const res = await fetch('http://localhost:8080/api/v1/schedule-events/export/pdf?startDate=2024-09-02&endDate=2024-09-08', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                      });
+                      if (!res.ok) throw new Error('Export failed');
+                      const blob = await res.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'emploi_du_temps.pdf';
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                    } catch (e) {
+                      console.error(e);
+                      alert("Erreur lors de l'export PDF");
+                    }
+                  }}
+                >
                   <FileText className="w-4 h-4 mr-2" />
                   Générer PDF
                 </Button>
-                <Button className="flex-1 shadow-sm" variant="outline">
+                <Button 
+                  className="flex-1 shadow-sm" 
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      const token = localStorage.getItem('token') || '';
+                      const res = await fetch('http://localhost:8080/api/v1/schedule-events/export/excel?startDate=2024-09-02&endDate=2024-09-08', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                      });
+                      if (!res.ok) throw new Error('Export failed');
+                      const blob = await res.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'emploi_du_temps.xlsx';
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                    } catch (e) {
+                      console.error(e);
+                      alert("Erreur lors de l'export Excel");
+                    }
+                  }}
+                >
                   <FileSpreadsheet className="w-4 h-4 mr-2 text-emerald-600" />
                   Export Excel
                 </Button>
