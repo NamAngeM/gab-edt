@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -146,6 +146,94 @@ export default function TeacherDashboard() {
             </span>
           </div>
         </Link>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-lg)", marginTop: "var(--space-md)" }}>
+        {/* Progression Volume Horaire */}
+        <div className="card" style={{ padding: "var(--space-lg)" }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>monitoring</span>
+              Suivi du Volume Horaire
+            </h3>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Semestre 1</span>
+          </div>
+          
+          <div style={{ marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+              <span style={{ fontWeight: 500 }}>Mathématiques Avancées</span>
+              <span style={{ color: 'var(--primary)', fontWeight: 600 }}>32h / 40h</span>
+            </div>
+            <div style={{ width: '100%', height: '8px', background: 'var(--surface-container-high)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: '80%', height: '100%', background: 'var(--primary)', borderRadius: '4px' }}></div>
+            </div>
+          </div>
+
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+              <span style={{ fontWeight: 500 }}>Algorithmique 101</span>
+              <span style={{ color: '#16A34A', fontWeight: 600 }}>12h / 20h</span>
+            </div>
+            <div style={{ width: '100%', height: '8px', background: 'var(--surface-container-high)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: '60%', height: '100%', background: '#16A34A', borderRadius: '4px' }}></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Alerte Urgence */}
+        <div className="card" style={{ padding: "var(--space-lg)", background: "#FEF2F2", border: "1px solid #FECACA" }}>
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#991B1B", display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
+            <span className="material-symbols-outlined">campaign</span>
+            Alerte d'urgence
+          </h3>
+          <p style={{ fontSize: "0.9rem", color: "#7F1D1D", marginBottom: "1.5rem", lineHeight: 1.5 }}>
+            Utilisez ces boutons si vous êtes bloqué ou absent en dernière minute. Cela avertira immédiatement l'administration et notifiera vos étudiants.
+          </p>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button 
+              onClick={() => {
+                alert("Une notification Push a été envoyée à vos étudiants : 'Votre professeur a signalé un retard d'environ 15 minutes.'");
+              }}
+              style={{
+                flex: 1,
+                background: "#EF4444",
+                color: "white",
+                border: "none",
+                padding: "10px",
+                borderRadius: "var(--radius)",
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 6
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>schedule</span>
+              Retard (15 min)
+            </button>
+            <button 
+              onClick={() => {
+                alert("L'administration a été notifiée et le cours a été marqué comme annulé pour vos élèves.");
+              }}
+              style={{
+                flex: 1,
+                background: "transparent",
+                color: "#991B1B",
+                border: "1px solid #F87171",
+                padding: "10px",
+                borderRadius: "var(--radius)",
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 6
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>cancel</span>
+              Cours Annulé
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ── TODAY'S COURSES ── */}

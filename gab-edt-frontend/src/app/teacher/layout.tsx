@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -10,6 +10,7 @@ const navItems = [
   { label: "Mon Planning",     icon: "calendar_month",  href: "/teacher/timetable" },
   { label: "Mes Classes",      icon: "groups",           href: "/teacher/evaluations" },
   { label: "Appels & Présences", icon: "checklist",     href: "/teacher/attendance" },
+  { label: "Demandes de Salle", icon: "forum",           href: "/teacher/requests" },
   { label: "Paramètres",       icon: "settings",         href: "/teacher/settings" },
 ];
 
