@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-[#050914] text-slate-100 antialiased" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GAB-EDT TV | Campus Central - Affichage Dynamique</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Font Awesome Icons for TV legibility -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
+<script data-purpose="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            midnight: '#050914',
+            surface: {
+              900: '#0b1326',
+              800: '#101c38',
+              700: '#17274e',
+              border: '#1f3568'
+            },
+            accent: {
+              blue: '#2563eb',
+              sky: '#38bdf8',
+              emerald: '#10b981',
+              amber: '#f59e0b'
+            }
+          },
+          fontFamily: {
+            display: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'monospace']
+          },
+          boxShadow: {
+            'glow-blue': '0 0 25px -5px rgba(37, 99, 235, 0.45)',
+            'glow-emerald': '0 0 20px -4px rgba(16, 185, 129, 0.4)',
+            'glow-subtle': '0 10px 30px -10px rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }
+    };
+  </script>
+<!-- Custom Base & Ambient Styles -->
+<style data-purpose="typography">
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow: hidden; /* Optimized for standard 16:9 full-screen television kiosks */
+    }
+    .font-digital {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+<style data-purpose="animations">
+    @keyframes pulse-live {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.92); }
+    }
+    .animate-live-dot {
+      animation: pulse-live 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes subtle-marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+    .animate-marquee-slow {
+      display: inline-flex;
+      animation: subtle-marquee 45s linear infinite;
+    }
+    .animate-marquee-slow:hover {
+      animation-play-state: paused;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between bg-[#060b17] text-slate-100 select-none p-5 lg:p-7 2xl:p-9 overflow-hidden">
+<!-- BEGIN: TopHeader -->
+<header class="w-full pb-4 border-b border-surface-border/60 flex items-center justify-between shrink-0" data-purpose="kiosk-header">
+<!-- Left: Branding & Campus Location -->
+<div class="flex items-center gap-5">
+<!-- High Contrast Logo Icon -->
+<div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-600/30 ring-1 ring-white/20">
+<i class="fa-regular fa-calendar-days text-white text-3xl"></i>
+</div>
+<div>
+<div class="flex items-center gap-3">
+<h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-white flex items-center">
+            GAB-EDT <span class="ml-2 text-sky-400 font-black text-2xl lg:text-3xl tracking-widest bg-blue-500/10 px-2.5 py-0.5 rounded-lg border border-sky-400/30">TV</span>
+</h1>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-live-dot"></span>
+            En Direct
+          </span>
+</div>
+<!-- Sub-tag location with geolocation icon -->
+<p class="text-slate-400 text-sm lg:text-base font-semibold tracking-wider flex items-center gap-2 mt-1">
+<i class="fa-solid fa-location-dot text-sky-400"></i>
+<span>CAMPUS CENTRAL • HALL PRINCIPAL DES AMPHIS</span>
+</p>
+</div>
+</div>
+<!-- Center: Academic Notification / Status Chip -->
+<div class="hidden xl:flex items-center gap-3 bg-surface-900/90 border border-surface-border px-5 py-2.5 rounded-2xl shadow-inner backdrop-blur-md">
+<div class="w-2.5 h-2.5 rounded-full bg-sky-400"></div>
+<span class="text-sm font-medium text-slate-300">
+        Semaine 38 • <strong class="text-white font-semibold">Contrôles Continus en cours</strong>
+</span>
+<span class="text-slate-600">|</span>
+<span class="text-xs text-sky-400 font-mono bg-sky-950/60 px-2 py-0.5 rounded border border-sky-800/50 flex items-center gap-1">
+<i class="fa-solid fa-wifi text-[10px]"></i> Wi-Fi Campus OK
+      </span>
+</div>
+<!-- Right: High Visibility Broadcast Clock & Date -->
+<div class="text-right flex flex-col items-end">
+<div class="font-digital text-4xl lg:text-5xl 2xl:text-6xl font-black text-sky-400 tracking-tight drop-shadow-[0_0_18px_rgba(56,189,248,0.35)] leading-none" id="liveClock">
+        20:11:17
+      </div>
+<div class="text-slate-300 font-medium text-base lg:text-lg tracking-wide capitalize mt-1.5 flex items-center gap-2" id="liveDate">
+<i class="fa-regular fa-clock text-sky-400/80 text-sm"></i>
+<span>Vendredi 25 Septembre 2026</span>
+</div>
+</div>
+</header>
+<!-- END: TopHeader -->
+<!-- BEGIN: MainContentGrid -->
+<main class="w-full flex-1 grid grid-cols-12 gap-6 lg:gap-8 my-5 min-h-0 items-stretch" data-purpose="schedule-dashboard-split">
+<!-- LEFT COLUMN: Cours En Cours (Wide View ~62%) -->
+<section class="col-span-12 lg:col-span-7 xl:col-span-7 flex flex-col min-h-0 bg-surface-900/60 rounded-3xl p-5 lg:p-6 border border-surface-border/80 backdrop-blur-md shadow-2xl relative overflow-hidden" data-purpose="current-classes-column">
+<!-- Glow decoration in corner -->
+<div class="absolute -top-20 -left-20 w-60 h-60 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Column Title Bar -->
+<div class="flex items-center justify-between pb-4 mb-3 border-b border-surface-border/50 shrink-0">
+<div class="flex items-center gap-3">
+<span class="w-3.5 h-3.5 rounded-full bg-rose-500 animate-live-dot shadow-lg shadow-rose-500/50"></span>
+<h2 class="text-xl lg:text-2xl font-black uppercase tracking-wider text-white flex items-center gap-2">
+            Cours En Cours
+          </h2>
+</div>
+<span class="text-xs uppercase tracking-widest text-slate-400 font-bold bg-surface-800 px-3 py-1 rounded-full border border-surface-border">
+          4 Séances Actives
+        </span>
+</div>
+<!-- Scrollable or Fixed Card Stack for TV Viewport -->
+<div class="flex-1 flex flex-col justify-between gap-3.5 min-h-0 overflow-hidden">
+<!-- Card 1: Amphi A -->
+<article class="flex items-stretch bg-surface-800/90 rounded-2xl border border-blue-500/30 overflow-hidden shadow-lg hover:border-blue-400/50 transition-all duration-200" data-purpose="class-card">
+<!-- Room Identifier Block -->
+<div class="w-32 lg:w-40 bg-gradient-to-br from-blue-600 to-blue-700 flex flex-col items-center justify-center p-3 text-center shrink-0 border-r border-blue-400/30 relative">
+<span class="text-white text-xl lg:text-2xl font-black tracking-tight leading-none drop-shadow-sm">Amphi A</span>
+<span class="mt-2 text-[11px] font-extrabold uppercase px-2.5 py-0.5 bg-blue-950/70 text-blue-200 rounded-md border border-blue-300/30 tracking-wider">
+              CM Magistral
+            </span>
+</div>
+<!-- Course Details & Timing -->
+<div class="flex-1 p-3.5 lg:p-4.5 flex flex-col justify-between">
+<div class="flex items-start justify-between gap-4">
+<div>
+<h3 class="text-xl lg:text-2xl font-bold text-white tracking-normal leading-tight">Algorithmie Avancée</h3>
+<p class="text-slate-400 text-sm lg:text-base font-medium mt-0.5 flex items-center gap-2">
+<i class="fa-solid fa-chalkboard-user text-sky-400 text-xs"></i>
+                  Dr. Dupont • <span class="text-slate-400 text-xs">Master 1 Informatique</span>
+</p>
+</div>
+<div class="text-right shrink-0">
+<span class="font-digital text-2xl lg:text-3xl font-extrabold text-white tracking-tight">08:00 - 10:00</span>
+<div class="text-emerald-400 text-xs font-bold tracking-wide flex items-center justify-end gap-1 mt-0.5">
+<i class="fa-regular fa-hourglass-half text-[11px]"></i>
+<span>Fin dans 20 min</span>
+</div>
+</div>
+</div>
+<!-- Progress Bar Tracker -->
+<div class="mt-2.5">
+<div class="w-full bg-slate-900/80 rounded-full h-2 overflow-hidden border border-slate-700/50 p-0.5">
+<div class="bg-gradient-to-r from-blue-500 via-sky-400 to-emerald-400 h-full rounded-full transition-all duration-1000" style="width: 80%"></div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 2: Salle 102 -->
+<article class="flex items-stretch bg-surface-800/90 rounded-2xl border border-surface-border overflow-hidden shadow-lg hover:border-blue-400/50 transition-all duration-200" data-purpose="class-card">
+<div class="w-32 lg:w-40 bg-gradient-to-br from-blue-700 to-indigo-800 flex flex-col items-center justify-center p-3 text-center shrink-0 border-r border-indigo-400/30">
+<span class="text-white text-xl lg:text-2xl font-black tracking-tight leading-none">Salle 102</span>
+<span class="mt-2 text-[11px] font-extrabold uppercase px-2.5 py-0.5 bg-indigo-950/70 text-indigo-200 rounded-md border border-indigo-300/30 tracking-wider">
+              TD Dirigé
+            </span>
+</div>
+<div class="flex-1 p-3.5 lg:p-4.5 flex flex-col justify-between">
+<div class="flex items-start justify-between gap-4">
+<div>
+<h3 class="text-xl lg:text-2xl font-bold text-white tracking-normal leading-tight">Bases de Données &amp; SQL</h3>
+<p class="text-slate-400 text-sm lg:text-base font-medium mt-0.5 flex items-center gap-2">
+<i class="fa-solid fa-chalkboard-user text-sky-400 text-xs"></i>
+                  Mme. Martin • <span class="text-slate-400 text-xs">Licence 2 Informatique</span>
+</p>
+</div>
+<div class="text-right shrink-0">
+<span class="font-digital text-2xl lg:text-3xl font-extrabold text-white tracking-tight">08:30 - 10:30</span>
+<div class="text-emerald-400 text-xs font-bold tracking-wide flex items-center justify-end gap-1 mt-0.5">
+<i class="fa-regular fa-hourglass-half text-[11px]"></i>
+<span>Fin dans 45 min</span>
+</div>
+</div>
+</div>
+<!-- Progress Bar Tracker -->
+<div class="mt-2.5">
+<div class="w-full bg-slate-900/80 rounded-full h-2 overflow-hidden border border-slate-700/50 p-0.5">
+<div class="bg-gradient-to-r from-blue-500 to-sky-400 h-full rounded-full transition-all duration-1000" style="width: 55%"></div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 3: Labo Cisco -->
+<article class="flex items-stretch bg-surface-800/90 rounded-2xl border border-surface-border overflow-hidden shadow-lg hover:border-blue-400/50 transition-all duration-200" data-purpose="class-card">
+<div class="w-32 lg:w-40 bg-gradient-to-br from-indigo-700 to-sky-700 flex flex-col items-center justify-center p-3 text-center shrink-0 border-r border-sky-400/30">
+<span class="text-white text-xl lg:text-2xl font-black tracking-tight leading-none">Labo Cisco</span>
+<span class="mt-2 text-[11px] font-extrabold uppercase px-2.5 py-0.5 bg-slate-950/70 text-sky-200 rounded-md border border-sky-300/30 tracking-wider">
+              TP Pratique
+            </span>
+</div>
+<div class="flex-1 p-3.5 lg:p-4.5 flex flex-col justify-between">
+<div class="flex items-start justify-between gap-4">
+<div>
+<h3 class="text-xl lg:text-2xl font-bold text-white tracking-normal leading-tight">Réseaux &amp; Télécoms (Routage OSPF)</h3>
+<p class="text-slate-400 text-sm lg:text-base font-medium mt-0.5 flex items-center gap-2">
+<i class="fa-solid fa-chalkboard-user text-sky-400 text-xs"></i>
+                  M. Bernard • <span class="text-slate-400 text-xs">Licence Pro RT</span>
+</p>
+</div>
+<div class="text-right shrink-0">
+<span class="font-digital text-2xl lg:text-3xl font-extrabold text-white tracking-tight">09:00 - 12:00</span>
+<div class="text-sky-400 text-xs font-bold tracking-wide flex items-center justify-end gap-1 mt-0.5">
+<i class="fa-regular fa-hourglass-half text-[11px]"></i>
+<span>Fin dans 1h30</span>
+</div>
+</div>
+</div>
+<!-- Progress Bar Tracker -->
+<div class="mt-2.5">
+<div class="w-full bg-slate-900/80 rounded-full h-2 overflow-hidden border border-slate-700/50 p-0.5">
+<div class="bg-gradient-to-r from-blue-500 to-indigo-400 h-full rounded-full transition-all duration-1000" style="width: 35%"></div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 4: Amphi C -->
+<article class="flex items-stretch bg-surface-800/90 rounded-2xl border border-surface-border overflow-hidden shadow-lg hover:border-blue-400/50 transition-all duration-200" data-purpose="class-card">
+<div class="w-32 lg:w-40 bg-gradient-to-br from-slate-700 to-slate-800 flex flex-col items-center justify-center p-3 text-center shrink-0 border-r border-slate-500/30">
+<span class="text-white text-xl lg:text-2xl font-black tracking-tight leading-none">Amphi C</span>
+<span class="mt-2 text-[11px] font-extrabold uppercase px-2.5 py-0.5 bg-slate-950/70 text-slate-300 rounded-md border border-slate-400/30 tracking-wider">
+              Conférence
+            </span>
+</div>
+<div class="flex-1 p-3.5 lg:p-4.5 flex flex-col justify-between">
+<div class="flex items-start justify-between gap-4">
+<div>
+<h3 class="text-xl lg:text-2xl font-bold text-white tracking-normal leading-tight">Droit du Numérique &amp; RGPD</h3>
+<p class="text-slate-400 text-sm lg:text-base font-medium mt-0.5 flex items-center gap-2">
+<i class="fa-solid fa-chalkboard-user text-sky-400 text-xs"></i>
+                  Pr. Ndong • <span class="text-slate-400 text-xs">Tronc Commun L3</span>
+</p>
+</div>
+<div class="text-right shrink-0">
+<span class="font-digital text-2xl lg:text-3xl font-extrabold text-white tracking-tight">08:00 - 10:00</span>
+<div class="text-amber-400 text-xs font-bold tracking-wide flex items-center justify-end gap-1 mt-0.5">
+<i class="fa-solid fa-bell text-[11px]"></i>
+<span>Termine bientôt</span>
+</div>
+</div>
+</div>
+<!-- Progress Bar Tracker -->
+<div class="mt-2.5">
+<div class="w-full bg-slate-900/80 rounded-full h-2 overflow-hidden border border-slate-700/50 p-0.5">
+<div class="bg-gradient-to-r from-amber-500 to-rose-400 h-full rounded-full transition-all duration-1000" style="width: 90%"></div>
+</div>
+</div>
+</div>
+</article>
+</div>
+</section>
+<!-- RIGHT COLUMN: À Venir (Next Sessions ~38%) -->
+<section class="col-span-12 lg:col-span-5 xl:col-span-5 flex flex-col min-h-0 bg-surface-900/60 rounded-3xl p-5 lg:p-6 border border-surface-border/80 backdrop-blur-md shadow-2xl relative overflow-hidden" data-purpose="upcoming-classes-column">
+<!-- Ambient Glow Decorator -->
+<div class="absolute -bottom-20 -right-20 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Column Title Bar -->
+<div class="flex items-center justify-between pb-4 mb-3 border-b border-surface-border/50 shrink-0">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+<i class="fa-regular fa-clock text-base"></i>
+</div>
+<h2 class="text-xl lg:text-2xl font-black uppercase tracking-wider text-white">
+            À Venir
+          </h2>
+</div>
+<span class="text-xs uppercase tracking-widest text-emerald-400 font-bold bg-emerald-950/40 border border-emerald-500/30 px-3 py-1 rounded-full">
+          Prochainement
+        </span>
+</div>
+<!-- Upcoming Sessions List -->
+<div class="flex-1 flex flex-col justify-between gap-3 min-h-0 overflow-hidden">
+<!-- Upcoming Item 1 (Imminent) -->
+<article class="p-3.5 lg:p-4 rounded-2xl bg-surface-800/80 border-l-4 border-l-emerald-400 border border-surface-border/80 shadow-md relative group" data-purpose="upcoming-item">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<span class="text-lg lg:text-xl font-extrabold text-white">Amphi B</span>
+<span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-900/50 text-emerald-300 border border-emerald-500/30">
+                Dans 15 min
+              </span>
+</div>
+<span class="font-digital text-xl lg:text-2xl font-bold text-emerald-400">10:15</span>
+</div>
+<h4 class="text-lg lg:text-xl font-bold text-slate-100 mt-1">Mathématiques Discrètes</h4>
+<div class="flex items-center justify-between mt-1 text-slate-400 text-xs lg:text-sm">
+<span class="flex items-center gap-1.5">
+<i class="fa-solid fa-user-tie text-emerald-400/80"></i> Dr. Simon
+            </span>
+<span class="text-emerald-400 font-medium text-xs flex items-center gap-1">
+<i class="fa-solid fa-door-open"></i> Salle prête
+            </span>
+</div>
+</article>
+<!-- Upcoming Item 2 -->
+<article class="p-3.5 lg:p-4 rounded-2xl bg-surface-800/80 border-l-4 border-l-sky-400 border border-surface-border/80 shadow-md" data-purpose="upcoming-item">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<span class="text-lg lg:text-xl font-extrabold text-white">Salle 204</span>
+<span class="text-xs font-semibold px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-600/30">
+                TP Dev
+              </span>
+</div>
+<span class="font-digital text-xl lg:text-2xl font-bold text-sky-400">10:45</span>
+</div>
+<h4 class="text-lg lg:text-xl font-bold text-slate-100 mt-1">Développement Web &amp; Mobile</h4>
+<div class="flex items-center justify-between mt-1 text-slate-400 text-xs lg:text-sm">
+<span class="flex items-center gap-1.5">
+<i class="fa-solid fa-user-tie text-sky-400/80"></i> Mme. Petit
+            </span>
+<span class="text-slate-400 font-medium text-xs">Accès dès 10:35</span>
+</div>
+</article>
+<!-- Upcoming Item 3 -->
+<article class="p-3.5 lg:p-4 rounded-2xl bg-surface-800/80 border-l-4 border-l-indigo-400 border border-surface-border/80 shadow-md" data-purpose="upcoming-item">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<span class="text-lg lg:text-xl font-extrabold text-white">Amphi A</span>
+<span class="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-500/30">
+                CM IA
+              </span>
+</div>
+<span class="font-digital text-xl lg:text-2xl font-bold text-indigo-400">13:30</span>
+</div>
+<h4 class="text-lg lg:text-xl font-bold text-slate-100 mt-1">Intelligence Artificielle &amp; Data</h4>
+<div class="flex items-center justify-between mt-1 text-slate-400 text-xs lg:text-sm">
+<span class="flex items-center gap-1.5">
+<i class="fa-solid fa-user-tie text-indigo-400/80"></i> Dr. Ondo
+            </span>
+<span class="text-slate-400 font-medium text-xs">Après-midi</span>
+</div>
+</article>
+<!-- Upcoming Item 4 -->
+<article class="p-3.5 lg:p-4 rounded-2xl bg-surface-800/80 border-l-4 border-l-purple-400 border border-surface-border/80 shadow-md" data-purpose="upcoming-item">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<span class="text-lg lg:text-xl font-extrabold text-white">Salle 108</span>
+<span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-500/30">
+                TD Projet
+              </span>
+</div>
+<span class="font-digital text-xl lg:text-2xl font-bold text-purple-400">14:00</span>
+</div>
+<h4 class="text-lg lg:text-xl font-bold text-slate-100 mt-1">Génie Logiciel &amp; Méthodes Agiles</h4>
+<div class="flex items-center justify-between mt-1 text-slate-400 text-xs lg:text-sm">
+<span class="flex items-center gap-1.5">
+<i class="fa-solid fa-user-tie text-purple-400/80"></i> M. Koumba
+            </span>
+<span class="text-slate-400 font-medium text-xs">Équipe projet B</span>
+</div>
+</article>
+</div>
+</section>
+</main>
+<!-- END: MainContentGrid -->
+<!-- BEGIN: CampusMarqueeBar -->
+<footer class="w-full shrink-0 bg-surface-900/90 border border-surface-border/70 rounded-2xl p-3 flex items-center gap-4 overflow-hidden backdrop-blur-md shadow-lg" data-purpose="bottom-broadcast-ticker">
+<!-- Ticker Label -->
+<div class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs uppercase tracking-widest shrink-0 shadow-md">
+<i class="fa-solid fa-bullhorn text-xs"></i>
+<span>Infos Campus</span>
+</div>
+<!-- Scrolling Marquee Text -->
+<div class="relative overflow-hidden w-full whitespace-nowrap flex-1 text-sm font-medium text-slate-300">
+<div class="animate-marquee-slow flex items-center gap-12">
+<span class="flex items-center gap-2">
+<span class="text-emerald-400 font-semibold">• Taux d'occupation des salles : 85%</span>
+<span class="text-slate-400">(Salles disponibles libres : Amphi D, Salle 105, Labo Électronique 2)</span>
+</span>
+<span class="flex items-center gap-2">
+<i class="fa-solid fa-qrcode text-sky-400"></i>
+<span class="text-white font-semibold">Émargement numérique :</span>
+<span>Scannez obligatoirement le QR Code affiché à la porte de chaque salle via l'app GAB-EDT</span>
+</span>
+<span class="flex items-center gap-2">
+<i class="fa-solid fa-book-open-reader text-purple-400"></i>
+<span>Bibliothèque Universitaire ouverte en nocturne jusqu'à 22h00 pour les révisions</span>
+</span>
+<span class="flex items-center gap-2">
+<i class="fa-solid fa-shield-halved text-amber-400"></i>
+<span>Pensez à porter vos badges étudiants de façon visible dans les espaces d'examen</span>
+</span>
+</div>
+</div>
+<!-- Live Sync Status Indicator -->
+<div class="hidden sm:flex items-center gap-2 px-3 py-1 bg-surface-800 rounded-lg border border-surface-border shrink-0 text-xs text-slate-400">
+<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+<span class="font-mono">Sync: Serveur Académique (20:11)</span>
+</div>
+</footer>
+<!-- END: CampusMarqueeBar -->
+<!-- BEGIN: DigitalClockScript -->
+<script data-purpose="live-clock">
+    // Keep digital clock live in accurate French TV format
+    function updateClock() {
+      const now = new Date();
+      
+      // Hours, minutes, seconds formatting (HH:MM:SS)
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      
+      const clockElement = document.getElementById('liveClock');
+      if (clockElement) {
+        clockElement.textContent = `${hours}:${minutes}:${seconds}`;
+      }
+
+      // Format date in French (e.g., "Vendredi 25 Septembre 2026")
+      const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      const formattedDate = now.toLocaleDateString('fr-FR', options);
+      const dateElement = document.getElementById('liveDate');
+      if (dateElement) {
+        // Capitalize first letter of day
+        dateElement.innerHTML = `<i class="fa-regular fa-clock text-sky-400/80 text-sm"></i><span>${formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1)}</span>`;
+      }
+    }
+
+    // Initialize clock immediately and run every second
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+<!-- END: DigitalClockScript -->
+</body></html>
