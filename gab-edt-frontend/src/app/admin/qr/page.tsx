@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { fetchWithAuth } from '@/lib/api';
+import { fetchWithAuth, extractArray } from '@/lib/api';
 
 export default function QrPage() {
   const [includeLogo, setIncludeLogo] = useState(true);
@@ -19,7 +19,10 @@ export default function QrPage() {
 
   useEffect(() => {
     fetchWithAuth('/rooms')
-      .then(res => setRooms(res.data || []))
+      .then(res => {
+        const arr = extractArray(res);
+        setRooms(Array.isArray(arr) ? arr : []);
+      })
       .catch(console.error);
   }, []);
 
