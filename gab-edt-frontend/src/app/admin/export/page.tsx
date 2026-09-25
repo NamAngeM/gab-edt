@@ -13,6 +13,12 @@ import { DatePicker } from "@/components/ui/date-picker";
 export default function ExportPage() {
   const [activeTab, setActiveTab] = useState<'TV' | 'PDF'>('TV');
 
+  const kioskUrl = `/tv/display?b=CAMPUS_CENTRAL&f=ALL&t=DARK`;
+
+  const handlePreview = () => {
+    window.open(kioskUrl, '_blank');
+  };
+
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
       <div>
@@ -114,13 +120,13 @@ export default function ExportPage() {
                 <div className="w-full space-y-2">
                   <Label>Lien généré (Kiosk URL)</Label>
                   <div className="flex gap-2">
-                    <Input readOnly value="https://gab-edt.local/tv/display?b=CAMPUS_CENTRAL&f=ALL&t=DARK" className="bg-white dark:bg-slate-950 font-mono text-xs text-slate-500" />
-                    <Button variant="secondary" size="icon" title="Copier le lien">
+                    <Input readOnly value={`http://localhost:3000${kioskUrl}`} className="bg-white dark:bg-slate-950 font-mono text-xs text-slate-500" />
+                    <Button variant="secondary" size="icon" title="Copier le lien" onClick={() => navigator.clipboard.writeText(`http://localhost:3000${kioskUrl}`)}>
                       <Copy className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
-                <Button className="w-full mt-2" variant="default">
+                <Button className="w-full mt-2" variant="default" onClick={handlePreview}>
                   <MonitorPlay className="w-4 h-4 mr-2" />
                   Lancer l'aperçu Plein Écran
                 </Button>
