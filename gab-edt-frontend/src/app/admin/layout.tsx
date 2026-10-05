@@ -28,8 +28,9 @@ const navSections: NavSection[] = [
     items: [
       { label: 'Tableau de bord', icon: 'space_dashboard', href: '/admin' },
       { label: 'Emploi du temps', icon: 'calendar_month', href: '/admin/timetable' },
-      { label: 'Cours & Séances', icon: 'auto_stories', href: '/admin/cours' },
+      { label: 'Enseignements', icon: 'auto_stories', href: '/admin/enseignements' },
       { label: 'Conflits', icon: 'warning', href: '/admin/conflits' },
+      { label: 'Rattrapages', icon: 'event_repeat', href: '/admin/rattrapages' },
       { label: 'Réservations & Salles', icon: 'event_seat', href: '/admin/reservations', preview: true },
     ],
   },
@@ -83,7 +84,6 @@ const navSections: NavSection[] = [
     label: 'Pilotage',
     items: [
       { label: 'Statistiques', icon: 'bar_chart', href: '/admin/stats' },
-      { label: 'Cartographie', icon: 'hub', href: '/admin/map' },
     ],
   },
   {

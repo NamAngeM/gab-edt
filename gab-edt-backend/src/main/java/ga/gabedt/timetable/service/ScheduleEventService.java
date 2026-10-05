@@ -279,7 +279,10 @@ public class ScheduleEventService {
                 event.getDelayMinutes(),
                 null,
                 null,
-                false
+                false,
+                event.getCourse() != null ? event.getCourse().getId() : null,
+                event.getMakeUpOf() != null ? event.getMakeUpOf().getId() : null,
+                event.getNotes()
         );
     }
 
@@ -292,6 +295,9 @@ public class ScheduleEventService {
         List<ScheduleEventDto> conflicts = new java.util.ArrayList<>();
         
         for (ScheduleEvent event : upcomingEvents) {
+            if (event.getStatus() == ga.gabedt.timetable.enums.EventStatus.CANCELLED) {
+                continue; // une séance annulée n'occupe plus son créneau
+            }
             boolean isRoomConflict = event.getRoom() != null && 
                 scheduleEventRepository.existsOverlappingForRoomWithExclude(event.getRoom().getId(), event.getStartAt(), event.getEndAt(), event.getId());
             
@@ -317,6 +323,7 @@ public class ScheduleEventService {
 
     @Transactional
     public ScheduleEventDto createEvent(ScheduleEventCreateDto dto) {
+        ScheduleEvent makeUpOf = dto.getMakeUpOfId() != null ? resolveMakeUpOriginal(dto) : null;
         validateNoConflict(dto.getTeacherId(), dto.getRoomId(), dto.getOrgUnitId(), dto.getStartAt(), dto.getEndAt(), null);
 
         // Find existing course or create one
@@ -365,9 +372,10 @@ public class ScheduleEventService {
         event.setStatus(dto.getStatus() != null ? dto.getStatus() : ga.gabedt.timetable.enums.EventStatus.SCHEDULED);
         event.setPublicationStatus(ga.gabedt.timetable.enums.PublicationStatus.DRAFT);
         event.setNotes(dto.getNotes());
-        
+        event.setMakeUpOf(makeUpOf);
+
         ScheduleEvent savedEvent = scheduleEventRepository.save(event);
-        
+
         // Notification temps-réel
         notificationService.sendAdminAlert(
             "Emploi du temps mis à jour",
@@ -539,6 +547,40 @@ public class ScheduleEventService {
         }
 
         return canceledCount;
+    }
+
+    /**
+     * Séance annulée à rattraper : doit être annulée, pas encore rattrapée, et la classe
+     * déclarée doit être la sienne (le contrôle de droits porte sur cette classe).
+     * Le rattrapage reprend la matière, l'enseignant et la classe de la séance d'origine.
+     */
+    private ScheduleEvent resolveMakeUpOriginal(ScheduleEventCreateDto dto) {
+        ScheduleEvent original = scheduleEventRepository.findById(dto.getMakeUpOfId())
+                .filter(e -> !e.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("Séance à rattraper introuvable"));
+        if (original.getStatus() != ga.gabedt.timetable.enums.EventStatus.CANCELLED) {
+            throw new ga.gabedt.common.exception.BusinessConflictException("NOT_CANCELLED", "Seule une séance annulée peut être rattrapée");
+        }
+        if (scheduleEventRepository.hasActiveMakeUp(original.getId())) {
+            throw new ga.gabedt.common.exception.BusinessConflictException("ALREADY_MADE_UP", "Cette séance a déjà un rattrapage");
+        }
+        if (!original.getOrgUnit().getId().equals(dto.getOrgUnitId())) {
+            throw new IllegalArgumentException("La classe du rattrapage doit être celle de la séance annulée");
+        }
+        Course course = original.getCourse();
+        dto.setSubjectId(course.getSubject().getId());
+        dto.setTeacherId(course.getTeacher().getId());
+        dto.setOrgUnitId(course.getOrgUnit().getId());
+        return original;
+    }
+
+    /** Séances annulées encore sans rattrapage, pour la file « Rattrapages ». */
+    public List<ScheduleEventDto> getEventsToMakeUp(UUID orgUnitId, UUID teacherId) {
+        return scheduleEventRepository.findCancelledWithoutMakeUp().stream()
+                .filter(e -> orgUnitId == null || e.getOrgUnit().getId().equals(orgUnitId))
+                .filter(e -> teacherId == null || e.getTeacher().getId().equals(teacherId))
+                .map(this::mapToDto)
+                .toList();
     }
 
     private void validateNoConflict(UUID teacherId, UUID roomId, UUID orgUnitId, LocalDateTime start, LocalDateTime end, UUID excludeId) {

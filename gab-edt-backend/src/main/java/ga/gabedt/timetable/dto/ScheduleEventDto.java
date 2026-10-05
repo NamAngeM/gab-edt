@@ -31,4 +31,10 @@ public class ScheduleEventDto {
     private UUID homeworkId;
     private String homeworkTitle;
     private boolean isHomeworkDone;
+
+    /** Enseignement auquel appartient la séance. */
+    private UUID courseId;
+    /** Séance annulée que celle-ci rattrape (null sinon). */
+    private UUID makeUpOfId;
+    private String notes;
 }

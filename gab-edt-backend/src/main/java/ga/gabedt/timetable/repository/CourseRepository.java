@@ -11,6 +11,8 @@ import java.util.UUID;
 @Repository
 public interface CourseRepository extends JpaRepository<Course, UUID> {
     List<Course> findAllByDeletedFalse();
+
+    List<Course> findByTeacherIdAndOrgUnitIdAndDeletedFalse(UUID teacherId, UUID orgUnitId);
     List<Course> findByTeacherIdAndDeletedFalse(UUID teacherId);
     List<Course> findByOrgUnitIdAndDeletedFalse(UUID orgUnitId);
     

@@ -96,6 +96,15 @@ public class ScheduleEventController {
         return ResponseEntity.ok(ApiResponse.success(count + " cours annulés avec succès.", null));
     }
 
+    /** Séances annulées à rattraper (grèves, absences, coupures…). */
+    @GetMapping("/to-make-up")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PEDAGOGICAL_MANAGER')")
+    public ResponseEntity<ApiResponse<List<ScheduleEventDto>>> getEventsToMakeUp(
+            @RequestParam(required = false) UUID orgUnitId,
+            @RequestParam(required = false) UUID teacherId) {
+        return ResponseEntity.ok(ApiResponse.success(scheduleEventService.getEventsToMakeUp(orgUnitId, teacherId)));
+    }
+
     @PutMapping("/publish")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PEDAGOGICAL_MANAGER') and @securityAclService.canManage(#orgUnitId)")
     public ResponseEntity<ApiResponse<Integer>> publishEvents(

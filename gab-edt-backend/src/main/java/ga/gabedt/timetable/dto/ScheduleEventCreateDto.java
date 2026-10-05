@@ -31,4 +31,10 @@ public class ScheduleEventCreateDto {
 
     private EventStatus status;
     private String notes;
+
+    /**
+     * Rattrapage : identifiant de la séance annulée à rattraper. La matière, l'enseignant
+     * et la classe sont alors ceux de la séance d'origine.
+     */
+    private UUID makeUpOfId;
 }

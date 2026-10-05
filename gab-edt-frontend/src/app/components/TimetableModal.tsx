@@ -23,6 +23,8 @@ interface TimetableModalProps {
   existingEvent?: any;
   defaultTime?: { start: Date, end: Date };
   orgUnits: any[];
+  /** Rattrapage : séance annulée à rattraper (matière, enseignant et classe imposés) */
+  makeUpOf?: any;
 }
 
 const scheduleSchema = z.object({
@@ -39,8 +41,9 @@ const scheduleSchema = z.object({
 type ScheduleFormValues = z.infer<typeof scheduleSchema>;
 
 export const TimetableModal: React.FC<TimetableModalProps> = ({ 
-  isOpen, onClose, onSave, existingEvent, defaultTime, orgUnits 
+  isOpen, onClose, onSave, existingEvent, defaultTime, orgUnits, makeUpOf
 }) => {
+  const locked = !!makeUpOf;
   const [subjects, setSubjects] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [rooms, setRooms] = useState<any[]>([]);
@@ -82,7 +85,19 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
       loadResources();
       setServerError('');
       
-      if (existingEvent) {
+      if (makeUpOf) {
+        // Même durée que la séance annulée, à placer sur un nouveau créneau
+        form.reset({
+          subjectId: makeUpOf.subject?.id || '',
+          teacherId: makeUpOf.teacher?.id || '',
+          roomId: makeUpOf.room?.id || 'none',
+          orgUnitId: makeUpOf.group?.id || '',
+          startAt: makeUpOf.startAt.slice(0, 16),
+          endAt: makeUpOf.endAt.slice(0, 16),
+          status: 'SCHEDULED',
+          notes: 'Rattrapage'
+        });
+      } else if (existingEvent) {
         form.reset({
           subjectId: existingEvent.subject?.id || '',
           teacherId: existingEvent.teacher?.id || '',
@@ -123,7 +138,8 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
         ...data,
         startAt: data.startAt,
         endAt: data.endAt,
-        roomId: (data.roomId === 'none' || !data.roomId) ? null : data.roomId
+        roomId: (data.roomId === 'none' || !data.roomId) ? null : data.roomId,
+        ...(makeUpOf ? { makeUpOfId: makeUpOf.id } : {})
       };
 
       // Les conflits (salle, enseignant, classe) et les refus de droits remontent avec un message explicite
@@ -140,7 +156,7 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
       <DialogContent className="sm:max-w-[500px] font-plus-jakarta">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-slate-900">
-            {existingEvent ? 'Modifier le cours' : 'Planifier un cours'}
+            {makeUpOf ? 'Planifier le rattrapage' : existingEvent ? 'Modifier le cours' : 'Planifier un cours'}
           </DialogTitle>
         </DialogHeader>
 
@@ -149,6 +165,13 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
             <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <span>{serverError}</span>
           </div>
+        )}
+
+        {makeUpOf && (
+          <p className="text-sm text-slate-600 bg-amber-50 border border-amber-100 rounded-lg p-3">
+            Séance annulée du {new Date(makeUpOf.startAt).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} :
+            choisissez le nouveau créneau et la salle.
+          </p>
         )}
 
         <Form {...form}>
@@ -160,7 +183,7 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Matière *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined} disabled={locked}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="-- Sélectionner une matière --" />
@@ -183,7 +206,7 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Enseignant *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined} disabled={locked}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="-- Sélectionner un enseignant --" />
@@ -206,7 +229,7 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Groupe / Classe ciblée *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined} disabled={locked}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="-- Sélectionner une classe --" />

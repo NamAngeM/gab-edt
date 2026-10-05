@@ -63,4 +63,9 @@ public class ScheduleEvent extends TenantAwareEntity {
 
     @Column(name = "delay_minutes")
     private Integer delayMinutes = 0;
+
+    /** Séance annulée que celle-ci rattrape (null pour une séance ordinaire). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "make_up_of_id")
+    private ScheduleEvent makeUpOf;
 }

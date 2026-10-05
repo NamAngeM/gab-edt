@@ -32,4 +32,11 @@ public class Course extends TenantAwareEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "org_unit_id", nullable = false)
     private OrganizationalUnit orgUnit;
+
+    /**
+     * Volume horaire prévu pour cet enseignement (heures sur l'année ou la période),
+     * base du suivi prévu / réalisé / à rattraper. Null si non renseigné.
+     */
+    @Column(name = "planned_hours")
+    private Double plannedHours;
 }

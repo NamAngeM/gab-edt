@@ -41,7 +41,7 @@ describe('TeacherDashboard', () => {
   });
 
   it('renders teacher schedule after loading', async () => {
-    (fetchWithAuth as jest.Mock).mockResolvedValue({
+    const schedule = {
       data: [
         {
           id: '1',
@@ -62,7 +62,15 @@ describe('TeacherDashboard', () => {
           endAt: '2023-10-10T16:00:00Z',
         }
       ]
-    });
+    };
+    const teachingHours = {
+      data: [{
+        id: 'c1', subject: { name: 'Mécanique' }, group: { name: 'Terminale C' },
+        plannedHours: 40, doneHours: 10, scheduledHours: 20, toMakeUpHours: 2,
+      }],
+    };
+    (fetchWithAuth as jest.Mock).mockImplementation((url: string) =>
+      Promise.resolve(url.startsWith('/courses/mine') ? teachingHours : schedule));
 
     render(<TeacherDashboard />);
 
@@ -75,6 +83,11 @@ describe('TeacherDashboard', () => {
     expect(screen.getByText('Salle TD')).toBeInTheDocument();
     expect(screen.getByText('Groupe A')).toBeInTheDocument();
     expect(screen.getByText('Groupe B')).toBeInTheDocument();
+
+    // Volume horaire réel (et non plus des chiffres codés en dur)
+    expect(await screen.findByText('Mécanique — Terminale C')).toBeInTheDocument();
+    expect(screen.getByText('10 h / 40 h')).toBeInTheDocument();
+    expect(screen.getByText('2 h à rattraper')).toBeInTheDocument();
   });
 
   it('handles empty events gracefully', async () => {

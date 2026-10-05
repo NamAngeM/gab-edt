@@ -21,6 +21,7 @@ interface UIMockupEvent {
   extraInfo?: string;
   isConflict?: boolean;
   isDraft?: boolean;
+  isMakeUp?: boolean;
   conflictDetails?: string;
 }
 
@@ -133,6 +134,7 @@ export default function TimetablePage() {
           isConflict: evt.status === 'CANCELLED',
           conflictDetails: evt.status === 'CANCELLED' ? 'Annulé' : '',
           isDraft: evt.publicationStatus !== 'PUBLISHED',
+          isMakeUp: !!evt.makeUpOfId,
           rawEvent: evt // Keep the original API event for editing
         };
       });
@@ -563,6 +565,10 @@ export default function TimetablePage() {
                               {evt.isConflict ? (
                                 <span className={styles.eventBadge} style={{ background: 'var(--badge-bg)', color: 'var(--badge-text)' }}>
                                   ANNULÉ
+                                </span>
+                              ) : evt.isMakeUp ? (
+                                <span className={styles.eventBadge} style={{ background: '#EDE9FE', color: '#6D28D9' }} title={evt.isDraft ? 'Rattrapage non publié' : 'Rattrapage'}>
+                                  RATTRAPAGE
                                 </span>
                               ) : evt.isDraft ? (
                                 <span className={styles.eventBadge} style={{ background: 'var(--warning-bg, #FFFBEB)', color: 'var(--warning, #B45309)' }} title="Non publié : invisible pour les élèves et les enseignants">
