@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { fetchWithAuth, API_URL } from '@/lib/api';
+import { fetchWithAuth } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -82,12 +82,7 @@ export default function OrganisationAdminPage() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette unité ? (Les sous-unités pourraient être affectées)')) return;
     
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const response = await fetch(`${API_URL}/org-units/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!response.ok) throw new Error('Erreur de suppression');
+      await fetchWithAuth(`/org-units/${id}`, { method: 'DELETE' });
       toast.success('Unité supprimée avec succès.');
       loadData();
     } catch (err) {
@@ -99,21 +94,16 @@ export default function OrganisationAdminPage() {
     setModalError('');
     
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      let url = `${API_URL}/org-units`;
+      let url = `/org-units`;
       let method = 'POST';
-      
+
       if (modalMode === 'EDIT') {
-        url = `${API_URL}/org-units/${data.id}`;
+        url = `/org-units/${data.id}`;
         method = 'PUT';
       }
 
-      const response = await fetch(url, {
+      await fetchWithAuth(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify({
           name: data.name,
           type: data.type,
@@ -121,9 +111,7 @@ export default function OrganisationAdminPage() {
           institutionId: data.institutionId
         })
       });
-      
-      if (!response.ok) throw new Error('Erreur API');
-      
+
       setIsModalOpen(false);
       toast.success(modalMode === 'CREATE' ? 'Unité créée avec succès.' : 'Unité modifiée avec succès.');
       loadData();

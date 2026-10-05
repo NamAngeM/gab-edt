@@ -1,5 +1,6 @@
 package ga.gabedt.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -15,16 +16,15 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
+    /** Origines autorisées, séparées par des virgules (variable CORS_ALLOWED_ORIGINS en production). */
+    @Value("${app.cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000}")
+    private List<String> allowedOrigins;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Origines autorisées — à restreindre en production
-        configuration.setAllowedOrigins(List.of(
-                "http://localhost:3000",    // Next.js dev server
-                "http://localhost:8080",    // Backend local
-                "http://127.0.0.1:3000"
-        ));
+        configuration.setAllowedOrigins(allowedOrigins);
 
         // Méthodes HTTP autorisées
         configuration.setAllowedMethods(List.of(
@@ -38,7 +38,7 @@ public class CorsConfig {
                 "Accept",
                 "Origin",
                 "X-Requested-With",
-                "X-Tenant-Id"
+                "X-Tenant-ID" // pris en compte uniquement pour un SUPER_ADMIN
         ));
 
         // Headers exposés dans la réponse

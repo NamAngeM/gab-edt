@@ -9,4 +9,6 @@ import java.util.UUID;
 @Repository
 public interface HomeworkStatusRepository extends JpaRepository<HomeworkStatus, UUID> {
     Optional<HomeworkStatus> findByHomeworkIdAndStudentIdAndDeletedFalse(UUID homeworkId, UUID studentId);
+
+    java.util.List<HomeworkStatus> findByStudentIdAndHomeworkIdInAndDeletedFalse(UUID studentId, java.util.Collection<UUID> homeworkIds);
 }

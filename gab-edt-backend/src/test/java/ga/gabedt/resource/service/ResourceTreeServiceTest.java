@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 class ResourceTreeServiceTest {
 
     @Mock
-    private InstitutionRepository institutionRepository;
+    private ga.gabedt.tenant.CurrentTenant currentTenant;
 
     @Mock
     private OrganizationalUnitRepository organizationalUnitRepository;
@@ -60,12 +60,10 @@ class ResourceTreeServiceTest {
     }
 
     @Test
-    void getResourceTree_ShouldReturnEmptyTree_WhenNoInstitution() {
-        when(institutionRepository.findAll()).thenReturn(List.of());
+    void getResourceTree_ShouldFail_WhenNoInstitutionInContext() {
+        when(currentTenant.requireInstitution()).thenThrow(new ga.gabedt.common.exception.UnauthorizedAccessException("Aucun établissement"));
 
-        ResourceTreeDto result = resourceTreeService.getResourceTree();
-
-        assertNull(result.getInstitution());
+        assertThrows(ga.gabedt.common.exception.UnauthorizedAccessException.class, () -> resourceTreeService.getResourceTree());
     }
 
     @Test
@@ -82,7 +80,7 @@ class ResourceTreeServiceTest {
         room.setId(UUID.randomUUID());
         room.setName("A101");
 
-        when(institutionRepository.findAll()).thenReturn(List.of(institution));
+        when(currentTenant.requireInstitution()).thenReturn(institution);
         when(organizationalUnitRepository.findByInstitutionIdAndParentIsNull(institution.getId())).thenReturn(List.of(orgUnit));
         when(teacherRepository.findByOrgUnits_IdAndDeletedFalse(orgUnit.getId())).thenReturn(List.of(teacher));
         when(roomRepository.findByOrgUnitIdAndDeletedFalse(orgUnit.getId())).thenReturn(List.of(room));

@@ -37,13 +37,26 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
+  # SMTP (réinitialisation de mot de passe, notifications)
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+# Derrière un reverse proxy HTTPS (Nginx/Traefik) : prise en compte de X-Forwarded-*
+server:
+  forward-headers-strategy: framework
+
 # Logging — production
+# Logs sur la sortie standard (collectés par Docker / l'hébergeur)
 logging:
   level:
     root: WARN
     ga.gabedt: INFO
-  file:
-    name: logs/gab-edt.log
 
 # Swagger désactivé en production
 springdoc:
@@ -58,3 +71,8 @@ management:
     web:
       exposure:
         include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true

@@ -1,20 +1,16 @@
 package ga.gabedt;
 
+import ga.gabedt.support.AbstractPostgresIntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 /**
- * Smoke test — Vérifie que le contexte Spring Boot se charge correctement.
+ * Smoke test — le contexte démarre sur PostgreSQL : migrations Flyway appliquées
+ * et schéma validé par Hibernate (ddl-auto: validate), comme en production.
  */
-@org.junit.jupiter.api.Disabled("Skipped because Docker TestContainers is not running in CI")
-@SpringBootTest
-@ActiveProfiles("test")
-class GabEdtApplicationTests {
+class GabEdtApplicationTests extends AbstractPostgresIntegrationTest {
 
     @Test
     void contextLoads() {
-        // Le contexte Spring doit se charger sans erreur
+        // Échoue si une table ou une colonne manque dans les migrations
     }
-
 }

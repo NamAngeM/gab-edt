@@ -24,6 +24,7 @@ public class RoomController {
     private final RoomService service;
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Page<RoomAdminDto>>> findAll(
             @RequestParam(required = false) UUID orgUnitId,
             @RequestParam(required = false) String search,
@@ -33,6 +34,7 @@ public class RoomController {
     }
 
     @GetMapping("/available")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PEDAGOGICAL_MANAGER', 'TEACHER')")
     public ResponseEntity<ApiResponse<List<RoomAdminDto>>> findAvailable(
             @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime start,
             @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime end) {
@@ -40,6 +42,7 @@ public class RoomController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<RoomAdminDto>> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(service.findById(id)));
     }
@@ -64,21 +67,21 @@ public class RoomController {
     }
 
     @PostMapping("/bulk-delete")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> bulkDelete(@RequestBody List<UUID> ids) {
         service.bulkDelete(ids);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PostMapping("/bulk-status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> bulkUpdateStatus(@RequestBody BulkStatusDto dto) {
         service.bulkUpdateStatus(dto.getIds(), dto.isActive());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PostMapping(value = "/import-csv", consumes = "multipart/form-data")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN')")
     public ResponseEntity<ApiResponse<Integer>> importCsv(@RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(ApiResponse.success(service.importCsv(file)));
     }

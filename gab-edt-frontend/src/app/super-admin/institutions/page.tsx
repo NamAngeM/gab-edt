@@ -1,138 +1,129 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { fetchWithAuth } from '@/lib/api';
 
-// Mock data
-const initialMockInstitutions = [
-  { id: 1, name: 'Université Omar Bongo', code: 'UOB', type: 'UNIVERSITY', city: 'Libreville', users: 1240, status: 'active', joined: '2025-01-15' },
-  { id: 2, name: 'Lycée National Léon Mba', code: 'LNLM', type: 'LYCEE', city: 'Libreville', users: 850, status: 'active', joined: '2025-02-10' },
-  { id: 3, name: 'Institut Supérieur de Technologie', code: 'IST', type: 'GRANDE_ECOLE', city: 'Owendo', users: 430, status: 'warning', joined: '2025-03-22' },
-  { id: 4, name: 'Collège Bessieux', code: 'CB', type: 'COLLEGE', city: 'Libreville', users: 620, status: 'suspended', joined: '2024-11-05' },
-];
+interface Institution {
+  id: string;
+  name: string;
+  code: string;
+  type: string;
+  city?: string;
+  active: boolean;
+  createdAt?: string;
+}
 
-const PREMIUM_FEATURES = [
-  { id: 'sms_alerts', name: 'Alertes SMS Parents', desc: 'Envoi automatique de SMS aux parents en cas d\'absence.' },
-  { id: 'ai_scheduler', name: 'Générateur IA', desc: 'Création optimisée des emplois du temps par intelligence artificielle.' },
-  { id: 'api_access', name: 'Accès API & Webhooks', desc: 'Intégration avec des logiciels de comptabilité externes.' },
-  { id: 'digital_workspace', name: 'Espace Numérique Étudiant', desc: 'Portail web et mobile complet pour les élèves et étudiants.' },
-];
+const TYPE_LABELS: Record<string, string> = {
+  UNIVERSITY: 'Université',
+  GRANDE_ECOLE: 'Grande école',
+  LYCEE: 'Lycée',
+  COLLEGE: 'Collège',
+};
+
+const EMPTY_FORM = {
+  name: '',
+  code: '',
+  type: 'LYCEE',
+  city: '',
+  adminFirstName: '',
+  adminLastName: '',
+  adminEmail: '',
+  adminPassword: '',
+};
 
 export default function InstitutionsPage() {
-  const router = useRouter();
-  
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [institutions, setInstitutions] = useState(initialMockInstitutions);
-  
-  // Modals state
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isFeatureModalOpen, setIsFeatureModalOpen] = useState(false);
-  const [selectedInst, setSelectedInst] = useState<any>(null);
-  
-  // Feature Toggles State (Simulated per institution)
-  const [featureFlags, setFeatureFlags] = useState<Record<string, boolean>>({
-    sms_alerts: true,
-    ai_scheduler: false,
-    api_access: false,
-    digital_workspace: true,
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [formError, setFormError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  // Form state
-  const [formData, setFormData] = useState({
-    name: '',
-    code: '',
-    type: 'LYCEE',
-    city: ''
-  });
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await fetchWithAuth('/institutions');
+      setInstitutions(Array.isArray(data) ? data : []);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Chargement impossible.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const handleAddInstitution = (e: React.FormEvent) => {
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const handleAddInstitution = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newInstitution = {
-      id: institutions.length + 1,
-      name: formData.name,
-      code: formData.code,
-      type: formData.type,
-      city: formData.city,
-      users: 0,
-      status: 'active',
-      joined: new Date().toISOString().split('T')[0]
-    };
-    setInstitutions([newInstitution, ...institutions]);
-    setIsModalOpen(false);
-    setFormData({ name: '', code: '', type: 'LYCEE', city: '' });
+    setFormError('');
+    setSubmitting(true);
+    try {
+      await fetchWithAuth('/institutions', { method: 'POST', body: JSON.stringify(formData) });
+      toast.success(`Établissement créé. L'administrateur peut se connecter avec ${formData.adminEmail}.`);
+      setIsModalOpen(false);
+      setFormData(EMPTY_FORM);
+      void load();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Création impossible.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleMagicLogin = (inst: any) => {
-    // 1. We mock the login process by overriding the user_data in localStorage
-    // 2. The admin layout will pick this up and display the school name!
-    const mockUser = {
-      firstName: inst.name,
-      lastName: '(Admin)',
-      role: 'SCHOOL_ADMIN',
-      tenantId: inst.id,
-      tenantType: inst.type
-    };
-    localStorage.setItem('user_data', JSON.stringify(mockUser));
-    
-    // Redirect to the school admin dashboard
-    router.push('/admin');
+  const toggleActive = async (inst: Institution) => {
+    const action = inst.active ? 'suspendre' : 'réactiver';
+    if (!confirm(`Voulez-vous ${action} « ${inst.name} » ? ${inst.active ? 'Ses utilisateurs ne pourront plus se connecter.' : ''}`)) return;
+    try {
+      await fetchWithAuth(`/institutions/${inst.id}/active?value=${!inst.active}`, { method: 'PUT' });
+      toast.success(inst.active ? 'Établissement suspendu.' : 'Établissement réactivé.');
+      void load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Action impossible.');
+    }
   };
 
-  const openFeatures = (inst: any) => {
-    setSelectedInst(inst);
-    // In a real app, we would fetch the flags for this specific tenant from the DB
-    setIsFeatureModalOpen(true);
-  };
+  const visible = institutions.filter((i) =>
+    (i.name.toLowerCase().includes(searchTerm.toLowerCase()) || (i.code || '').toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (statusFilter === 'all' || (statusFilter === 'active') === i.active)
+  );
 
-  const toggleFeature = (featureId: string) => {
-    setFeatureFlags(prev => ({
-      ...prev,
-      [featureId]: !prev[featureId]
-    }));
-  };
+  const field = (key: keyof typeof EMPTY_FORM) => ({
+    value: formData[key],
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setFormData({ ...formData, [key]: e.target.value }),
+  });
 
   return (
     <div className="animate-fade-in" style={{ paddingBottom: 'var(--space-3xl)' }}>
-      <header style={{ marginBottom: 'var(--space-xl)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header style={{ marginBottom: 'var(--space-xl)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-md)' }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 'var(--space-xs)' }}>
-            Gestion des Établissements
+            Établissements clients
           </h1>
           <p style={{ color: 'var(--text-secondary)' }}>
-            Ajoutez, configurez et suspendez les établissements clients de la plateforme.
+            Créez un établissement avec son premier administrateur, ou suspendez son accès.
           </p>
         </div>
-        <button 
-          className="btn btn-primary" 
-          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-          onClick={() => setIsModalOpen(true)}
-        >
+        <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setIsModalOpen(true)}>
           <span className="material-symbols-outlined">add</span>
-          Nouvel Établissement
+          Nouvel établissement
         </button>
       </header>
 
       <div className="card">
-        <div style={{ padding: 'var(--space-lg)', borderBottom: '1px solid var(--border)', display: 'flex', gap: 'var(--space-md)' }}>
-          <div className="topbar-search" style={{ margin: 0, flex: 1, background: 'var(--background)' }}>
+        <div style={{ padding: 'var(--space-lg)', borderBottom: '1px solid var(--border)', display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
+          <div className="topbar-search" style={{ margin: 0, flex: 1, minWidth: 200, background: 'var(--background)' }}>
             <span className="material-symbols-outlined topbar-search-icon">search</span>
-            <input 
-              type="text" 
-              placeholder="Rechercher par nom ou code..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <input type="text" placeholder="Rechercher par nom ou code..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
-          <select className="form-input" style={{ width: '200px' }}>
-            <option>Tous les types</option>
-            <option>Université</option>
-            <option>Lycée</option>
-            <option>Collège</option>
-          </select>
-          <select className="form-input" style={{ width: '150px' }}>
-            <option>Tous statuts</option>
-            <option>Actif</option>
-            <option>Suspendu</option>
+          <select className="form-input" style={{ width: '170px' }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}>
+            <option value="all">Tous statuts</option>
+            <option value="active">Actifs</option>
+            <option value="suspended">Suspendus</option>
           </select>
         </div>
 
@@ -142,65 +133,48 @@ export default function InstitutionsPage() {
               <tr style={{ background: 'var(--surface-container-lowest)', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
                 <th style={{ padding: 'var(--space-md) var(--space-lg)', fontWeight: 500 }}>Établissement</th>
                 <th style={{ padding: 'var(--space-md) var(--space-lg)', fontWeight: 500 }}>Type</th>
-                <th style={{ padding: 'var(--space-md) var(--space-lg)', fontWeight: 500 }}>Utilisateurs</th>
                 <th style={{ padding: 'var(--space-md) var(--space-lg)', fontWeight: 500 }}>Statut</th>
-                <th style={{ padding: 'var(--space-md) var(--space-lg)', fontWeight: 500, textAlign: 'right' }}>Actions Avancées</th>
+                <th style={{ padding: 'var(--space-md) var(--space-lg)', fontWeight: 500, textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {institutions.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase())).map((inst) => (
-                <tr key={inst.id} style={{ borderBottom: '1px solid var(--border)' }} className="hover:bg-slate-50 transition-colors">
+              {visible.map((inst) => (
+                <tr key={inst.id} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: 'var(--space-md) var(--space-lg)' }}>
                     <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{inst.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Code: {inst.code} • Ville: {inst.city}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Code : {inst.code}{inst.city ? ` • ${inst.city}` : ''}
+                    </div>
+                  </td>
+                  <td style={{ padding: 'var(--space-md) var(--space-lg)', color: 'var(--text-secondary)' }}>
+                    {TYPE_LABELS[inst.type] ?? inst.type}
                   </td>
                   <td style={{ padding: 'var(--space-md) var(--space-lg)' }}>
-                    <span style={{ 
-                      background: inst.type === 'UNIVERSITY' ? '#F3E8FF' : inst.type === 'LYCEE' ? '#E0F2FE' : '#FEF3C7', 
-                      color: inst.type === 'UNIVERSITY' ? '#7E22CE' : inst.type === 'LYCEE' ? '#0369A1' : '#B45309', 
-                      padding: '4px 10px', 
-                      borderRadius: 'var(--radius-full)', 
-                      fontSize: '0.75rem', 
-                      fontWeight: 600 
-                    }}>
-                      {inst.type}
-                    </span>
+                    {inst.active ? (
+                      <span style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.875rem' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>check_circle</span> Actif
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.875rem' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>block</span> Suspendu
+                      </span>
+                    )}
                   </td>
-                  <td style={{ padding: 'var(--space-md) var(--space-lg)', color: 'var(--text-secondary)', fontWeight: 500 }}>
-                    {inst.users.toLocaleString()}
-                  </td>
-                  <td style={{ padding: 'var(--space-md) var(--space-lg)' }}>
-                    {inst.status === 'active' && <span style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.875rem' }}><span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>check_circle</span> Actif</span>}
-                    {inst.status === 'warning' && <span style={{ color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.875rem' }}><span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>warning</span> Limite atteinte</span>}
-                    {inst.status === 'suspended' && <span style={{ color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.875rem' }}><span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>block</span> Suspendu</span>}
-                  </td>
-                  <td style={{ padding: 'var(--space-md) var(--space-lg)', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                    <button 
-                      className="btn btn-outline" 
-                      style={{ padding: '6px', color: 'var(--info)' }} 
-                      title="Gérer les modules (Feature Flagging)"
-                      onClick={() => openFeatures(inst)}
+                  <td style={{ padding: 'var(--space-md) var(--space-lg)', textAlign: 'right' }}>
+                    <button
+                      className="btn btn-outline"
+                      style={{ padding: '6px 10px', color: inst.active ? 'var(--danger)' : 'var(--success)' }}
+                      onClick={() => toggleActive(inst)}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: '1.125rem' }}>extension</span>
-                    </button>
-                    <button 
-                      className="btn btn-outline" 
-                      style={{ padding: '6px', color: '#7E22CE', borderColor: '#E9D5FF', background: '#FAF5FF' }} 
-                      title="Se connecter en tant que... (Magic Login)"
-                      onClick={() => handleMagicLogin(inst)}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '1.125rem' }}>login</span>
-                    </button>
-                    <button className="btn btn-outline" style={{ padding: '6px', color: 'var(--danger)', borderColor: 'var(--danger-bg)' }} title="Suspendre l'établissement">
-                      <span className="material-symbols-outlined" style={{ fontSize: '1.125rem' }}>lock</span>
+                      {inst.active ? 'Suspendre' : 'Réactiver'}
                     </button>
                   </td>
                 </tr>
               ))}
-              {institutions.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+              {!loading && visible.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    Aucun établissement trouvé.
+                  <td colSpan={4} style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    Aucun établissement. Créez le premier avec « Nouvel établissement ».
                   </td>
                 </tr>
               )}
@@ -209,114 +183,67 @@ export default function InstitutionsPage() {
         </div>
       </div>
 
-      {/* MODAL FEATURE FLAGGING */}
-      {isFeatureModalOpen && selectedInst && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
-        }}>
-          <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '500px', padding: '0' }}>
-            <div style={{ padding: 'var(--space-lg)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>Modules & Options</h2>
-                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{selectedInst.name}</div>
-              </div>
-              <button onClick={() => setIsFeatureModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            
-            <div style={{ padding: 'var(--space-lg)' }}>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: 'var(--space-lg)' }}>
-                Activez ou désactivez les fonctionnalités premium pour ce client. Les modifications sont appliquées instantanément.
-              </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                {PREMIUM_FEATURES.map(feature => (
-                  <div key={feature.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-md)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
-                    <div>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{feature.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{feature.desc}</div>
-                    </div>
-                    {/* UI Toggle Switch */}
-                    <div 
-                      onClick={() => toggleFeature(feature.id)}
-                      style={{ 
-                        width: '40px', height: '22px', 
-                        borderRadius: '11px', 
-                        background: featureFlags[feature.id] ? 'var(--primary)' : 'var(--border-strong)',
-                        position: 'relative',
-                        cursor: 'pointer',
-                        transition: 'background 0.3s'
-                      }}
-                    >
-                      <div style={{
-                        width: '18px', height: '18px',
-                        borderRadius: '50%', background: 'white',
-                        position: 'absolute', top: '2px',
-                        left: featureFlags[feature.id] ? '20px' : '2px',
-                        transition: 'left 0.3s',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
-                      }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginTop: 'var(--space-xl)' }}>
-                <button type="button" className="btn btn-primary" onClick={() => setIsFeatureModalOpen(false)}>Enregistrer les modules</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL AJOUT ETABLISSEMENT */}
       {isModalOpen && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+        <div role="dialog" aria-modal="true" aria-labelledby="new-institution-title" style={{
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 16,
         }}>
-          <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '500px', padding: '0' }}>
+          <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: 0, maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ padding: 'var(--space-lg)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>Nouvel Établissement</h2>
-              <button onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+              <h2 id="new-institution-title" style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>Nouvel établissement</h2>
+              <button aria-label="Fermer" onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            
-            <form onSubmit={handleAddInstitution} style={{ padding: 'var(--space-lg)' }}>
-              <div className="form-group" style={{ marginBottom: 'var(--space-md)' }}>
-                <label className="form-label">Nom de l'établissement</label>
-                <input type="text" className="form-input" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
-              </div>
 
-              <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label className="form-label">Code (Court)</label>
-                  <input type="text" className="form-input" required value={formData.code} onChange={(e) => setFormData({...formData, code: e.target.value})} />
+            <form onSubmit={handleAddInstitution} style={{ padding: 'var(--space-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+              {formError && (
+                <div role="alert" style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: 10, borderRadius: 8, fontSize: '0.875rem' }}>{formError}</div>
+              )}
+              <div className="form-group">
+                <label className="form-label">Nom de l&apos;établissement</label>
+                <input type="text" className="form-input" required {...field('name')} />
+              </div>
+              <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
+                <div className="form-group" style={{ flex: 1, minWidth: 140 }}>
+                  <label className="form-label">Code court</label>
+                  <input type="text" className="form-input" required maxLength={20} {...field('code')} />
                 </div>
-                <div className="form-group" style={{ flex: 1 }}>
+                <div className="form-group" style={{ flex: 1, minWidth: 140 }}>
                   <label className="form-label">Ville</label>
-                  <input type="text" className="form-input" required value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} />
+                  <input type="text" className="form-input" {...field('city')} />
                 </div>
               </div>
-
-              <div className="form-group" style={{ marginBottom: 'var(--space-xl)' }}>
-                <label className="form-label">Type d'établissement</label>
-                <select className="form-input" required value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})}>
-                  <option value="LYCEE">Lycée</option>
-                  <option value="COLLEGE">Collège</option>
-                  <option value="UNIVERSITY">Université</option>
-                  <option value="GRANDE_ECOLE">Grande École</option>
+              <div className="form-group">
+                <label className="form-label">Type d&apos;établissement</label>
+                <select className="form-input" required {...field('type')}>
+                  {Object.entries(TYPE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                 </select>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)' }}>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginTop: 'var(--space-sm)' }}>Premier administrateur</h3>
+              <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
+                <div className="form-group" style={{ flex: 1, minWidth: 140 }}>
+                  <label className="form-label">Prénom</label>
+                  <input type="text" className="form-input" required {...field('adminFirstName')} />
+                </div>
+                <div className="form-group" style={{ flex: 1, minWidth: 140 }}>
+                  <label className="form-label">Nom</label>
+                  <input type="text" className="form-input" required {...field('adminLastName')} />
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Email</label>
+                <input type="email" className="form-input" required {...field('adminEmail')} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Mot de passe initial (12 caractères minimum)</label>
+                <input type="password" className="form-input" required minLength={12} autoComplete="new-password" {...field('adminPassword')} />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginTop: 'var(--space-sm)' }}>
                 <button type="button" className="btn btn-outline" onClick={() => setIsModalOpen(false)}>Annuler</button>
-                <button type="submit" className="btn btn-primary">Créer le locataire</button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? 'Création…' : 'Créer'}</button>
               </div>
             </form>
           </div>

@@ -1,4 +1,4 @@
-﻿name: "🧪 Backend CI - Tests & Coverage"
+name: "🧪 Backend CI - Tests & Coverage"
 
 on:
   push:
@@ -28,12 +28,9 @@ jobs:
 
       - name: "🏗️ Build & Run Tests with JaCoCo"
         working-directory: gab-edt-backend
+        # Les tests d'intégration démarrent un PostgreSQL embarqué : migrations Flyway,
+        # validation du schéma et isolation entre établissements sont vérifiées à chaque push
         run: ./mvnw clean test jacoco:report -B
-        env:
-          SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb
-          SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
-          SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
-          JWT_SECRET: ci_secret_key_for_tests_only
 
       - name: "📊 Upload JaCoCo Coverage Report"
         uses: actions/upload-artifact@v4

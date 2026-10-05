@@ -13,4 +13,6 @@ public class StudentAdminDto {
     private String phone;
     private boolean active;
     private java.util.List<UUID> orgUnitIds;
+    /** Mot de passe provisoire, renvoyé une seule fois à la création (jamais stocké en clair). */
+    private String initialPassword;
 }

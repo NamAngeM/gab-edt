@@ -14,6 +14,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @SpringBootApplication
 @EnableJpaAuditing
 @EnableCaching
+@org.springframework.scheduling.annotation.EnableScheduling
 public class GabEdtApplication {
 
     public static void main(String[] args) {

@@ -25,33 +25,34 @@ public class SubjectController {
     private final SubjectService subjectService;
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<List<SubjectDto>>> getAll() {
         return ResponseEntity.ok(ApiResponse.success(subjectService.getAllSubjects()));
     }
 
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PEDAGOGICAL_MANAGER')")
     public ResponseEntity<ApiResponse<SubjectDto>> create(@Valid @RequestBody SubjectCreateDto dto) {
         SubjectDto created = subjectService.createSubject(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(created));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PEDAGOGICAL_MANAGER')")
     public ResponseEntity<ApiResponse<SubjectDto>> update(@PathVariable UUID id, @Valid @RequestBody SubjectUpdateDto dto) {
         SubjectDto updated = subjectService.updateSubject(id, dto);
         return ResponseEntity.ok(ApiResponse.success(updated));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PEDAGOGICAL_MANAGER')")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         subjectService.deleteSubject(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PostMapping(value = "/import-csv", consumes = "multipart/form-data")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN')")
     public ResponseEntity<ApiResponse<Integer>> importCsv(@RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(ApiResponse.success(subjectService.importCsv(file)));
     }

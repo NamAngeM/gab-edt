@@ -24,6 +24,7 @@ public class StudentController {
     private final StudentService service;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PEDAGOGICAL_MANAGER', 'TEACHER')")
     public ResponseEntity<ApiResponse<Page<StudentAdminDto>>> findAll(
             @RequestParam(required = false) UUID orgUnitId,
             @RequestParam(required = false) String search,
@@ -33,6 +34,7 @@ public class StudentController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@securityAclService.canViewStudent(#id)")
     public ResponseEntity<ApiResponse<StudentAdminDto>> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(service.findById(id)));
     }
@@ -57,21 +59,21 @@ public class StudentController {
     }
 
     @PostMapping("/bulk-delete")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> bulkDelete(@RequestBody List<UUID> ids) {
         service.bulkDelete(ids);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PostMapping("/bulk-status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> bulkUpdateStatus(@RequestBody BulkStatusDto dto) {
         service.bulkUpdateStatus(dto.getIds(), dto.isActive());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PostMapping(value = "/import-csv", consumes = "multipart/form-data")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN')")
     public ResponseEntity<ApiResponse<Integer>> importCsv(@RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(ApiResponse.success(service.importCsv(file)));
     }

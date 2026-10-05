@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchWithAuth, API_URL } from '@/lib/api';
+import { fetchWithAuth } from '@/lib/api';
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -102,16 +102,10 @@ export default function UsersAdminPage() {
     if (!selectedUser) return;
     setModalError('');
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const response = await fetch(`${API_URL}/users/${selectedUser.id}/managed-units`, {
+      await fetchWithAuth(`/users/${selectedUser.id}/managed-units`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify(data.managedOrgUnitIds)
       });
-      if (!response.ok) throw new Error('Erreur API');
       setIsModalOpen(false);
       loadData();
     } catch (err) {

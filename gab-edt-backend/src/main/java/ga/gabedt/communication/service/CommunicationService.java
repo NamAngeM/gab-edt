@@ -27,7 +27,7 @@ public class CommunicationService {
     private final AnnouncementRepository announcementRepository;
     private final AcademicEventRepository eventRepository;
     private final UserRepository userRepository;
-    private final InstitutionRepository institutionRepository;
+    private final ga.gabedt.tenant.CurrentTenant currentTenant;
     private final NotificationService notificationService;
 
     public List<AnnouncementDto> getAllAnnouncements() {
@@ -47,11 +47,11 @@ public class CommunicationService {
 
     @Transactional
     public AnnouncementDto createAnnouncement(AnnouncementCreateDto dto) {
-        User author = userRepository.findById(dto.authorId())
-                .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
+        // L'auteur est toujours l'utilisateur authentifié, jamais une valeur fournie par le client
+        User author = userRepository.findById(currentTenant.requireUser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Auteur introuvable"));
         
-        Institution institution = institutionRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Institution not found"));
+        Institution institution = currentTenant.requireInstitution();
 
         Announcement ann = new Announcement();
         ann.setTitle(dto.title());
@@ -90,8 +90,7 @@ public class CommunicationService {
 
     @Transactional
     public AcademicEventDto createEvent(AcademicEventCreateDto dto) {
-        Institution institution = institutionRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Institution not found"));
+        Institution institution = currentTenant.requireInstitution();
 
         AcademicEvent event = new AcademicEvent();
         event.setTitle(dto.title());

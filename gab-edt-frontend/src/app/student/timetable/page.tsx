@@ -53,8 +53,8 @@ export default function StudentTimetablePage() {
   const gridStyle = { gridTemplateColumns: `60px repeat(${weekDays.length}, minmax(140px, 1fr))` };
 
   const loadSchedule = async () => {
-    const start = weekDays[0].formatDateLocal(date);
-    const end = weekDays[6].formatDateLocal(date);
+    const start = formatDateLocal(weekDays[0].date);
+    const end = formatDateLocal(weekDays[6].date);
     
     // Pour l'étudiant, on récupère le planning de sa semaine
     // Le backend devrait filtrer en fonction du JWT si on ne passe pas de filtres (ou si on lui passe un endpoint spécifique).
@@ -77,7 +77,6 @@ export default function StudentTimetablePage() {
           group: evt.group?.name || '',
           dayIndex: (dStart.getDay() + 6) % 7,
           startHour: dStart.getHours() + (dStart.getMinutes() / 60),
-          endHour: dEnd.getHours() + (dEnd.getMinutes() / 60),
           endHour: dEnd.getHours() + (dEnd.getMinutes() / 60),
           isConflict: evt.status === 'CONFLICT',
           isCancelled: evt.status === 'CANCELLED',

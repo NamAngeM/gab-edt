@@ -12,7 +12,7 @@ spring:
 
   # JPA — dev settings
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: update
     properties:
@@ -34,16 +34,19 @@ spring:
 logging:
   level:
     ga.gabedt: DEBUG
-    org.springframework.security: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.security: INFO
+    org.hibernate.SQL: INFO
 
 # Swagger activé en dev
 springdoc:
   swagger-ui:
     enabled: true
 
-# JWT — dev settings
+# JWT — secret de développement uniquement (jamais utilisé hors profil dev)
 jwt:
-  secret: "defaultSecretKeyThatShouldBeAtLeast32BytesLongAndSecureForDevOnly"
-  expiration: 86400000
+  secret: ${JWT_SECRET:defaultSecretKeyThatShouldBeAtLeast32BytesLongAndSecureForDevOnly}
+
+app:
+  mail:
+    # Sans SMTP, le contenu des e-mails (liens de réinitialisation) est affiché dans la console
+    log-content: true

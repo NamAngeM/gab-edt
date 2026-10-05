@@ -66,8 +66,11 @@ describe('LoginScreen Component', () => {
   it('calls login function on successful API response', async () => {
     (apiClient.post as jest.Mock).mockResolvedValueOnce({
       data: {
-        token: 'fake-jwt-token',
-        role: 'STUDENT'
+        data: {
+          token: 'fake-jwt-token',
+          refreshToken: 'fake-refresh-token',
+          role: 'STUDENT'
+        }
       }
     });
 
@@ -88,7 +91,7 @@ describe('LoginScreen Component', () => {
         email: 'LMBA-2024-1234',
         password: 'password123'
       });
-      expect(mockLogin).toHaveBeenCalledWith('fake-jwt-token', 'STUDENT');
+      expect(mockLogin).toHaveBeenCalledWith('fake-jwt-token', 'STUDENT', 'fake-refresh-token');
     });
 
     // Wait for the button state to revert from 'Connexion en cours...' to ensure finally block completes

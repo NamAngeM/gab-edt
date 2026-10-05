@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "rooms")
+@Table(name = "rooms", uniqueConstraints = @UniqueConstraint(name = "uk_rooms_tenant_code", columnNames = {"tenant_id", "code"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,7 +21,8 @@ public class Room extends TenantAwareEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(unique = true)
+    // Unique par établissement (cf. contrainte de table), pas globalement
+    @Column
     private String code;
 
     private Integer capacity;

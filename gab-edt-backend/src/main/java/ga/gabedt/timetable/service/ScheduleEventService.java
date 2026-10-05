@@ -57,7 +57,7 @@ public class ScheduleEventService {
     private final TeacherRepository teacherRepository;
     private final RoomRepository roomRepository;
     private final OrganizationalUnitRepository orgUnitRepository;
-    private final InstitutionRepository institutionRepository;
+    private final ga.gabedt.tenant.CurrentTenant currentTenant;
     private final ga.gabedt.notification.NotificationService notificationService;
     private final HomeworkRepository homeworkRepository;
     private final HomeworkStatusRepository homeworkStatusRepository;
@@ -66,9 +66,21 @@ public class ScheduleEventService {
 
     public List<ScheduleEventDto> searchEvents(UUID groupId, UUID teacherId, UUID roomId, LocalDate startDate, LocalDate endDate) {
         
+ 
         LocalDateTime start = (startDate != null) ? startDate.atStartOfDay() : LocalDateTime.now().minusMonths(1);
         LocalDateTime end = (endDate != null) ? endDate.atTime(23, 59, 59) : LocalDateTime.now().plusMonths(1);
-        
+
+        User caller = currentUserOrNull();
+        // Élèves, parents et enseignants ne voient que l'emploi du temps publié ; les brouillons restent internes
+        boolean publishedOnly = caller == null || !isPlanner(caller);
+        // Élèves et parents : uniquement leurs classes (et les niveaux parents, ex. cours communs à la promotion).
+        // Enseignants : uniquement leurs propres cours.
+        java.util.Set<UUID> learnerOrgUnits = learnerOrgUnitIds(caller);
+        UUID ownTeacherId = ownTeacherId(caller);
+        if (learnerOrgUnits != null && learnerOrgUnits.isEmpty()) {
+            return List.of();
+        }
+
         Specification<ScheduleEvent> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.isFalse(root.get("deleted")));
@@ -83,7 +95,16 @@ public class ScheduleEventService {
             if (roomId != null) {
                 predicates.add(cb.equal(root.get("room").get("id"), roomId));
             }
-            
+            if (publishedOnly) {
+                predicates.add(cb.equal(root.get("publicationStatus"), ga.gabedt.timetable.enums.PublicationStatus.PUBLISHED));
+            }
+            if (learnerOrgUnits != null) {
+                predicates.add(root.get("orgUnit").get("id").in(learnerOrgUnits));
+            }
+            if (ownTeacherId != null) {
+                predicates.add(cb.equal(root.get("teacher").get("id"), ownTeacherId));
+            }
+
             if (Long.class != query.getResultType() && long.class != query.getResultType()) {
                 root.fetch("course", JoinType.LEFT).fetch("subject", JoinType.LEFT);
                 root.fetch("teacher", JoinType.LEFT).fetch("user", JoinType.LEFT);
@@ -100,39 +121,110 @@ public class ScheduleEventService {
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
 
-        // Populate homework for student if applicable
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
-            try {
-                User user = userRepository.findByEmailAndDeletedFalse(auth.getName()).orElse(null);
-                if (user != null && (user.getRole().name().equals("STUDENT") || user.getRole().name().equals("PARENT"))) {
-                    Student student = studentRepository.findByUserIdAndDeletedFalse(user.getId()).orElse(null);
-                    if (student != null) {
-                        for (ScheduleEventDto dto : dtos) {
-                            Homework hw = homeworkRepository.findByScheduleEventIdAndDeletedFalseOrderByIdDesc(dto.getId()).orElse(null);
-                            if (hw != null) {
-                                dto.setHomeworkId(hw.getId());
-                                dto.setHomeworkTitle(hw.getTitle());
-                                HomeworkStatus status = homeworkStatusRepository.findByHomeworkIdAndStudentIdAndDeletedFalse(hw.getId(), student.getId()).orElse(null);
-                                dto.setHomeworkDone(status != null && status.isCompleted());
-                            }
-                        }
-                    }
-                } else if (user != null && user.getRole().name().equals("TEACHER")) {
-                    for (ScheduleEventDto dto : dtos) {
-                        Homework hw = homeworkRepository.findByScheduleEventIdAndDeletedFalseOrderByIdDesc(dto.getId()).orElse(null);
-                        if (hw != null) {
-                            dto.setHomeworkId(hw.getId());
-                            dto.setHomeworkTitle(hw.getTitle());
-                        }
-                    }
+        populateHomework(dtos, caller);
+        return dtos;
+    }
+
+    /** Devoirs des cours affichés, chargés en deux requêtes au total (et non deux par cours). */
+    private void populateHomework(List<ScheduleEventDto> dtos, User caller) {
+        if (caller == null || dtos.isEmpty()) return;
+        boolean isLearner = caller.getRole() == ga.gabedt.common.enums.UserRole.STUDENT
+                || caller.getRole() == ga.gabedt.common.enums.UserRole.PARENT;
+        if (!isLearner && caller.getRole() != ga.gabedt.common.enums.UserRole.TEACHER) return;
+
+        List<UUID> eventIds = dtos.stream().map(ScheduleEventDto::getId).toList();
+        java.util.Map<UUID, Homework> homeworkByEvent = new java.util.HashMap<>();
+        for (Homework hw : homeworkRepository.findByScheduleEventIds(eventIds)) {
+            homeworkByEvent.merge(hw.getScheduleEvent().getId(), hw,
+                    (a, b) -> a.getCreatedAt().isAfter(b.getCreatedAt()) ? a : b); // le plus récent
+        }
+        if (homeworkByEvent.isEmpty()) return;
+
+        java.util.Set<UUID> doneHomeworkIds = java.util.Set.of();
+        if (isLearner) {
+            Student student = studentRepository.findByUserIdAndDeletedFalse(caller.getId()).orElse(null);
+            if (student == null) return;
+            doneHomeworkIds = homeworkStatusRepository
+                    .findByStudentIdAndHomeworkIdInAndDeletedFalse(student.getId(),
+                            homeworkByEvent.values().stream().map(Homework::getId).toList())
+                    .stream().filter(HomeworkStatus::isCompleted)
+                    .map(st -> st.getHomework().getId())
+                    .collect(Collectors.toSet());
+        }
+        for (ScheduleEventDto dto : dtos) {
+            Homework hw = homeworkByEvent.get(dto.getId());
+            if (hw != null) {
+                dto.setHomeworkId(hw.getId());
+                dto.setHomeworkTitle(hw.getTitle());
+                if (isLearner) {
+                    dto.setHomeworkDone(doneHomeworkIds.contains(hw.getId()));
                 }
-            } catch (Exception e) {
-                // Ignore
             }
         }
-        
-        return dtos;
+    }
+
+    private User currentUserOrNull() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return (auth != null && auth.getPrincipal() instanceof User user) ? user : null;
+    }
+
+    /** Classes de l'élève et leurs unités parentes ; null si l'appelant n'est ni élève ni parent. */
+    private java.util.Set<UUID> learnerOrgUnitIds(User caller) {
+        if (caller == null || (caller.getRole() != ga.gabedt.common.enums.UserRole.STUDENT
+                && caller.getRole() != ga.gabedt.common.enums.UserRole.PARENT)) {
+            return null;
+        }
+        java.util.Set<UUID> ids = new java.util.HashSet<>();
+        studentRepository.findByUserIdAndDeletedFalse(caller.getId()).ifPresent(student -> {
+            for (ga.gabedt.structure.OrganizationalUnit unit : student.getOrgUnits()) {
+                for (ga.gabedt.structure.OrganizationalUnit u = unit; u != null; u = u.getParent()) {
+                    ids.add(u.getId());
+                }
+            }
+        });
+        return ids;
+    }
+
+    /** Identifiant enseignant de l'appelant ; null s'il n'est pas enseignant. */
+    private UUID ownTeacherId(User caller) {
+        if (caller == null || caller.getRole() != ga.gabedt.common.enums.UserRole.TEACHER) {
+            return null;
+        }
+        return teacherRepository.findByUserIdAndDeletedFalse(caller.getId())
+                .map(t -> t.getId())
+                .orElse(new UUID(0L, 0L)); // enseignant sans fiche : aucun cours
+    }
+
+    private boolean isPlanner(User user) {
+        return switch (user.getRole()) {
+            case SUPER_ADMIN, SCHOOL_ADMIN, PEDAGOGICAL_MANAGER -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Publie les brouillons d'une classe sur une période : ils deviennent visibles pour
+     * élèves, parents et enseignants, qui sont notifiés.
+     */
+    @Transactional
+    public int publishEvents(UUID orgUnitId, LocalDate startDate, LocalDate endDate) {
+        List<ScheduleEvent> events = scheduleEventRepository.findByOrgUnitIdAndStartAtBetweenAndDeletedFalse(
+                orgUnitId, startDate.atStartOfDay(), endDate.atTime(23, 59, 59));
+        int published = 0;
+        for (ScheduleEvent event : events) {
+            if (event.getPublicationStatus() != ga.gabedt.timetable.enums.PublicationStatus.PUBLISHED) {
+                event.setPublicationStatus(ga.gabedt.timetable.enums.PublicationStatus.PUBLISHED);
+                published++;
+            }
+        }
+        if (published > 0) {
+            scheduleEventRepository.saveAll(events);
+            notificationService.sendClassAlert(orgUnitId,
+                    "Emploi du temps publié",
+                    "L'emploi du temps du " + startDate + " au " + endDate + " est disponible.",
+                    "INFO");
+        }
+        return published;
     }
 
     private ScheduleEventDto mapToDto(ScheduleEvent event) {
@@ -243,8 +335,7 @@ public class ScheduleEventService {
                             .orElseThrow(() -> new ResourceNotFoundException("OrgUnit not found"));
                     newCourse.setOrgUnit(orgUnit);
                     
-                    Institution institution = institutionRepository.findAll().stream().findFirst()
-                            .orElseThrow(() -> new ResourceNotFoundException("Institution not found"));
+                    Institution institution = currentTenant.requireInstitution();
                     newCourse.setInstitution(institution);
                     newCourse.setTenantId(institution.getId());
                     
@@ -315,8 +406,7 @@ public class ScheduleEventService {
                             .orElseThrow(() -> new ResourceNotFoundException("OrgUnit not found"));
                     newCourse.setOrgUnit(orgUnit);
                     
-                    Institution institution = institutionRepository.findAll().stream().findFirst()
-                            .orElseThrow(() -> new ResourceNotFoundException("Institution not found"));
+                    Institution institution = currentTenant.requireInstitution();
                     newCourse.setInstitution(institution);
                     newCourse.setTenantId(institution.getId());
                     
@@ -416,6 +506,37 @@ public class ScheduleEventService {
         }
 
         return mapToDto(savedEvent);
+    }
+
+    @Transactional
+    public int cancelEventsByDate(UUID orgUnitId, LocalDate date, String reason) {
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = date.atTime(23, 59, 59);
+
+        List<ScheduleEvent> events = scheduleEventRepository.findByOrgUnitIdAndStartAtBetweenAndDeletedFalse(orgUnitId, start, end);
+        
+        int canceledCount = 0;
+        for (ScheduleEvent event : events) {
+            if (event.getStatus() != ga.gabedt.timetable.enums.EventStatus.CANCELLED) {
+                event.setStatus(ga.gabedt.timetable.enums.EventStatus.CANCELLED);
+                event.setNotes((event.getNotes() != null ? event.getNotes() + " | " : "") + "Annulé pour cause de: " + reason);
+                canceledCount++;
+            }
+        }
+        
+        if (canceledCount > 0) {
+            scheduleEventRepository.saveAll(events);
+            
+            notificationService.sendClassAlert(
+                orgUnitId,
+                "Alerte : Cours annulés (" + reason + ")",
+                "Tous les cours de la journée du " + date + " ont été annulés.",
+                "ERROR"
+            );
+            // TODO: Intégrer l'envoi de SMS natif ici (Airtel/Moov) pour prévenir les parents
+        }
+
+        return canceledCount;
     }
 
     private void validateNoConflict(UUID teacherId, UUID roomId, UUID orgUnitId, LocalDateTime start, LocalDateTime end, UUID excludeId) {

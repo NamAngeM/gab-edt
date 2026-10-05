@@ -6,6 +6,14 @@ import { CalendarDays, MapPin, Wifi, Clock, User, DoorOpen, Bell, Megaphone, QrC
 import Head from 'next/head';
 
 export default function TvDisplayPage() {
+  return (
+    <React.Suspense>
+      <TvDisplay />
+    </React.Suspense>
+  );
+}
+
+function TvDisplay() {
   const searchParams = useSearchParams();
   const theme = searchParams?.get('t') || 'DARK';
   const building = searchParams?.get('b') || 'CAMPUS CENTRAL';

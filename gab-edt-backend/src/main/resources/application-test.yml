@@ -1,27 +1,19 @@
 # ==============================================================================
-# GAB-EDT — Configuration test
+# GAB-EDT — Configuration test (tests d'intégration)
 # ==============================================================================
+# La datasource PostgreSQL (embarquée) est fournie par AbstractPostgresIntegrationTest.
+# Même chaîne qu'en production : migrations Flyway puis validation Hibernate du schéma.
 
 spring:
-  # Testcontainers PostgreSQL — configuré dynamiquement
-  datasource:
-    url: jdbc:tc:postgresql:16:///gabedt_test
-    username: test
-    password: test
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-
-  # JPA — test settings
   jpa:
     show-sql: false
     hibernate:
       ddl-auto: validate
 
-  # Flyway
   flyway:
     enabled: true
     clean-disabled: false
 
-  # Redis désactivé pour les tests unitaires
   data:
     redis:
       repositories:
@@ -31,13 +23,14 @@ spring:
     exclude:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
 
-# Logging — minimal en test
+jwt:
+  secret: integrationTestSecretThatIsLongEnoughForHmacSha256
+
 logging:
   level:
     root: WARN
     ga.gabedt: INFO
 
-# Swagger désactivé en test
 springdoc:
   swagger-ui:
     enabled: false

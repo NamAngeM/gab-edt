@@ -41,6 +41,9 @@ class UserServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @Mock
+    private ga.gabedt.tenant.CurrentTenant currentTenant;
+
+    @Mock
     private SecurityContext securityContext;
 
     @Mock
@@ -53,6 +56,15 @@ class UserServiceTest {
     private User schoolAdmin;
     private User targetUser;
     private UUID targetUserId;
+
+    @org.junit.jupiter.api.AfterEach
+
+    void clearSecurityContext() {
+
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+
+    }
+
 
     @BeforeEach
     void setUp() {
@@ -120,6 +132,8 @@ class UserServiceTest {
 
         when(userRepository.findByEmailAndDeletedFalse(dto.getEmail())).thenReturn(Optional.empty());
         when(passwordEncoder.encode("pwd")).thenReturn("encoded_pwd");
+        UUID tenantId = UUID.randomUUID();
+        when(currentTenant.requireTenantId()).thenReturn(tenantId);
         when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArguments()[0]);
 
         UserAdminDto result = userService.createUser(dto);
@@ -127,7 +141,9 @@ class UserServiceTest {
         assertNotNull(result);
         assertEquals("new@user.com", result.getEmail());
         assertEquals(UserRole.TEACHER, result.getRole());
-        verify(userRepository, times(1)).save(any(User.class));
+        org.mockito.ArgumentCaptor<User> saved = org.mockito.ArgumentCaptor.forClass(User.class);
+        verify(userRepository, times(1)).save(saved.capture());
+        assertEquals(tenantId, saved.getValue().getInstitutionId(), "le compte créé est rattaché à l'établissement courant");
     }
 
     @Test

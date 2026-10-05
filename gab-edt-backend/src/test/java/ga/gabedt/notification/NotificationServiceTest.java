@@ -48,6 +48,15 @@ class NotificationServiceTest {
     private Student student;
     private Notification notification;
 
+    @org.junit.jupiter.api.AfterEach
+
+    void clearSecurityContext() {
+
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+
+    }
+
+
     @BeforeEach
     void setUp() {
         user = new User();
@@ -79,10 +88,23 @@ class NotificationServiceTest {
     }
 
     @Test
-    void sendAdminAlert_ShouldSendToAdminTopic() {
+    void sendAdminAlert_ShouldSendToInstitutionAdminTopic() {
+        UUID tenantId = UUID.randomUUID();
+        ga.gabedt.tenant.TenantContext.setTenantId(tenantId);
+        try {
+            notificationService.sendAdminAlert("Admin Title", "Admin Msg", "WARNING");
+        } finally {
+            ga.gabedt.tenant.TenantContext.clear();
+        }
+
+        verify(messagingTemplate, times(1)).convertAndSend(eq("/topic/admin-alerts/" + tenantId), any(java.util.Map.class));
+    }
+
+    @Test
+    void sendAdminAlert_ShouldNotBroadcast_WithoutInstitution() {
         notificationService.sendAdminAlert("Admin Title", "Admin Msg", "WARNING");
 
-        verify(messagingTemplate, times(1)).convertAndSend(eq("/topic/admin-alerts"), any(java.util.Map.class));
+        verifyNoInteractions(messagingTemplate);
     }
 
     @Test

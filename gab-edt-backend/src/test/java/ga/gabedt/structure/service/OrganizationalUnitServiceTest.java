@@ -27,7 +27,7 @@ class OrganizationalUnitServiceTest {
     private OrganizationalUnitRepository orgUnitRepository;
 
     @Mock
-    private InstitutionRepository institutionRepository;
+    private ga.gabedt.tenant.CurrentTenant currentTenant;
 
     @InjectMocks
     private OrganizationalUnitService organizationalUnitService;
@@ -53,7 +53,7 @@ class OrganizationalUnitServiceTest {
         dto.setName("Mathématiques");
         dto.setType(ga.gabedt.structure.OrgUnitType.DEPARTMENT);
 
-        when(institutionRepository.findAll()).thenReturn(List.of(institution));
+        when(currentTenant.requireInstitution()).thenReturn(institution);
         when(orgUnitRepository.save(any(OrganizationalUnit.class))).thenAnswer(i -> i.getArguments()[0]);
 
         OrganizationalUnit result = organizationalUnitService.create(dto);
@@ -71,7 +71,7 @@ class OrganizationalUnitServiceTest {
         dto.setType(ga.gabedt.structure.OrgUnitType.CLASS);
         dto.setParentId(orgUnit.getId());
 
-        when(institutionRepository.findAll()).thenReturn(List.of(institution));
+        when(currentTenant.requireInstitution()).thenReturn(institution);
         when(orgUnitRepository.findById(orgUnit.getId())).thenReturn(Optional.of(orgUnit));
         when(orgUnitRepository.save(any(OrganizationalUnit.class))).thenAnswer(i -> i.getArguments()[0]);
 

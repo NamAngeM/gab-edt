@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "subjects")
+@Table(name = "subjects", uniqueConstraints = @UniqueConstraint(name = "uk_subjects_tenant_code", columnNames = {"tenant_id", "code"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,7 +18,8 @@ public class Subject extends TenantAwareEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(unique = true)
+    // Unique par établissement (cf. contrainte de table), pas globalement
+    @Column
     private String code;
 
     @ManyToOne(fetch = FetchType.LAZY)

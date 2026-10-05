@@ -46,6 +46,13 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(userService.updateUser(id, dto)));
     }
 
+    @PostMapping("/{id}/reset-password")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('SCHOOL_ADMIN')")
+    public ResponseEntity<ApiResponse<java.util.Map<String, String>>> resetPassword(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.success("Mot de passe provisoire généré",
+                java.util.Map.of("temporaryPassword", userService.resetPassword(id))));
+    }
+
     @PutMapping("/push-token")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Void>> updatePushToken(@RequestBody PushTokenDto dto) {

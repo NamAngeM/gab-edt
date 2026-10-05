@@ -1,0 +1,24 @@
+{$DOMAIN} {
+	encode gzip
+
+	# WebSocket des notifications : servi par l'API, sur la même origine que l'application
+	handle /ws/* {
+		reverse_proxy backend:8080
+	}
+
+	# API REST pour l'application mobile (authentification Bearer) ; le web passe par Next.js
+	handle /api/v1/* {
+		reverse_proxy backend:8080
+	}
+
+	# Les sondes Actuator ne sont jamais exposées publiquement
+	handle /actuator/* {
+		respond 404
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+}

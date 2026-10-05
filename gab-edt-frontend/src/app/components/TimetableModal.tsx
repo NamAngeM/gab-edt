@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchWithAuth, API_URL, extractArray } from '@/lib/api';
+import { fetchWithAuth, extractArray } from '@/lib/api';
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -116,44 +116,19 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
     setServerError('');
     
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const url = existingEvent ? `${API_URL}/schedule-events/${existingEvent.id}` : `${API_URL}/schedule-events`;
+      const url = existingEvent ? `/schedule-events/${existingEvent.id}` : `/schedule-events`;
       const method = existingEvent ? 'PUT' : 'POST';
-      
+
       const payload = {
         ...data,
         startAt: data.startAt,
         endAt: data.endAt,
         roomId: (data.roomId === 'none' || !data.roomId) ? null : data.roomId
       };
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-      
-      if (!response.ok) {
-        if (response.status === 403) {
-          throw new Error("Accès refusé. Vous n'avez pas les droits de planification pour cette classe.");
-        }
-        
-        try {
-          const errorData = await response.json();
-          if (errorData && errorData.message) {
-            throw new Error(errorData.message);
-          }
-        } catch (parseError: any) {
-          if (parseError.message && parseError.message !== "Unexpected end of JSON input" && parseError.message !== "Unexpected token < in JSON at position 0") {
-             throw parseError;
-          }
-        }
-        throw new Error("Erreur de sauvegarde");
-      }
-      
+
+      // Les conflits (salle, enseignant, classe) et les refus de droits remontent avec un message explicite
+      await fetchWithAuth(url, { method, body: JSON.stringify(payload) });
+
       onSave();
     } catch (err: any) {
       setServerError(err.message || "Une erreur est survenue");

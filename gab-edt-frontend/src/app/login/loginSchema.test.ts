@@ -5,7 +5,6 @@ describe('Login Form Validation Schema', () => {
     const validData = {
       email: 'test@example.com',
       password: 'password123',
-      rememberMe: true
     };
     
     const result = loginSchema.safeParse(validData);
@@ -21,7 +20,7 @@ describe('Login Form Validation Schema', () => {
     const result = loginSchema.safeParse(invalidData);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe("Veuillez saisir votre identifiant.");
+      expect(result.error.issues[0].message).toBe("Veuillez saisir votre email ou votre matricule.");
     }
   });
 
@@ -44,19 +43,6 @@ describe('Login Form Validation Schema', () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].message).toBe("Veuillez saisir votre mot de passe.");
-    }
-  });
-
-  it('should provide default value for rememberMe', () => {
-    const data = {
-      email: 'test@example.com',
-      password: 'password123'
-    };
-    
-    const result = loginSchema.safeParse(data);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.rememberMe).toBe(false);
     }
   });
 });

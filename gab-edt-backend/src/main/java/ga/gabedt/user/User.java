@@ -43,6 +43,13 @@ public class User extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private boolean active = true;
 
+    /**
+     * Établissement de rattachement. Null uniquement pour SUPER_ADMIN.
+     * C'est la seule source de vérité du tenant d'une requête (jamais un en-tête client).
+     */
+    @Column(name = "institution_id")
+    private java.util.UUID institutionId;
+
     @Column(name = "expo_push_token")
     private String expoPushToken;
 

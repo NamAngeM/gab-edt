@@ -36,7 +36,7 @@ class SubjectServiceTest {
     private OrganizationalUnitRepository orgUnitRepository;
 
     @Mock
-    private InstitutionRepository institutionRepository;
+    private ga.gabedt.tenant.CurrentTenant currentTenant;
 
     @InjectMocks
     private SubjectService subjectService;
@@ -72,7 +72,7 @@ class SubjectServiceTest {
         dto.setCode("PHYS-101");
 
         when(subjectRepository.findByCodeAndDeletedFalse(dto.getCode())).thenReturn(Optional.empty());
-        when(institutionRepository.findAll()).thenReturn(List.of(institution));
+        when(currentTenant.requireInstitution()).thenReturn(institution);
         when(subjectRepository.save(any(Subject.class))).thenAnswer(i -> i.getArguments()[0]);
 
         SubjectDto result = subjectService.createSubject(dto);

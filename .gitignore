@@ -1,0 +1,27 @@
+# ==============================================================================
+# GAB-EDT — fichiers à ne jamais versionner
+# ==============================================================================
+
+# Secrets et configuration locale
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Outils embarqués / dépendances (Maven passe par le wrapper ./mvnw)
+apache-maven-*/
+node_modules/
+
+# Sorties de build et rapports
+target/
+.next/
+out/
+coverage/
+*.log
+
+# IDE / OS
+.idea/
+*.iml
+.DS_Store
+Thumbs.db

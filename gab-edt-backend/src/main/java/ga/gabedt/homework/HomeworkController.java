@@ -16,7 +16,7 @@ public class HomeworkController {
     private final HomeworkService homeworkService;
 
     @PostMapping("/schedule-events/{eventId}/homework")
-    @PreAuthorize("hasRole('TEACHER') or hasRole('SCHOOL_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCHOOL_ADMIN', 'PEDAGOGICAL_MANAGER', 'SUPER_ADMIN') and @securityAclService.canManageEvent(#eventId)")
     public ResponseEntity<ApiResponse<HomeworkDto>> addHomework(
             @PathVariable UUID eventId,
             @RequestBody HomeworkDto dto) {

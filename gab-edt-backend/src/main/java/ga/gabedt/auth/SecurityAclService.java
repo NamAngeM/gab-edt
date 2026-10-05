@@ -31,6 +31,7 @@ public class SecurityAclService {
     private final TeacherRepository teacherRepository;
     private final StudentRepository studentRepository;
     private final ScheduleEventRepository scheduleEventRepository;
+    private final ga.gabedt.student.disciplinary.DisciplinaryRecordRepository disciplinaryRecordRepository;
 
     public boolean canManage(UUID targetOrgUnitId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -44,13 +45,17 @@ public class SecurityAclService {
             return false;
         }
 
-        // SUPER_ADMIN and SCHOOL_ADMIN have global access for the demo
-        if (user.getRole() == UserRole.SUPER_ADMIN || user.getRole() == UserRole.SCHOOL_ADMIN) {
+        if (user.getRole() == UserRole.SUPER_ADMIN) {
             return true;
         }
-        
-        // If they are not at least a pedagogical manager or school admin, they can't manage
-        if (user.getRole() != UserRole.PEDAGOGICAL_MANAGER && user.getRole() != UserRole.SCHOOL_ADMIN) {
+
+        // SCHOOL_ADMIN : tout son établissement. L'unité ciblée doit en faire partie
+        // (existsById passe par le filtre @TenantId, une unité d'un autre établissement est invisible).
+        if (user.getRole() == UserRole.SCHOOL_ADMIN) {
+            return targetOrgUnitId == null || orgUnitRepository.existsById(targetOrgUnitId);
+        }
+
+        if (user.getRole() != UserRole.PEDAGOGICAL_MANAGER) {
             return false;
         }
         
@@ -115,6 +120,45 @@ public class SecurityAclService {
         return canManage(event.getOrgUnit().getId());
     }
 
+    /**
+     * Lecture des données personnelles d'un élève (dossier disciplinaire, notes…) :
+     * l'élève lui-même, son parent, l'équipe pédagogique de l'établissement.
+     */
+    public boolean canViewStudent(UUID studentId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof User principal)) {
+            return false;
+        }
+        Student student = studentRepository.findById(studentId).orElse(null);
+        if (student == null) return false;
+
+        boolean isOwnRecord = student.getUser() != null && student.getUser().getId().equals(principal.getId());
+        if (hasAuthority(auth, UserRole.STUDENT) || hasAuthority(auth, UserRole.PARENT)) {
+            return isOwnRecord;
+        }
+        if (hasAuthority(auth, UserRole.SUPER_ADMIN) || hasAuthority(auth, UserRole.SCHOOL_ADMIN)
+                || hasAuthority(auth, UserRole.TEACHER)) {
+            return true; // student a déjà été chargé dans le périmètre de l'établissement courant
+        }
+        return hasAuthority(auth, UserRole.PEDAGOGICAL_MANAGER) && canManageStudent(studentId);
+    }
+
+    /** Signature d'un dossier disciplinaire : uniquement le parent de l'élève concerné. */
+    public boolean canSignDisciplinaryRecord(UUID recordId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof User principal) || !hasAuthority(auth, UserRole.PARENT)) {
+            return false;
+        }
+        return disciplinaryRecordRepository.findById(recordId)
+                .map(r -> r.getStudent().getUser().getId().equals(principal.getId()))
+                .orElse(false);
+    }
+
+    private static boolean hasAuthority(Authentication auth, UserRole role) {
+        String expected = "ROLE_" + role.name();
+        return auth.getAuthorities().stream().anyMatch(a -> expected.equals(a.getAuthority()));
+    }
+
     public boolean canManageOrgUnit(UUID orgUnitId) {
         return canManage(orgUnitId);
     }
@@ -123,6 +167,7 @@ public class SecurityAclService {
         if (managedUnits == null) return false;
         
         // Load the target unit to traverse upwards
+        if (!orgUnitRepository.existsById(targetId)) return false;
         OrganizationalUnit target = orgUnitRepository.findById(targetId).orElse(null);
         if (target == null) return false;
         

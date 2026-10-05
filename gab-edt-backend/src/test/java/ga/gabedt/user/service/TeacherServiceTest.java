@@ -40,7 +40,7 @@ class TeacherServiceTest {
     private OrganizationalUnitRepository organizationalUnitRepository;
 
     @Mock
-    private InstitutionRepository institutionRepository;
+    private ga.gabedt.tenant.CurrentTenant currentTenant;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -99,7 +99,7 @@ class TeacherServiceTest {
 
         when(passwordEncoder.encode(anyString())).thenReturn("encoded");
         when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArguments()[0]);
-        when(institutionRepository.findAll()).thenReturn(List.of(institution));
+        when(currentTenant.requireInstitution()).thenReturn(institution);
         
         OrganizationalUnit unit = new OrganizationalUnit();
         unit.setId(orgUnitId);

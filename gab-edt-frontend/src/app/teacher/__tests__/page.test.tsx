@@ -5,6 +5,7 @@ import TeacherDashboard from '../page';
 import { fetchWithAuth } from '@/lib/api';
 
 jest.mock('@/lib/api', () => ({
+  ...jest.requireActual('@/lib/api'),
   fetchWithAuth: jest.fn(),
   extractArray: (data: any) => {
     if (Array.isArray(data)) return data;
@@ -36,7 +37,7 @@ describe('TeacherDashboard', () => {
   it('renders loading state initially', async () => {
     (fetchWithAuth as jest.Mock).mockResolvedValue({ data: [] });
     render(<TeacherDashboard />);
-    expect(screen.getByText(/Bonjour, Bob !/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Bonjour, Bob/i)).toBeInTheDocument();
   });
 
   it('renders teacher schedule after loading', async () => {

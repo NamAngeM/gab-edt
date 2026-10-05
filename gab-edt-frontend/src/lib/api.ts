@@ -1,40 +1,133 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+/**
+ * Client HTTP du navigateur.
+ *
+ * Toutes les requêtes passent par le proxy Next.js /api/backend (même origine) :
+ * le jeton reste dans un cookie HttpOnly, inaccessible au JavaScript, et le proxy
+ * se charge de l'ajouter et de le renouveler. Aucun jeton n'est stocké côté client.
+ */
+export const API_URL = '/api/backend';
 
-export async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
-  const headers = new Headers(options.headers);
-  if (!(options.body instanceof FormData)) {
-    headers.set('Content-Type', 'application/json');
+/** Profil affiché dans l'interface (non sensible) — renvoyé par /api/auth/login. */
+export interface SessionUser {
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: string;
+  institutionId?: string;
+}
+
+const USER_KEY = 'user_data';
+
+export class ApiError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message);
+    this.name = 'ApiError';
   }
+}
 
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('jwt_token');
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
-    }
+export function getStoredUser(): SessionUser {
+  if (typeof window === 'undefined') return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(USER_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+export function storeUser(user: SessionUser) {
+  try {
+    window.localStorage.setItem(USER_KEY, JSON.stringify(user));
+  } catch {
+    // stockage indisponible (navigation privée) : l'interface affichera un profil vide
+  }
+}
+
+function redirectToLogin() {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(USER_KEY);
+  } catch {
+    // ignoré
+  }
+  const next = encodeURIComponent(window.location.pathname);
+  window.location.href = `/login?next=${next}`;
+}
+
+async function errorMessage(response: Response): Promise<string> {
+  const text = await response.text().catch(() => '');
+  try {
+    const body = JSON.parse(text);
+    if (body?.message) return body.message;
+  } catch {
+    // réponse non JSON
+  }
+  return text || `Erreur ${response.status}`;
+}
+
+/**
+ * Requête brute vers l'API (ex. téléchargement de fichiers). Gère la session expirée
+ * (redirection vers la connexion) et l'accès refusé (erreur, sans déconnexion).
+ */
+export async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(options.headers);
+  if (options.body && !(options.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
   }
 
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
+    credentials: 'same-origin',
   });
 
-  if (response.status === 401 || response.status === 403) {
-    // Rediriger vers login si le token est invalide
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('jwt_token');
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      window.location.href = '/login';
-    }
-    throw new Error('Non autorisé');
+  if (response.status === 401) {
+    redirectToLogin();
+    throw new ApiError(401, 'Session expirée. Veuillez vous reconnecter.');
   }
-
+  if (response.status === 403) {
+    throw new ApiError(403, "Accès refusé : vous n'avez pas les droits pour cette action.");
+  }
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Erreur API backend:', response.status, response.statusText, errorText);
-    throw new Error(`Erreur API: ${response.status} - ${errorText}`);
+    throw new ApiError(response.status, await errorMessage(response));
   }
+  return response;
+}
 
-  return response.json();
+/** Requête JSON vers l'API. Renvoie null pour une réponse sans contenu (204). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promise<any> {
+  const response = await apiFetch(endpoint, options);
+  if (response.status === 204) return null;
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
+}
+
+/** Télécharge un fichier renvoyé par l'API (PDF, Excel…). */
+export async function downloadFile(endpoint: string, filename: string) {
+  const response = await apiFetch(endpoint);
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+/** Déconnexion : révocation côté API, suppression des cookies et du profil local. */
+export async function logout() {
+  try {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+  } finally {
+    try {
+      window.localStorage.removeItem(USER_KEY);
+    } catch {
+      // ignoré
+    }
+    window.location.href = '/login';
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

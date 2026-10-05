@@ -35,7 +35,7 @@ public class SubjectService {
 
     private final SubjectRepository subjectRepository;
     private final OrganizationalUnitRepository orgUnitRepository;
-    private final InstitutionRepository institutionRepository;
+    private final ga.gabedt.tenant.CurrentTenant currentTenant;
 
     public List<SubjectDto> getAllSubjects() {
         return subjectRepository.findAllByDeletedFalse().stream()
@@ -62,8 +62,7 @@ public class SubjectService {
             subject.setOrgUnit(orgUnit);
         }
 
-        Institution institution = institutionRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Établissement non trouvé"));
+        Institution institution = currentTenant.requireInstitution();
         subject.setInstitution(institution);
         subject.setTenantId(institution.getId());
 
@@ -117,8 +116,7 @@ public class SubjectService {
 
             List<Subject> subjectsToSave = new ArrayList<>();
             
-            Institution inst = institutionRepository.findAll().stream().findFirst()
-                    .orElseThrow(() -> new ResourceNotFoundException("No Institution available"));
+            Institution inst = currentTenant.requireInstitution();
 
             for (CSVRecord record : csvParser) {
                 String name = record.isSet("Nom") ? record.get("Nom").trim() : (record.isSet("name") ? record.get("name").trim() : null);

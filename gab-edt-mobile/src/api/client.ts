@@ -2,10 +2,9 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-// L'URL de base dépend de l'environnement d'exécution (émulateur Android, iOS, ou appareil physique)
-// 10.0.2.2 est l'alias spécial pour localhost sur l'émulateur Android.
-// Pour tester sur un vrai téléphone, remplacez par l'adresse IP locale de votre ordinateur (ex: 192.168.1.XX)
-const BASE_URL = 'http://192.168.1.124:8080';
+// URL de l'API : EXPO_PUBLIC_API_URL (fichier .env ou variable de build EAS).
+// Par défaut : 10.0.2.2, alias de localhost depuis l'émulateur Android.
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8080';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -14,6 +13,12 @@ export const apiClient = axios.create({
   },
   timeout: 10000, // 10 secondes de timeout
 });
+
+// Appelé quand la session ne peut plus être renouvelée (AuthContext repasse alors sur l'écran de connexion)
+let onSessionExpired: (() => void) | null = null;
+export function setSessionExpiredHandler(handler: (() => void) | null) {
+  onSessionExpired = handler;
+}
 
 // Intercepteur pour les requêtes : attache le token JWT s'il existe
 apiClient.interceptors.request.use(
@@ -33,22 +38,42 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Intercepteur pour les réponses : gère les erreurs globalement
+// Un seul renouvellement à la fois, partagé par les requêtes parallèles
+let refreshing: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  const refreshToken = await SecureStore.getItemAsync('refreshToken');
+  if (!refreshToken) return null;
+  try {
+    const res = await axios.post(`${BASE_URL}/api/v1/auth/refresh`, { refreshToken }, { timeout: 10000 });
+    const data = res.data?.data;
+    if (!data?.token || !data?.refreshToken) return null;
+    await SecureStore.setItemAsync('userToken', data.token);
+    await SecureStore.setItemAsync('refreshToken', data.refreshToken);
+    return data.token;
+  } catch {
+    return null;
+  }
+}
+
+// Intercepteur pour les réponses : le jeton d'accès (15 min) est renouvelé automatiquement
 apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   async (error) => {
-    // Gestion de l'expiration du token ou de la non-autorisation
-    if (error.response && error.response.status === 401) {
-      console.warn("Session expirée ou non autorisée. Vous devriez être déconnecté.");
-      // L'idéal serait d'émettre un événement ici ou d'utiliser un callback 
-      // pour appeler logout() de AuthContext, mais nous gérons le comportement de 
-      // base pour l'instant.
+    const original = error.config;
+    const isAuthCall = typeof original?.url === 'string' && original.url.includes('/auth/');
+    if (error.response?.status === 401 && original && !original._retried && !isAuthCall) {
+      original._retried = true;
+      refreshing = refreshing ?? refreshAccessToken().finally(() => { refreshing = null; });
+      const newToken = await refreshing;
+      if (newToken) {
+        original.headers.Authorization = `Bearer ${newToken}`;
+        return apiClient(original);
+      }
       await SecureStore.deleteItemAsync('userToken');
-      // Force le rechargement de l'app ou la redirection vers le login (à affiner selon l'architecture React Navigation)
+      await SecureStore.deleteItemAsync('refreshToken');
+      onSessionExpired?.();
     }
-    
     return Promise.reject(error);
   }
 );

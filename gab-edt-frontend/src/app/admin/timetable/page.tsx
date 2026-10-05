@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './timetable.module.css';
 import { fetchWithAuth } from '@/lib/api';
 import { TimetableModal } from '@/app/components/TimetableModal';
+import { BulkCancelModal } from '@/app/components/BulkCancelModal';
 import { toast } from 'sonner';
 // Types pour l'UI
 type CourseType = 'cm' | 'td' | 'tp' | 'transversal' | 'conflict';
@@ -19,6 +20,7 @@ interface UIMockupEvent {
   endHour: number;   // ex: 10.5 pour 10h30
   extraInfo?: string;
   isConflict?: boolean;
+  isDraft?: boolean;
   conflictDetails?: string;
 }
 
@@ -67,6 +69,7 @@ export default function TimetablePage() {
   const [viewMode, setViewMode] = useState<'day'|'week'|'month'>('week');
   const [miniCalMonth, setMiniCalMonth] = useState(new Date());
   const [quickFilter, setQuickFilter] = useState<'all'|'mine'|'free'>('all');
+  const [isBulkCancelModalOpen, setIsBulkCancelModalOpen] = useState(false);
 
   const getMiniCalendarDays = (monthDate: Date) => {
     const start = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
@@ -129,11 +132,30 @@ export default function TimetablePage() {
           endHour: dEnd.getHours() + (dEnd.getMinutes() / 60),
           isConflict: evt.status === 'CANCELLED',
           conflictDetails: evt.status === 'CANCELLED' ? 'Annulé' : '',
+          isDraft: evt.publicationStatus !== 'PUBLISHED',
           rawEvent: evt // Keep the original API event for editing
         };
       });
       setEvents(mapped);
     } catch (e) { console.error(e); }
+  };
+
+  const draftCount = events.filter((e: any) => e.isDraft).length;
+
+  // Publication : les brouillons de la classe sélectionnée deviennent visibles pour élèves,
+  // parents et enseignants (qui sont notifiés)
+  const publishWeek = async () => {
+    if (!filters.groupId) return;
+    const start = formatDateLocal(weekDays[0].date);
+    const end = formatDateLocal(weekDays[6].date);
+    if (!confirm(`Publier ${draftCount} cours de cette semaine ? Les élèves, parents et enseignants seront notifiés.`)) return;
+    try {
+      const res = await fetchWithAuth(`/schedule-events/publish?orgUnitId=${filters.groupId}&startDate=${start}&endDate=${end}`, { method: 'PUT' });
+      toast.success(`${res?.data ?? 0} cours publiés.`);
+      loadSchedule();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Publication impossible.');
+    }
   };
 
   useEffect(() => {
@@ -423,8 +445,22 @@ export default function TimetablePage() {
               <button onClick={() => setViewMode('week')} style={{ padding: '4px 10px', border: 'none', background: viewMode === 'week' ? 'var(--surface)' : 'transparent', color: viewMode === 'week' ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: viewMode === 'week' ? 600 : 500, borderRadius: '6px', boxShadow: viewMode === 'week' ? 'var(--shadow-xs)' : 'none', cursor: 'pointer' }}>Semaine</button>
               <button onClick={() => setViewMode('month')} style={{ padding: '4px 10px', border: 'none', background: viewMode === 'month' ? 'var(--surface)' : 'transparent', color: viewMode === 'month' ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: viewMode === 'month' ? 600 : 500, borderRadius: '6px', boxShadow: viewMode === 'month' ? 'var(--shadow-xs)' : 'none', cursor: 'pointer' }}>Mois</button>
             </div>
-            <button className="topbar-icon-btn" style={{ border: '1px solid var(--border)' }}>
+            <button onClick={() => setIsBulkCancelModalOpen(true)} className="topbar-icon-btn" style={{ border: '1px solid var(--danger)', color: 'var(--danger)', background: 'var(--danger-bg)', display: 'flex', alignItems: 'center', gap: '6px', padding: '0 12px', width: 'auto', fontWeight: 600 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>warning</span>
+              Force Majeure
+            </button>
+            <a href="/admin/export" className="topbar-icon-btn" style={{ border: '1px solid var(--border)' }} title="Exporter / imprimer" aria-label="Exporter ou imprimer">
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>print</span>
+            </a>
+            <button
+              className="btn btn-outline"
+              style={{ flexShrink: 0 }}
+              disabled={!filters.groupId || draftCount === 0}
+              title={!filters.groupId ? 'Sélectionnez une classe pour publier son emploi du temps' : draftCount === 0 ? 'Aucun brouillon cette semaine' : ''}
+              onClick={publishWeek}
+            >
+              <span className="material-symbols-outlined">publish</span>
+              Publier{draftCount > 0 ? ` (${draftCount})` : ''}
             </button>
             <button className="btn btn-primary" style={{ flexShrink: 0 }} onClick={() => { setEditingEvent(undefined); setDefaultModalTime(undefined); setIsModalOpen(true); }}>
               <span className="material-symbols-outlined">add</span>
@@ -526,7 +562,11 @@ export default function TimetablePage() {
                             <div className={styles.eventHeader}>
                               {evt.isConflict ? (
                                 <span className={styles.eventBadge} style={{ background: 'var(--badge-bg)', color: 'var(--badge-text)' }}>
-                                  CONFLIT
+                                  ANNULÉ
+                                </span>
+                              ) : evt.isDraft ? (
+                                <span className={styles.eventBadge} style={{ background: 'var(--warning-bg, #FFFBEB)', color: 'var(--warning, #B45309)' }} title="Non publié : invisible pour les élèves et les enseignants">
+                                  BROUILLON
                                 </span>
                               ) : (
                                 <span className={styles.eventBadge} style={{ background: 'var(--badge-bg)', color: 'var(--badge-text)' }}>
@@ -594,6 +634,12 @@ export default function TimetablePage() {
         defaultTime={defaultModalTime}
         existingEvent={editingEvent}
         orgUnits={orgUnits}
+      />
+      <BulkCancelModal 
+        isOpen={isBulkCancelModalOpen}
+        onClose={() => setIsBulkCancelModalOpen(false)}
+        onSuccess={() => loadSchedule()}
+        defaultDate={currentDate}
       />
     </div>
   );

@@ -36,6 +36,8 @@ class AttendanceServiceTest {
     private StudentRepository studentRepository;
     @Mock
     private NotificationService notificationService;
+    @Mock
+    private ga.gabedt.user.UserRepository userRepository;
 
     @InjectMocks
     private AttendanceService attendanceService;
@@ -46,8 +48,16 @@ class AttendanceServiceTest {
     private UUID studentId;
     private UUID orgUnitId;
 
+    @org.junit.jupiter.api.AfterEach
+    void clearSecurityContext() {
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+    }
+
     @BeforeEach
     void setUp() {
+        // saveAttendance enregistre l'auteur de l'appel : il faut un utilisateur authentifié
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken("prof@ecole.com", null, List.of()));
         eventId = UUID.randomUUID();
         studentId = UUID.randomUUID();
         orgUnitId = UUID.randomUUID();

@@ -51,7 +51,7 @@ class ExamServiceTest {
     private OrganizationalUnitRepository orgUnitRepository;
 
     @Mock
-    private InstitutionRepository institutionRepository;
+    private ga.gabedt.tenant.CurrentTenant currentTenant;
 
     @Mock
     private SubjectRepository subjectRepository;
@@ -133,7 +133,7 @@ class ExamServiceTest {
         ExamSessionCreateDto dto = new ExamSessionCreateDto("Session 2", LocalDate.now(), LocalDate.now().plusDays(5), orgUnit.getId());
 
         when(orgUnitRepository.findById(orgUnit.getId())).thenReturn(Optional.of(orgUnit));
-        when(institutionRepository.findAll()).thenReturn(List.of(institution));
+        when(currentTenant.requireInstitution()).thenReturn(institution);
         when(sessionRepository.save(any(ExamSession.class))).thenAnswer(i -> i.getArguments()[0]);
 
         ExamSessionDto result = examService.createSession(dto);

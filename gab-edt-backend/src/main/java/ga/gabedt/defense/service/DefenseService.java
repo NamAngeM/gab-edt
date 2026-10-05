@@ -31,7 +31,7 @@ public class DefenseService {
     private final StudentRepository studentRepository;
     private final RoomRepository roomRepository;
     private final TeacherRepository teacherRepository;
-    private final InstitutionRepository institutionRepository;
+    private final ga.gabedt.tenant.CurrentTenant currentTenant;
 
     public List<DefenseDto> getAllDefenses() {
         return defenseRepository.findByDeletedFalse().stream()
@@ -50,8 +50,7 @@ public class DefenseService {
         defense.setStartAt(dto.startAt());
         defense.setEndAt(dto.endAt());
         
-        Institution institution = institutionRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Institution not found"));
+        Institution institution = currentTenant.requireInstitution();
         defense.setInstitution(institution);
         defense.setTenantId(institution.getId());
 

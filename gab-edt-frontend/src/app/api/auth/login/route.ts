@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
+import { BACKEND_URL, setAuthCookies } from '@/lib/server/auth';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
-
+/**
+ * Connexion : relaie les identifiants à l'API, pose les jetons en cookies HttpOnly
+ * et ne renvoie au navigateur que le profil (jamais les jetons).
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -9,37 +12,36 @@ export async function POST(request: Request) {
     const response = await fetch(`${BACKEND_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ email: body?.email, password: body?.password }),
+      cache: 'no-store',
     });
 
-    const data = await response.json();
-
+    const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
+      return NextResponse.json(
+        { message: data?.message || 'Identifiants incorrects.' },
+        { status: response.status },
+      );
     }
 
-    const token = data.data?.token || data.token;
-    
-    if (!token) {
-      return NextResponse.json({ message: 'Token manquant de la réponse backend' }, { status: 500 });
+    const auth = data?.data;
+    if (!auth?.token || !auth?.refreshToken) {
+      return NextResponse.json({ message: 'Réponse inattendue du serveur.' }, { status: 502 });
     }
 
-    // On prépare la réponse
-    const nextResponse = NextResponse.json(data, { status: 200 });
-
-    // On configure le cookie HttpOnly, Secure, SameSite=Lax (ou Strict)
-    nextResponse.cookies.set('jwt_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', // Lax permet la navigation, Strict est mieux mais parfois bloquant
-      maxAge: 86400, // 24h
-      path: '/',
+    const nextResponse = NextResponse.json({
+      data: {
+        email: auth.email,
+        firstName: auth.firstName,
+        lastName: auth.lastName,
+        role: auth.role,
+        institutionId: auth.institutionId,
+      },
     });
-
+    setAuthCookies(nextResponse, { token: auth.token, refreshToken: auth.refreshToken });
     return nextResponse;
-
   } catch (error) {
     console.error('Erreur API login:', error);
-    return NextResponse.json({ message: 'Erreur interne du serveur' }, { status: 500 });
+    return NextResponse.json({ message: 'Service indisponible. Réessayez plus tard.' }, { status: 503 });
   }
 }

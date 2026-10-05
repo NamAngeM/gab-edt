@@ -45,7 +45,7 @@ class CommunicationServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private InstitutionRepository institutionRepository;
+    private ga.gabedt.tenant.CurrentTenant currentTenant;
 
     @Mock
     private NotificationService notificationService;
@@ -100,10 +100,11 @@ class CommunicationServiceTest {
 
     @Test
     void createAnnouncement_ShouldSaveAndReturnDto() {
-        AnnouncementCreateDto dto = new AnnouncementCreateDto("Alert", "Test alert", TargetAudience.STUDENTS, LocalDate.now().plusDays(1), author.getId());
+        AnnouncementCreateDto dto = new AnnouncementCreateDto("Alert", "Test alert", TargetAudience.STUDENTS, LocalDate.now().plusDays(1));
 
+        when(currentTenant.requireUser()).thenReturn(author);
         when(userRepository.findById(author.getId())).thenReturn(Optional.of(author));
-        when(institutionRepository.findAll()).thenReturn(List.of(institution));
+        when(currentTenant.requireInstitution()).thenReturn(institution);
         when(announcementRepository.save(any(Announcement.class))).thenAnswer(i -> i.getArguments()[0]);
 
         AnnouncementDto result = communicationService.createAnnouncement(dto);
@@ -139,7 +140,7 @@ class CommunicationServiceTest {
     void createEvent_ShouldSaveAndReturnDto() {
         AcademicEventCreateDto dto = new AcademicEventCreateDto("Exam Week", "Finals", LocalDateTime.now(), LocalDateTime.now().plusDays(5), false);
 
-        when(institutionRepository.findAll()).thenReturn(List.of(institution));
+        when(currentTenant.requireInstitution()).thenReturn(institution);
         when(eventRepository.save(any(AcademicEvent.class))).thenAnswer(i -> i.getArguments()[0]);
 
         AcademicEventDto result = communicationService.createEvent(dto);

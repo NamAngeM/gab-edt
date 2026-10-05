@@ -20,11 +20,13 @@ public class OrganizationalUnitController {
     private final OrganizationalUnitService orgUnitService;
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public List<OrganizationalUnit> getAll() {
         return orgUnitRepository.findAll();
     }
 
     @GetMapping("/parent/{parentId}")
+    @PreAuthorize("isAuthenticated()")
     public List<OrganizationalUnit> getByParent(@PathVariable UUID parentId) {
         return orgUnitRepository.findByParentId(parentId);
     }

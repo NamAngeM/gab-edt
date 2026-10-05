@@ -18,7 +18,8 @@ public class Grade extends TenantAwareEntity {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    // « value » est un mot réservé (H2) : colonne renommée
+    @Column(name = "grade_value", nullable = false)
     private Double value;
 
     @Column(nullable = false)

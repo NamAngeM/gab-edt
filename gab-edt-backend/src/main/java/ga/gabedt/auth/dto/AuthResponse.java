@@ -12,10 +12,12 @@ import lombok.NoArgsConstructor;
 public class AuthResponse {
 
     private String token;
+    private String refreshToken;
     @Builder.Default
     private String type = "Bearer";
     private String email;
     private String firstName;
     private String lastName;
     private String role;
+    private java.util.UUID institutionId;
 }

@@ -3,7 +3,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { API_URL } from '@/lib/api';
+import { getStoredUser } from '@/lib/api';
+
+/** Point d'entrée WebSocket de l'API (même site que l'application pour que le cookie de session soit envoyé). */
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080/ws';
 
 interface NotificationContextType {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,24 +25,16 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [toast, setToast] = useState<{title: string, message: string, type: string} | null>(null);
 
   useEffect(() => {
-    let token = '';
-    if (typeof window !== 'undefined') {
-      token = localStorage.getItem('jwt_token') || '';
-    }
-    if (!token) return;
-
-    // Remove /api/v1 from API_URL to get the base url
-    const baseUrl = API_URL.replace('/api/v1', '');
-    const socketUrl = `${baseUrl}/ws`;
+    // Les alertes sont propres à l'établissement ; l'authentification de la connexion
+    // WebSocket se fait par le cookie de session (aucun jeton manipulé en JavaScript)
+    const institutionId = getStoredUser().institutionId;
+    if (!institutionId) return;
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(socketUrl),
-      connectHeaders: {
-        Authorization: `Bearer ${token}`
-      },
+      webSocketFactory: () => new SockJS(WS_URL),
       onConnect: () => {
         console.log('Connected to WebSocket');
-        client.subscribe('/topic/admin-alerts', (message) => {
+        client.subscribe(`/topic/admin-alerts/${institutionId}`, (message) => {
           if (message.body) {
             const payload = JSON.parse(message.body);
             setNotifications(prev => [payload, ...prev]);

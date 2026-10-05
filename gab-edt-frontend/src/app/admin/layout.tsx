@@ -2,14 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { NotificationProvider } from '@/components/NotificationProvider';
+import { fetchWithAuth, getStoredUser, logout } from '@/lib/api';
+import { HIGHER_EDUCATION, SECONDARY_EDUCATION, SHOW_PREVIEW_FEATURES, type InstitutionType } from '@/lib/features';
 
 interface NavItem {
   label: string;
   icon: string;
   href: string;
-  badge?: string | number;
+  /** Écran en maquette : masqué sauf si NEXT_PUBLIC_SHOW_PREVIEW_FEATURES=true */
+  preview?: boolean;
+  /** Types d'établissement concernés (tous si absent) */
+  onlyFor?: InstitutionType[];
 }
 
 interface NavSection {
@@ -19,197 +24,186 @@ interface NavSection {
 
 const navSections: NavSection[] = [
   {
-    label: 'Principal',
+    label: 'Planning',
     items: [
       { label: 'Tableau de bord', icon: 'space_dashboard', href: '/admin' },
       { label: 'Emploi du temps', icon: 'calendar_month', href: '/admin/timetable' },
-      { label: 'Réservations & Salles', icon: 'event_seat', href: '/admin/reservations', badge: 3 },
       { label: 'Cours & Séances', icon: 'auto_stories', href: '/admin/cours' },
-      { label: 'Conflits', icon: 'warning', href: '/admin/conflits', badge: 1 },
+      { label: 'Conflits', icon: 'warning', href: '/admin/conflits' },
+      { label: 'Réservations & Salles', icon: 'event_seat', href: '/admin/reservations', preview: true },
     ],
   },
   {
-    label: 'Organisation académique',
+    label: 'Organisation',
     items: [
-      { label: 'Organisation Pédagogique', icon: 'apartment', href: '/admin/organisation' },
+      { label: 'Structure pédagogique', icon: 'apartment', href: '/admin/organisation' },
       { label: 'Formations & Niveaux', icon: 'school', href: '/admin/formations' },
-      { label: 'Promotions & Groupes', icon: 'group_work', href: '/admin/groupes' },
+      { label: 'Classes & Groupes', icon: 'group_work', href: '/admin/groupes' },
     ],
   },
   {
     label: 'Ressources',
     items: [
       { label: 'Enseignants', icon: 'badge', href: '/admin/resources/teachers' },
-      { label: 'Étudiants', icon: 'groups', href: '/admin/resources/students' },
-      { label: 'Matières & Modules', icon: 'menu_book', href: '/admin/resources/subjects' },
+      { label: 'Élèves & Étudiants', icon: 'groups', href: '/admin/resources/students' },
+      { label: 'Matières', icon: 'menu_book', href: '/admin/resources/subjects' },
       { label: 'Salles & Équipements', icon: 'meeting_room', href: '/admin/resources/rooms' },
     ],
   },
   {
-    label: 'Évaluations & Examens',
+    label: 'Examens',
     items: [
       { label: "Sessions d'examens", icon: 'edit_calendar', href: '/admin/examens' },
-      { label: 'Soutenances PFE', icon: 'co_present', href: '/admin/soutenances' },
+      { label: 'Soutenances', icon: 'co_present', href: '/admin/soutenances', onlyFor: HIGHER_EDUCATION },
     ],
   },
   {
-    label: 'Communication & Événements',
+    label: 'Communication',
     items: [
-      { label: 'Annonces & Actualités', icon: 'campaign', href: '/admin/annonces' },
-      { label: 'Événements Académiques', icon: 'event', href: '/admin/evenements' },
+      { label: 'Annonces', icon: 'campaign', href: '/admin/annonces' },
+      { label: 'Événements académiques', icon: 'event', href: '/admin/evenements' },
     ],
   },
   {
-    label: 'Vie Scolaire',
+    label: 'Vie scolaire',
     items: [
-      { label: "Justificatifs d'absences", icon: 'fact_check', href: '/admin/justificatifs', badge: 2 },
+      { label: 'Carnet de correspondance', icon: 'gavel', href: '/admin/discipline', onlyFor: SECONDARY_EDUCATION },
+      { label: "Justificatifs d'absences", icon: 'fact_check', href: '/admin/justificatifs', preview: true },
     ],
   },
   {
-    label: 'Échange de données',
+    label: 'Données',
     items: [
       { label: 'Import Excel / CSV', icon: 'upload_file', href: '/admin/import' },
-      { label: 'Export & Affichage TV', icon: 'tv', href: '/admin/export' },
-      { label: 'QR Codes', icon: 'qr_code_2', href: '/admin/qr' },
+      { label: 'Export PDF / Excel', icon: 'download', href: '/admin/export' },
+      { label: 'QR codes des salles', icon: 'qr_code_2', href: '/admin/qr' },
+    ],
+  },
+  {
+    label: 'Pilotage',
+    items: [
+      { label: 'Statistiques', icon: 'bar_chart', href: '/admin/stats' },
+      { label: 'Cartographie', icon: 'hub', href: '/admin/map' },
     ],
   },
   {
     label: 'Administration',
     items: [
       { label: 'Utilisateurs & Rôles', icon: 'manage_accounts', href: '/admin/users' },
-      { label: 'Paramètres & Rôles', icon: 'settings', href: '/admin/settings' },
-      { label: "Journal d'audit", icon: 'receipt_long', href: '/admin/audit' },
-      { label: 'Statistiques', icon: 'bar_chart', href: '/admin/stats' },
-      { label: 'Cartographie', icon: 'hub', href: '/admin/map' },
+      { label: "Journal d'audit", icon: 'receipt_long', href: '/admin/audit', preview: true },
+      { label: 'Paramètres', icon: 'settings', href: '/admin/settings', preview: true },
     ],
   },
 ];
 
-function Sidebar({ pathname }: { pathname: string }) {
+function visibleSections(institutionType: InstitutionType | null): NavSection[] {
+  return navSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) =>
+        (!item.preview || SHOW_PREVIEW_FEATURES) &&
+        (!item.onlyFor || !institutionType || item.onlyFor.includes(institutionType))
+      ),
+    }))
+    .filter((section) => section.items.length > 0);
+}
+
+interface InstitutionInfo {
+  name: string;
+  type: InstitutionType;
+}
+
+function Sidebar({ pathname, institutionType, open, onNavigate }: {
+  pathname: string;
+  institutionType: InstitutionType | null;
+  open: boolean;
+  onNavigate: () => void;
+}) {
   return (
-    <aside className="sidebar">
-      {/* Logo */}
-      <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">G</div>
-        <div className="sidebar-logo-text">
-          <span className="sidebar-logo-name">GAB-EDT</span>
-          <span className="sidebar-logo-tagline">Planning Supérieur</span>
-        </div>
-      </div>
-
-      {/* Nav */}
-      <nav className="sidebar-nav">
-        {navSections.map((section) => (
-          <div key={section.label}>
-            <div className="sidebar-section-label">{section.label}</div>
-            {section.items.map((item) => {
-              const isActive = pathname === item.href ||
-                (item.href !== '/admin' && item.href !== '/' && pathname.startsWith(item.href));
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`sidebar-link${isActive ? ' active' : ''}`}
-                >
-                  <span className="material-symbols-outlined">{item.icon}</span>
-                  <span className="sidebar-link-label">{item.label}</span>
-                  {item.badge && (
-                    <span className="sidebar-badge">{item.badge}</span>
-                  )}
-                </Link>
-              );
-            })}
+    <>
+      <div className={`sidebar-backdrop${open ? ' open' : ''}`} onClick={onNavigate} aria-hidden="true" />
+      <aside className={`sidebar${open ? ' open' : ''}`} aria-label="Navigation principale">
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-icon">G</div>
+          <div className="sidebar-logo-text">
+            <span className="sidebar-logo-name">GAB-EDT</span>
+            <span className="sidebar-logo-tagline">Administration</span>
           </div>
-        ))}
-      </nav>
-
-      {/* Status footer */}
-      <div className="sidebar-status">
-        <div className="sidebar-status-row">
-          <span className="sidebar-status-online">
-            <span className="sidebar-status-dot" />
-            En ligne
-          </span>
-          <span className="sidebar-status-pill">S38 Publié</span>
         </div>
-        <div className="sidebar-status-sync">Synchronisé à l'instant</div>
-      </div>
-    </aside>
+
+        <nav className="sidebar-nav">
+          {visibleSections(institutionType).map((section) => (
+            <div key={section.label}>
+              <div className="sidebar-section-label">{section.label}</div>
+              {section.items.map((item) => {
+                const isActive = pathname === item.href ||
+                  (item.href !== '/admin' && pathname.startsWith(item.href));
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onNavigate}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`sidebar-link${isActive ? ' active' : ''}`}
+                  >
+                    <span className="material-symbols-outlined">{item.icon}</span>
+                    <span className="sidebar-link-label">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+      </aside>
+    </>
   );
 }
 
-function Topbar() {
-  const router = useRouter();
-  // Initialise à vide pour le SSR — localStorage n'est disponible que côté client
+const ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: 'Super administrateur',
+  SCHOOL_ADMIN: 'Administrateur',
+  PEDAGOGICAL_MANAGER: 'Responsable pédagogique',
+};
+
+function Topbar({ institution, onMenu }: { institution: InstitutionInfo | null; onMenu: () => void }) {
+  // Initialise à vide pour le SSR — le profil local n'est lu que côté client
   const [userName, setUserName] = useState('');
-  const [initials, setInitials] = useState('');
+  const [roleLabel, setRoleLabel] = useState('');
 
   useEffect(() => {
-    try {
-      const user = JSON.parse(localStorage.getItem('user_data') || '{}');
-      const name = user.firstName ? `${user.firstName} ${user.lastName}` : 'Administrateur';
-      setUserName(name);
-      setInitials(name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase());
-    } catch {
-      setUserName('Administrateur');
-      setInitials('AD');
-    }
+    const user = getStoredUser();
+    setUserName(user.firstName ? `${user.firstName} ${user.lastName ?? ''}`.trim() : '');
+    setRoleLabel(ROLE_LABELS[user.role ?? ''] ?? '');
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('jwt_token');
-    localStorage.removeItem('user_data');
-    router.push('/login');
-  };
+  const initials = userName.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
 
   return (
     <header className="topbar">
       <div className="topbar-left">
-        {/* Institution switcher */}
+        <button className="topbar-icon-btn topbar-menu-btn" aria-label="Ouvrir le menu" onClick={onMenu}>
+          <span className="material-symbols-outlined">menu</span>
+        </button>
         <div className="topbar-institution">
           <span className="material-symbols-outlined">account_balance</span>
           <div className="topbar-institution-text">
-            <span className="topbar-institution-label">Établissement actif</span>
-            <span className="topbar-institution-name">Univ. Omar Bongo — Sciences</span>
+            <span className="topbar-institution-label">Établissement</span>
+            <span className="topbar-institution-name">{institution?.name ?? '…'}</span>
           </div>
-          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--text-muted)' }}>unfold_more</span>
-        </div>
-
-        {/* Semester pill */}
-        <div className="topbar-semester">
-          <span className="material-symbols-outlined">event</span>
-          <span>2026–2027 • Semestre 1</span>
         </div>
       </div>
 
       <div className="topbar-right">
-        {/* Search */}
-        <div className="topbar-search">
-          <span className="material-symbols-outlined topbar-search-icon">search</span>
-          <input
-            type="text"
-            placeholder="Rechercher matière, enseignant, salle..."
-          />
-          <span className="topbar-search-shortcut">⌘K</span>
-        </div>
-
-        {/* Icon buttons */}
-        <button className="topbar-icon-btn" aria-label="Aide" title="Aide">
-          <span className="material-symbols-outlined">help_outline</span>
-        </button>
-        <button className="topbar-icon-btn" aria-label="Notifications" title="Notifications">
-          <span className="material-symbols-outlined">notifications</span>
-          <span className="notif-dot" />
-        </button>
-
-        {/* Profile */}
-        <div className="topbar-profile" title="Mon profil" onClick={handleLogout} style={{ cursor: 'pointer' }}>
+        <div className="topbar-profile" title={userName}>
           <div className="topbar-profile-text">
             <span className="topbar-profile-name">{userName}</span>
-            <span className="topbar-profile-role">Administrateur</span>
+            <span className="topbar-profile-role">{roleLabel}</span>
           </div>
           <div className="topbar-avatar">{initials}</div>
         </div>
+        <button className="topbar-icon-btn" aria-label="Se déconnecter" title="Se déconnecter" onClick={() => void logout()}>
+          <span className="material-symbols-outlined">logout</span>
+        </button>
       </div>
     </header>
   );
@@ -221,14 +215,29 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const [institution, setInstitution] = useState<InstitutionInfo | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    // L'API ne renvoie que l'établissement de l'utilisateur connecté
+    fetchWithAuth('/institutions')
+      .then((list) => {
+        if (Array.isArray(list) && list.length > 0) setInstitution({ name: list[0].name, type: list[0].type });
+      })
+      .catch(() => setInstitution(null));
+  }, []);
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', background: 'var(--background)' }}>
-      <Sidebar pathname={pathname} />
+    <div style={{ display: 'flex', minHeight: '100vh', width: '100%', background: 'var(--background)' }}>
+      <Sidebar
+        pathname={pathname}
+        institutionType={institution?.type ?? null}
+        open={menuOpen}
+        onNavigate={() => setMenuOpen(false)}
+      />
 
-      {/* Main wrapper with sidebar offset */}
       <div className="main-wrapper">
-        <Topbar />
+        <Topbar institution={institution} onMenu={() => setMenuOpen(true)} />
         <main className="page-content">
           <NotificationProvider>
             {children}

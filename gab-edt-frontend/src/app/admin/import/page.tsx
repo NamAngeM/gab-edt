@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { fetchWithAuth } from "@/lib/api";
 
 export default function ImportPage() {
   const [dragActive, setDragActive] = useState(false);
@@ -16,6 +18,8 @@ export default function ImportPage() {
   const [importMode, setImportMode] = useState("ADD");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [previewData, setPreviewData] = useState<any[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -46,16 +50,57 @@ export default function ImportPage() {
   const handleRemoveFile = () => {
     setFile(null);
     setUploadSuccess(false);
+    setPreviewData([]);
+    setShowPreview(false);
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!file) return;
     setIsUploading(true);
-    // Simulate upload and parsing
-    setTimeout(() => {
-      setIsUploading(false);
+    
+    if (entityType === "SCHEDULE_EVENTS") {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        
+        const res = await fetchWithAuth('/import/preview', {
+          method: 'POST',
+          body: formData
+        });
+        
+        setPreviewData(res.data);
+        setShowPreview(true);
+      } catch (err) {
+        console.error(err);
+        toast.error("Erreur lors de la lecture du fichier Excel.");
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      // Fake logic for other types
+      setTimeout(() => {
+        setIsUploading(false);
+        setUploadSuccess(true);
+      }, 2000);
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    setIsUploading(true);
+    try {
+      await fetchWithAuth('/import/confirm', {
+        method: 'POST',
+        body: JSON.stringify(previewData)
+      });
+      setShowPreview(false);
       setUploadSuccess(true);
-    }, 2000);
+      toast.success("Événements importés avec succès");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de l'importation");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -107,7 +152,7 @@ export default function ImportPage() {
                     </motion.div>
                   )}
 
-                  {file && !uploadSuccess && (
+                  {file && !uploadSuccess && !showPreview && (
                     <motion.div
                       key="file"
                       initial={{ opacity: 0, y: 20 }}
@@ -117,7 +162,7 @@ export default function ImportPage() {
                     >
                       <FileSpreadsheet className="w-16 h-16 text-emerald-500 mb-4" />
                       <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
-                        Fichier prêt à être importé
+                        Fichier prêt à être analysé
                       </h3>
                       <p className="text-slate-500 font-mono mt-1 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-md">
                         {file.name}
@@ -125,6 +170,28 @@ export default function ImportPage() {
                       <p className="text-sm text-slate-400 mt-2">
                         {(file.size / 1024 / 1024).toFixed(2)} Mo
                       </p>
+                    </motion.div>
+                  )}
+
+                  {showPreview && (
+                    <motion.div
+                      key="preview"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="flex flex-col items-center z-20"
+                    >
+                      <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-2">Aperçu de l'import</h3>
+                      <p className="text-slate-500 mb-6">{previewData.length} éléments trouvés dans le fichier.</p>
+                      
+                      <div className="flex gap-4">
+                        <Button variant="outline" onClick={(e) => { e.preventDefault(); handleRemoveFile(); }}>
+                          Annuler
+                        </Button>
+                        <Button className="bg-brand-600 hover:bg-brand-700" onClick={(e) => { e.preventDefault(); handleConfirmImport(); }} disabled={isUploading}>
+                          {isUploading ? <Loader2 className="animate-spin mr-2" /> : null}
+                          Confirmer l'importation
+                        </Button>
+                      </div>
                     </motion.div>
                   )}
 
@@ -153,7 +220,7 @@ export default function ImportPage() {
                   )}
                 </AnimatePresence>
                 
-                {file && !isUploading && !uploadSuccess && (
+                {file && !isUploading && !uploadSuccess && !showPreview && (
                   <Button 
                     variant="ghost" 
                     size="icon" 
@@ -186,6 +253,7 @@ export default function ImportPage() {
                     <SelectItem value="TEACHERS">Enseignants</SelectItem>
                     <SelectItem value="ROOMS">Salles de classe</SelectItem>
                     <SelectItem value="COURSES">Cours / Matières</SelectItem>
+                    <SelectItem value="SCHEDULE_EVENTS">Emploi du temps (Événements)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

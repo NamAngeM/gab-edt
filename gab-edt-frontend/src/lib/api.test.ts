@@ -1,4 +1,4 @@
-import { fetchWithAuth, extractArray, extractPageData, API_URL } from './api';
+import { fetchWithAuth, extractArray, extractPageData, API_URL, ApiError } from './api';
 
 describe('API Utils', () => {
   beforeEach(() => {
@@ -75,78 +75,56 @@ describe('API Utils', () => {
   });
 
   describe('fetchWithAuth', () => {
-    it('should send Authorization header if token is in localStorage', async () => {
-      (Storage.prototype.getItem as jest.Mock).mockReturnValue('fake-token-123');
-      
-      const mockResponse = { ok: true, json: jest.fn().mockResolvedValue({ success: true }) };
-      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
-
-      await fetchWithAuth('/test-endpoint');
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        `${API_URL}/test-endpoint`,
-        expect.objectContaining({
-          headers: expect.any(Headers)
-        })
-      );
-      
-      // We can inspect the headers passed to fetch
-      const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
-      const sentHeaders = fetchCall[1].headers as Headers;
-      expect(sentHeaders.get('Authorization')).toBe('Bearer fake-token-123');
-      expect(sentHeaders.get('Content-Type')).toBe('application/json');
+    const okResponse = (body: unknown) => ({
+      ok: true,
+      status: 200,
+      text: jest.fn().mockResolvedValue(JSON.stringify(body)),
     });
 
-    it('should NOT send Authorization header if no token in localStorage', async () => {
-      (Storage.prototype.getItem as jest.Mock).mockReturnValue(null);
-      
-      const mockResponse = { ok: true, json: jest.fn().mockResolvedValue({ success: true }) };
-      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+    it('calls the same-origin proxy and never sends a token from the browser', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue(okResponse({ success: true }));
 
-      await fetchWithAuth('/test-endpoint');
+      const result = await fetchWithAuth('/test-endpoint', { method: 'POST', body: '{}' });
 
-      const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
-      const sentHeaders = fetchCall[1].headers as Headers;
+      expect(result).toEqual({ success: true });
+      const [url, init] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toBe(`${API_URL}/test-endpoint`);
+      expect(API_URL).toBe('/api/backend');
+      expect(init.credentials).toBe('same-origin');
+      const sentHeaders = init.headers as Headers;
       expect(sentHeaders.get('Authorization')).toBeNull();
+      expect(sentHeaders.get('Content-Type')).toBe('application/json');
+      expect(Storage.prototype.getItem).not.toHaveBeenCalledWith('jwt_token');
     });
 
-    it('should handle 401 Unauthorized by removing token and redirecting to login', async () => {
-      const mockResponse = { ok: false, status: 401 };
-      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+    it('returns null for an empty 204 response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({ ok: true, status: 204, text: jest.fn() });
 
-      // JSDOM throws an error on navigation, we catch it or ignore it by letting the promise reject
-      try {
-        await fetchWithAuth('/protected');
-      } catch (e: any) {
-        expect(e.message).toBe('Non autorisé');
-      }
-      
-      expect(Storage.prototype.removeItem).toHaveBeenCalledWith('jwt_token');
+      await expect(fetchWithAuth('/rooms/1', { method: 'DELETE' })).resolves.toBeNull();
     });
 
-    it('should handle 403 Forbidden by redirecting to login', async () => {
-      const mockResponse = { ok: false, status: 403 };
-      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+    it('treats 401 as an expired session and clears the local profile', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 401 });
 
-      try {
-        await fetchWithAuth('/protected');
-      } catch (e: any) {
-        expect(e.message).toBe('Non autorisé');
-      }
-      
-      expect(Storage.prototype.removeItem).toHaveBeenCalledWith('jwt_token');
+      await expect(fetchWithAuth('/protected')).rejects.toMatchObject({ status: 401 });
+      expect(Storage.prototype.removeItem).toHaveBeenCalledWith('user_data');
     });
 
-    it('should throw an error with the response text if fetch fails (other than 401/403)', async () => {
-      const mockResponse = { 
-        ok: false, 
-        status: 500, 
-        statusText: 'Internal Server Error',
-        text: jest.fn().mockResolvedValue('Server crashed')
-      };
-      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+    it('treats 403 as access denied without logging the user out', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 403 });
 
-      await expect(fetchWithAuth('/broken')).rejects.toThrow('Erreur API: 500 - Server crashed');
+      await expect(fetchWithAuth('/protected')).rejects.toBeInstanceOf(ApiError);
+      expect(Storage.prototype.removeItem).not.toHaveBeenCalled();
+    });
+
+    it('surfaces the API error message', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 409,
+        text: jest.fn().mockResolvedValue(JSON.stringify({ message: 'Conflit de salle' })),
+      });
+
+      await expect(fetchWithAuth('/schedule-events', { method: 'POST', body: '{}' })).rejects.toThrow('Conflit de salle');
     });
   });
 });

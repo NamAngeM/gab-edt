@@ -37,9 +37,10 @@ export const LoginScreen = () => {
 
       const token = response.data?.data?.token || response.data?.token;
       const backendRole = response.data?.data?.role || response.data?.role || role;
+      const refreshToken = response.data?.data?.refreshToken;
 
       if (token) {
-        await login(token, backendRole);
+        await login(token, backendRole, refreshToken);
       } else {
         Alert.alert('Erreur', 'Token manquant dans la réponse du serveur.');
       }

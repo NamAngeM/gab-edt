@@ -42,7 +42,7 @@ public class TeacherService {
     private final TeacherRepository teacherRepository;
     private final UserRepository userRepository;
     private final OrganizationalUnitRepository organizationalUnitRepository;
-    private final InstitutionRepository institutionRepository;
+    private final ga.gabedt.tenant.CurrentTenant currentTenant;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
@@ -92,8 +92,10 @@ public class TeacherService {
         user.setPhone(dto.getPhone());
         user.setActive(dto.isActive());
         user.setRole(UserRole.TEACHER);
+        user.setInstitutionId(currentTenant.requireTenantId());
         // Default password for auto-created accounts
-        user.setPasswordHash(passwordEncoder.encode("Teacher123!"));
+        String initialPassword = ga.gabedt.common.security.PasswordGenerator.generate();
+        user.setPasswordHash(passwordEncoder.encode(initialPassword));
         User savedUser = userRepository.save(user);
 
         // 2. Create Teacher
@@ -102,8 +104,7 @@ public class TeacherService {
         teacher.setEmployeeNumber(dto.getEmployeeNumber());
 
         // Minimal institution for now
-        Institution inst = institutionRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("No Institution available"));
+        Institution inst = currentTenant.requireInstitution();
         teacher.setInstitution(inst);
         teacher.setTenantId(inst.getId());
 
@@ -115,7 +116,9 @@ public class TeacherService {
         }
 
         Teacher savedTeacher = teacherRepository.save(teacher);
-        return mapToDto(savedTeacher);
+        TeacherAdminDto result = mapToDto(savedTeacher);
+        result.setInitialPassword(initialPassword);
+        return result;
     }
 
     public TeacherAdminDto update(UUID id, TeacherAdminDto dto) {
@@ -184,8 +187,7 @@ public class TeacherService {
             List<Teacher> teachersToSave = new ArrayList<>();
             List<User> usersToSave = new ArrayList<>();
             
-            Institution inst = institutionRepository.findAll().stream().findFirst()
-                    .orElseThrow(() -> new ResourceNotFoundException("No Institution available"));
+            Institution inst = currentTenant.requireInstitution();
 
             for (CSVRecord record : csvParser) {
                 String email = record.isSet("Email") ? record.get("Email").trim() : (record.isSet("email") ? record.get("email").trim() : null);
@@ -202,7 +204,8 @@ public class TeacherService {
                 boolean isActive = record.isSet("Statut") ? "Actif".equalsIgnoreCase(record.get("Statut")) : true;
                 user.setActive(isActive);
                 user.setRole(UserRole.TEACHER);
-                user.setPasswordHash(passwordEncoder.encode("Teacher123!"));
+                user.setInstitutionId(currentTenant.requireTenantId());
+                user.setPasswordHash(passwordEncoder.encode(ga.gabedt.common.security.PasswordGenerator.generate()));
                 
                 Teacher teacher = new Teacher();
                 teacher.setUser(user);

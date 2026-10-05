@@ -54,7 +54,7 @@ public class ScheduleEventServiceTest {
     @Mock
     private OrganizationalUnitRepository orgUnitRepository;
     @Mock
-    private InstitutionRepository institutionRepository;
+    private ga.gabedt.tenant.CurrentTenant currentTenant;
     @Mock
     private NotificationService notificationService;
 

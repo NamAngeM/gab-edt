@@ -81,6 +81,17 @@ public class GlobalExceptionHandler {
 
     // ─── 401 — Non authentifié / Identifiants incorrects ───────────────
 
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ApiError> handleTooManyRequests(TooManyRequestsException ex) {
+        ApiError error = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                .code("TOO_MANY_REQUESTS")
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex) {
         log.warn("Erreur d'authentification : {}", ex.getMessage());

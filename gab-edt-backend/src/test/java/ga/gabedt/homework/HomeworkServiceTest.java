@@ -51,6 +51,15 @@ class HomeworkServiceTest {
     private User user;
     private Student student;
 
+    @org.junit.jupiter.api.AfterEach
+
+    void clearSecurityContext() {
+
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+
+    }
+
+
     @BeforeEach
     void setUp() {
         event = new ScheduleEvent();

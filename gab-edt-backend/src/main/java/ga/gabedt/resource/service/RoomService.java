@@ -37,7 +37,7 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
     private final OrganizationalUnitRepository organizationalUnitRepository;
-    private final InstitutionRepository institutionRepository;
+    private final ga.gabedt.tenant.CurrentTenant currentTenant;
 
     @Transactional(readOnly = true)
     public Page<RoomAdminDto> findAll(UUID orgUnitId, String search, Boolean active, Pageable pageable) {
@@ -94,8 +94,7 @@ public class RoomService {
         }
 
         // Minimal institution setup
-        Institution inst = institutionRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("No Institution available"));
+        Institution inst = currentTenant.requireInstitution();
         room.setInstitution(inst);
         room.setTenantId(inst.getId());
 
@@ -168,8 +167,7 @@ public class RoomService {
 
             List<Room> roomsToSave = new ArrayList<>();
             
-            Institution inst = institutionRepository.findAll().stream().findFirst()
-                    .orElseThrow(() -> new ResourceNotFoundException("No Institution available"));
+            Institution inst = currentTenant.requireInstitution();
 
             for (CSVRecord record : csvParser) {
                 String name = record.isSet("Nom") ? record.get("Nom").trim() : (record.isSet("name") ? record.get("name").trim() : null);

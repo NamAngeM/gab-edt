@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,6 +52,9 @@ class SecurityAclServiceTest {
     @Mock
     private ScheduleEventRepository scheduleEventRepository;
 
+    @Mock
+    private ga.gabedt.student.disciplinary.DisciplinaryRecordRepository disciplinaryRecordRepository;
+
     @InjectMocks
     private SecurityAclService securityAclService;
 
@@ -58,6 +62,15 @@ class SecurityAclServiceTest {
     private User pedagoUser;
     private OrganizationalUnit managedUnit;
     private OrganizationalUnit childUnit;
+
+    @org.junit.jupiter.api.AfterEach
+
+    void clearSecurityContext() {
+
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+
+    }
+
 
     @BeforeEach
     void setUp() {
@@ -78,6 +91,9 @@ class SecurityAclServiceTest {
         pedagoUser.setEmail("pedago@gab.ga");
         pedagoUser.setRole(UserRole.PEDAGOGICAL_MANAGER);
         pedagoUser.setManagedOrgUnits(Set.of(managedUnit));
+
+        // Par défaut, les unités testées appartiennent à l'établissement courant (filtre @TenantId)
+        lenient().when(orgUnitRepository.existsById(any())).thenReturn(true);
     }
 
     private void mockAuthentication(User user) {
@@ -91,12 +107,30 @@ class SecurityAclServiceTest {
     }
 
     @Test
-    void canManage_ShouldReturnTrue_WhenSuperAdmin() {
+    void canManage_ShouldReturnTrue_WhenSchoolAdminOfSameInstitution() {
         mockAuthentication(adminUser);
 
         boolean result = securityAclService.canManage(UUID.randomUUID());
 
         assertTrue(result);
+    }
+
+    @Test
+    void canManage_ShouldReturnFalse_WhenSchoolAdminTargetsOtherInstitution() {
+        mockAuthentication(adminUser);
+        UUID foreignUnit = UUID.randomUUID();
+        when(orgUnitRepository.existsById(foreignUnit)).thenReturn(false);
+
+        assertFalse(securityAclService.canManage(foreignUnit));
+    }
+
+    @Test
+    void canManage_ShouldReturnFalse_WhenPedagogicalManagerTargetsOtherInstitution() {
+        mockAuthentication(pedagoUser);
+        UUID foreignUnit = UUID.randomUUID();
+        when(orgUnitRepository.existsById(foreignUnit)).thenReturn(false);
+
+        assertFalse(securityAclService.canManage(foreignUnit));
     }
 
     @Test

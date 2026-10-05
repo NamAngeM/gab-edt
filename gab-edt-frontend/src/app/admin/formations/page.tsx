@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { fetchWithAuth, API_URL } from '@/lib/api';
+import { fetchWithAuth } from '@/lib/api';
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -80,9 +80,7 @@ export default function FormationsAdminPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer cette formation ?')) return;
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const res = await fetch(`${API_URL}/org-units/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }});
-      if (!res.ok) throw new Error("Erreur");
+      await fetchWithAuth(`/org-units/${id}`, { method: 'DELETE' });
       toast.success("Supprimé avec succès.");
       loadData();
     } catch { toast.error("Erreur de suppression."); }
@@ -91,11 +89,9 @@ export default function FormationsAdminPage() {
   const handleFormSubmit = async (data: FormationFormValues) => {
     setModalError('');
     try {
-      const token = localStorage.getItem('jwt_token') || '';
-      const url = modalMode === 'EDIT' ? `${API_URL}/org-units/${data.id}` : `${API_URL}/org-units`;
-      const res = await fetch(url, {
+      const url = modalMode === 'EDIT' ? `/org-units/${data.id}` : `/org-units`;
+      await fetchWithAuth(url, {
         method: modalMode === 'EDIT' ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ 
           name: data.name, 
           type: data.type, 
@@ -103,7 +99,6 @@ export default function FormationsAdminPage() {
           institutionId: data.institutionId 
         })
       });
-      if (!res.ok) throw new Error("Erreur lors de l'enregistrement");
       setIsModalOpen(false);
       toast.success(modalMode === 'CREATE' ? 'Créé avec succès.' : 'Modifié avec succès.');
       loadData();

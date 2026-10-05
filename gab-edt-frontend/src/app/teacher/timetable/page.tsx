@@ -22,7 +22,7 @@ interface UIMockupEvent {
   isConflict?: boolean;
   subject?: any;
   room?: any;
-  group?: any;
+  groupRef?: any;
   status?: string;
   notes?: string;
 }
@@ -65,8 +65,8 @@ export default function TeacherTimetablePage() {
   const gridStyle = { gridTemplateColumns: `60px repeat(${weekDays.length}, minmax(140px, 1fr))` };
 
   const loadSchedule = async () => {
-    const start = weekDays[0].formatDateLocal(date);
-    const end = weekDays[6].formatDateLocal(date);
+    const start = formatDateLocal(weekDays[0].date);
+    const end = formatDateLocal(weekDays[6].date);
     
     // Le backend devra filtrer les events pour l'enseignant connecté
     const params = new URLSearchParams({ startDate: start, endDate: end });
@@ -91,7 +91,7 @@ export default function TeacherTimetablePage() {
           isConflict: evt.status === 'CANCELLED',
           subject: evt.subject,
           room: evt.room,
-          group: evt.group,
+          groupRef: evt.group,
           status: evt.status,
           notes: evt.notes,
         };
@@ -241,7 +241,7 @@ export default function TeacherTimetablePage() {
       subject: evt.subject,
       teacher: { id: '', firstName: evt.teacher, lastName: '' }, // We don't have full teacher object here but modal only needs id, wait, TimetableModal needs full teacher ID for select, but it's prefilled. Wait, for teacher portal we just pass what we have. Actually the modal fetches /teachers. If teacherId is not exact, it might be empty.
       room: evt.room,
-      group: evt.group,
+      group: evt.groupRef,
       startAt: new Date(new Date(weekDays[evt.dayIndex].date).setHours(Math.floor(evt.startHour), Math.round((evt.startHour % 1) * 60))).toISOString(),
       endAt: new Date(new Date(weekDays[evt.dayIndex].date).setHours(Math.floor(evt.endHour), Math.round((evt.endHour % 1) * 60))).toISOString(),
       status: evt.status,

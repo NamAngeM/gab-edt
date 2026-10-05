@@ -51,6 +51,11 @@ public class OrganizationalUnit {
     @Builder.Default
     private boolean active = true;
 
+    /** Établissement propriétaire (= institution.id), utilisé pour le filtrage multi-tenant. */
+    @org.hibernate.annotations.TenantId
+    @Column(name = "tenant_id", nullable = false, updatable = false)
+    private UUID tenantId;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -61,5 +66,14 @@ public class OrganizationalUnit {
         children.add(child);
         child.setParent(this);
         child.setInstitution(this.getInstitution());
+        child.setTenantId(this.getTenantId());
+    }
+
+    @PostLoad
+    protected void verifyTenant() {
+        UUID current = ga.gabedt.tenant.TenantContext.getTenantId();
+        if (current != null && tenantId != null && !current.equals(tenantId)) {
+            throw new ga.gabedt.common.exception.ResourceNotFoundException("Unité organisationnelle introuvable");
+        }
     }
 }

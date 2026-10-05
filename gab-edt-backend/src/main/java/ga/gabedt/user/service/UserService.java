@@ -28,10 +28,15 @@ public class UserService {
     private final UserRepository userRepository;
     private final OrganizationalUnitRepository orgUnitRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ga.gabedt.tenant.CurrentTenant currentTenant;
 
     @Transactional(readOnly = true)
     public List<UserAdminDto> findAll() {
-        return userRepository.findAllByDeletedFalse().stream()
+        java.util.UUID tenantId = ga.gabedt.tenant.TenantContext.getTenantId();
+        List<User> users = tenantId != null
+                ? userRepository.findAllByInstitutionIdAndDeletedFalse(tenantId)
+                : userRepository.findAllByDeletedFalse(); // SUPER_ADMIN sans établissement ciblé
+        return users.stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
@@ -48,6 +53,9 @@ public class UserService {
             user.getManagedOrgUnits().clear();
         } else {
             List<OrganizationalUnit> units = orgUnitRepository.findAllById(orgUnitIds);
+            if (units.size() != orgUnitIds.size()) {
+                throw new ResourceNotFoundException("Unité organisationnelle introuvable");
+            }
             user.setManagedOrgUnits(units.stream().collect(Collectors.toSet()));
         }
 
@@ -69,7 +77,10 @@ public class UserService {
         user.setPhone(dto.getPhone());
         user.setRole(dto.getRole());
         user.setActive(dto.isActive());
-        
+        if (dto.getRole() != ga.gabedt.common.enums.UserRole.SUPER_ADMIN) {
+            user.setInstitutionId(currentTenant.requireTenantId());
+        }
+
         User saved = userRepository.save(user);
         return mapToDto(saved);
     }
@@ -90,6 +101,23 @@ public class UserService {
 
         User saved = userRepository.save(user);
         return mapToDto(saved);
+    }
+
+    /**
+     * Réinitialisation par un administrateur : génère un mot de passe provisoire,
+     * renvoyé une seule fois (comptes sans e-mail, ex. élèves connectés par matricule).
+     */
+    @Transactional
+    public String resetPassword(UUID userId) {
+        User user = userRepository.findById(userId)
+                .filter(u -> !u.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        checkUserManagementAccess(user, user.getRole());
+
+        String temporaryPassword = ga.gabedt.common.security.PasswordGenerator.generate();
+        user.setPasswordHash(passwordEncoder.encode(temporaryPassword));
+        userRepository.save(user);
+        return temporaryPassword;
     }
 
     @Transactional
@@ -132,6 +160,9 @@ public class UserService {
         if (currentUser.getRole() == ga.gabedt.common.enums.UserRole.SUPER_ADMIN) return;
 
         if (currentUser.getRole() == ga.gabedt.common.enums.UserRole.SCHOOL_ADMIN) {
+            if (targetUser != null && !java.util.Objects.equals(targetUser.getInstitutionId(), currentUser.getInstitutionId())) {
+                throw new UnauthorizedAccessException("Utilisateur d'un autre établissement");
+            }
             if (targetUser != null && targetUser.getRole() == ga.gabedt.common.enums.UserRole.SUPER_ADMIN) {
                 throw new UnauthorizedAccessException("A SCHOOL_ADMIN cannot modify a SUPER_ADMIN");
             }

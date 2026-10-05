@@ -5,6 +5,7 @@ import StudentDashboardPage from '../page';
 import { fetchWithAuth } from '@/lib/api';
 
 jest.mock('@/lib/api', () => ({
+  ...jest.requireActual('@/lib/api'),
   fetchWithAuth: jest.fn(),
   extractArray: (data: any) => {
     if (Array.isArray(data)) return data;

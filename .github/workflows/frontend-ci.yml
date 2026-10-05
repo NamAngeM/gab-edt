@@ -1,4 +1,4 @@
-﻿name: "🎨 Frontend CI - Tests & Coverage"
+name: "🎨 Frontend CI - Tests & Coverage"
 
 on:
   push:
@@ -30,6 +30,14 @@ jobs:
         working-directory: gab-edt-frontend
         run: npm ci
 
+      - name: "🔎 Lint"
+        working-directory: gab-edt-frontend
+        run: npx eslint src --quiet
+
+      - name: "🧾 Type check"
+        working-directory: gab-edt-frontend
+        run: npx tsc --noEmit
+
       - name: "🧪 Run Jest tests with coverage"
         working-directory: gab-edt-frontend
         run: npm run test -- --coverage --coverageReporters=lcov --coverageReporters=text
@@ -41,3 +49,7 @@ jobs:
           name: jest-coverage-report
           path: gab-edt-frontend/coverage/
           retention-days: 7
+
+      - name: "🏗️ Production build"
+        working-directory: gab-edt-frontend
+        run: npm run build

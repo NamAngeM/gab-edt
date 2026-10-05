@@ -43,8 +43,14 @@ public class NotificationService {
         payload.put("type", type);
         payload.put("timestamp", LocalDateTime.now().toString());
 
+        // Les alertes sont cloisonnées par établissement (cf. JwtChannelInterceptor)
+        java.util.UUID tenantId = ga.gabedt.tenant.TenantContext.getTenantId();
+        if (tenantId == null) {
+            log.warn("Alerte admin ignorée (aucun établissement actif) : {}", title);
+            return;
+        }
         log.info("Sending WS Notification: {} - {}", title, message);
-        messagingTemplate.convertAndSend("/topic/admin-alerts", payload);
+        messagingTemplate.convertAndSend("/topic/admin-alerts/" + tenantId, payload);
     }
 
     public void sendClassAlert(UUID orgUnitId, String title, String message, String type) {

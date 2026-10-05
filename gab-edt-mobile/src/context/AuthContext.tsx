@@ -1,12 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { registerForPushNotificationsAsync } from '../services/NotificationService';
+import { apiClient, setSessionExpiredHandler } from '../api/client';
 
 type AuthContextType = {
   userToken: string | null;
   userRole: string | null;
   isLoading: boolean;
-  login: (token: string, role?: string) => Promise<void>;
+  login: (token: string, role?: string, refreshToken?: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -43,9 +44,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loadToken();
   }, []);
 
-  const login = async (token: string, role: string = 'STUDENT') => {
+  // Session non renouvelable (refresh token expiré ou révoqué) : retour à l'écran de connexion
+  useEffect(() => {
+    setSessionExpiredHandler(() => {
+      setUserToken(null);
+      setUserRole(null);
+    });
+    return () => setSessionExpiredHandler(null);
+  }, []);
+
+  const login = async (token: string, role: string = 'STUDENT', refreshToken?: string) => {
     try {
       await SecureStore.setItemAsync('userToken', token);
+      if (refreshToken) {
+        await SecureStore.setItemAsync('refreshToken', refreshToken);
+      }
       await SecureStore.setItemAsync('userRole', role);
       setUserToken(token);
       setUserRole(role);
@@ -54,14 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const pushToken = await registerForPushNotificationsAsync();
         if (pushToken) {
-          await fetch('http://10.0.2.2:8080/api/v1/users/push-token', {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ token: pushToken })
-          });
+          await apiClient.put('/api/v1/users/push-token', { token: pushToken });
         }
       } catch (err) {
         console.log('Push token registration error:', err);
@@ -74,6 +80,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
+      // Révoque le refresh token côté serveur (ignore les erreurs réseau)
+      const refreshToken = await SecureStore.getItemAsync('refreshToken');
+      if (refreshToken) {
+        await apiClient.post('/api/v1/auth/logout', { refreshToken }).catch(() => undefined);
+      }
+      await SecureStore.deleteItemAsync('refreshToken');
       await SecureStore.deleteItemAsync('userToken');
       await SecureStore.deleteItemAsync('userRole');
       setUserToken(null);

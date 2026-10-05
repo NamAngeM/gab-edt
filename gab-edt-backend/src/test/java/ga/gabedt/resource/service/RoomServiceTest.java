@@ -38,7 +38,7 @@ class RoomServiceTest {
     private OrganizationalUnitRepository organizationalUnitRepository;
 
     @Mock
-    private InstitutionRepository institutionRepository;
+    private ga.gabedt.tenant.CurrentTenant currentTenant;
 
     @InjectMocks
     private RoomService roomService;
@@ -89,7 +89,7 @@ class RoomServiceTest {
         UUID orgUnitId = UUID.randomUUID();
         dto.setOrgUnitId(orgUnitId);
 
-        when(institutionRepository.findAll()).thenReturn(List.of(institution));
+        when(currentTenant.requireInstitution()).thenReturn(institution);
         
         OrganizationalUnit unit = new OrganizationalUnit();
         unit.setId(orgUnitId);

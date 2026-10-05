@@ -55,8 +55,10 @@ server:
   servlet:
     context-path: /
   error:
-    include-message: always
-    include-binding-errors: always
+    # Les messages d'erreur sont produits par GlobalExceptionHandler ; on n'expose pas les détails internes
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
 
 # Actuator
 management:
@@ -67,6 +69,10 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+  health:
+    # Redis n'est pas utilisé par l'application : sa sonde ne doit pas rendre le service « DOWN »
+    redis:
+      enabled: false
 
 # OpenAPI / Swagger
 springdoc:
@@ -86,6 +92,23 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
 jwt:
-  # En production, JWT_SECRET DOIT être défini en variable d'environnement (ex: 64 caractères aléatoires)
-  secret: ${JWT_SECRET:d3f4uLtS3cr3tK3yTh4t1sAtL3ast32Byt3sL0ng4ndS3cur3F0rD3v0nly!}
-  expiration: 86400000
+  # Obligatoire hors profil dev : 32 octets minimum (ex. `openssl rand -base64 48`). Aucun secret par défaut.
+  secret: ${JWT_SECRET:}
+  expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}          # 15 min
+  refresh-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000} # 7 jours
+
+app:
+  frontend-url: ${APP_FRONTEND_URL:http://localhost:3000}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+  mail:
+    from: ${MAIL_FROM:no-reply@gab-edt.ga}
+    log-content: false
+  security:
+    login:
+      max-attempts: 5
+      window-minutes: 15
+  bootstrap:
+    super-admin:
+      email: ${BOOTSTRAP_SUPER_ADMIN_EMAIL:}
+      password: ${BOOTSTRAP_SUPER_ADMIN_PASSWORD:}

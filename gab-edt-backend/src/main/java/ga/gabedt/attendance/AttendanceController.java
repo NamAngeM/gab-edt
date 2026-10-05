@@ -16,17 +16,24 @@ public class AttendanceController {
     private final AttendanceService attendanceService;
 
     @GetMapping
-    @PreAuthorize("hasRole('TEACHER') or hasRole('SCHOOL_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCHOOL_ADMIN', 'PEDAGOGICAL_MANAGER', 'SUPER_ADMIN') and @securityAclService.canManageEvent(#eventId)")
     public ResponseEntity<ApiResponse<List<AttendanceDto>>> getAttendance(@PathVariable UUID eventId) {
         return ResponseEntity.ok(ApiResponse.success(attendanceService.getAttendance(eventId)));
     }
 
     @PutMapping
-    @PreAuthorize("hasRole('TEACHER') or hasRole('SCHOOL_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCHOOL_ADMIN', 'PEDAGOGICAL_MANAGER', 'SUPER_ADMIN') and @securityAclService.canManageEvent(#eventId)")
     public ResponseEntity<ApiResponse<Void>> saveAttendance(
             @PathVariable UUID eventId,
             @RequestBody List<AttendanceUpdateDto> updates) {
         attendanceService.saveAttendance(eventId, updates);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PostMapping("/students/{studentId}/print-ticket")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PEDAGOGICAL_MANAGER') and @securityAclService.canManageEvent(#eventId)")
+    public ResponseEntity<ApiResponse<Void>> printEntryTicket(@PathVariable UUID eventId, @PathVariable UUID studentId) {
+        attendanceService.printEntryTicket(eventId, studentId);
+        return ResponseEntity.ok(ApiResponse.success("Billet d'entrée imprimé", null));
     }
 }

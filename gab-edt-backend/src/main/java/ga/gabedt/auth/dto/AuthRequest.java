@@ -13,8 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AuthRequest {
 
-    @NotBlank(message = "L'email est requis")
-    @Email(message = "Format d'email invalide")
+    /** Email, ou matricule pour les élèves et parents (pas de contrainte de format). */
+    @NotBlank(message = "L'identifiant est requis")
+    @jakarta.validation.constraints.Size(max = 254)
     private String email;
 
     @NotBlank(message = "Le mot de passe est requis")

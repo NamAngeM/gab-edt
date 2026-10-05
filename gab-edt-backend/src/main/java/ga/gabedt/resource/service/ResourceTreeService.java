@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class ResourceTreeService {
 
-    private final InstitutionRepository institutionRepository;
+    private final ga.gabedt.tenant.CurrentTenant currentTenant;
     private final OrganizationalUnitRepository organizationalUnitRepository;
     private final TeacherRepository teacherRepository;
     private final RoomRepository roomRepository;
@@ -28,7 +28,7 @@ public class ResourceTreeService {
         ResourceTreeDto tree = new ResourceTreeDto();
         
         // Pour simplifier le MVP, on prend la première institution
-        Institution inst = institutionRepository.findAll().stream().findFirst().orElse(null);
+        Institution inst = currentTenant.requireInstitution();
         if (inst == null) return tree;
 
         ResourceTreeDto.InstitutionNode iNode = new ResourceTreeDto.InstitutionNode();

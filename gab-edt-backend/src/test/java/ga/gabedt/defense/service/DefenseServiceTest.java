@@ -46,7 +46,7 @@ class DefenseServiceTest {
     private TeacherRepository teacherRepository;
 
     @Mock
-    private InstitutionRepository institutionRepository;
+    private ga.gabedt.tenant.CurrentTenant currentTenant;
 
     @InjectMocks
     private DefenseService defenseService;
@@ -112,7 +112,7 @@ class DefenseServiceTest {
         DefenseCreateDto dto = new DefenseCreateDto(student.getId(), "Quantum Physics", room.getId(), LocalDateTime.now(), LocalDateTime.now().plusHours(1), teacher.getId(), teacher.getId(), teacher.getId());
 
         when(studentRepository.findById(student.getId())).thenReturn(Optional.of(student));
-        when(institutionRepository.findAll()).thenReturn(List.of(institution));
+        when(currentTenant.requireInstitution()).thenReturn(institution);
         when(roomRepository.findById(room.getId())).thenReturn(Optional.of(room));
         when(teacherRepository.findById(teacher.getId())).thenReturn(Optional.of(teacher));
         when(defenseRepository.save(any(Defense.class))).thenAnswer(i -> i.getArguments()[0]);

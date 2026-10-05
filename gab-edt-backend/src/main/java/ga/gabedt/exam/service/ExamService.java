@@ -34,7 +34,7 @@ public class ExamService {
     private final ExamSessionRepository sessionRepository;
     private final ExamRepository examRepository;
     private final OrganizationalUnitRepository orgUnitRepository;
-    private final InstitutionRepository institutionRepository;
+    private final ga.gabedt.tenant.CurrentTenant currentTenant;
     private final SubjectRepository subjectRepository;
     private final RoomRepository roomRepository;
     private final TeacherRepository teacherRepository;
@@ -55,7 +55,7 @@ public class ExamService {
         session.setStartDate(dto.startDate());
         session.setEndDate(dto.endDate());
         session.setOrgUnit(orgUnit);
-        session.setInstitution(institutionRepository.findAll().stream().findFirst().orElseThrow());
+        session.setInstitution(currentTenant.requireInstitution());
         session.setTenantId(session.getInstitution().getId());
 
         session = sessionRepository.save(session);

@@ -36,6 +36,7 @@ interface DashboardStats {
   subjectCount: number;
   roomCount: number;
   activeConflictsCount: number;
+  rescheduledCount: number;
   todayEvents: TodayEvent[];
   recentActivity: Activity[];
   buildingOccupations: BuildingOccupation[];
