@@ -14,4 +14,6 @@ public class AttendanceDto {
     private String studentLastName;
     private String studentNumber;
     private AttendanceStatus status;
+    private Integer delayMinutes;
+    private boolean entryTicketPrinted;
 }

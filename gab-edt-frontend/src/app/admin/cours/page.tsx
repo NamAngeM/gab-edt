@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchWithAuth , formatDateLocal} from '@/lib/api';
 import { DatePicker } from "@/components/ui/date-picker";
+import { AttendanceModal } from "@/app/components/AttendanceModal";
 
 export default function CoursListAdminPage() {
   const [events, setEvents] = useState<any[]>([]);
@@ -11,6 +12,9 @@ export default function CoursListAdminPage() {
   // Filters
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  
+  // Modal
+  const [attendanceEventId, setAttendanceEventId] = useState<string | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -139,6 +143,13 @@ export default function CoursListAdminPage() {
                     <td style={{ padding: '1rem', textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                         <button style={{ 
+                          width: '32px', height: '32px', borderRadius: '8px', border: '1px solid var(--primary)', 
+                          background: 'var(--primary-light)', color: 'var(--primary-dark)', 
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' 
+                        }} title="Faire l'appel" onClick={() => setAttendanceEventId(evt.id)}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>checklist</span>
+                        </button>
+                        <button style={{ 
                           width: '32px', height: '32px', borderRadius: '8px', border: '1px solid var(--border)', 
                           background: 'var(--surface-container)', color: 'var(--text-primary)', 
                           display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' 
@@ -161,6 +172,12 @@ export default function CoursListAdminPage() {
           </table>
         </div>
       </div>
+
+      <AttendanceModal 
+        isOpen={!!attendanceEventId} 
+        onClose={() => setAttendanceEventId(null)} 
+        eventId={attendanceEventId} 
+      />
     </div>
   );
 }

@@ -11,4 +11,5 @@ import java.util.UUID;
 public class AttendanceUpdateDto {
     private UUID studentId;
     private AttendanceStatus status;
+    private Integer delayMinutes;
 }

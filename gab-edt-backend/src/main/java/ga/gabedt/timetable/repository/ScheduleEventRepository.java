@@ -24,6 +24,9 @@ public interface ScheduleEventRepository extends JpaRepository<ScheduleEvent, UU
     // Recherche par plage de dates
     List<ScheduleEvent> findByStartAtBetweenAndDeletedFalse(LocalDateTime start, LocalDateTime end);
     
+    // Recherche par groupe / classe (orgUnit) et plage de dates
+    List<ScheduleEvent> findByOrgUnitIdAndStartAtBetweenAndDeletedFalse(UUID orgUnitId, LocalDateTime start, LocalDateTime end);
+    
     // Recherche par groupe / classe (orgUnit)
     List<ScheduleEvent> findByOrgUnitIdAndDeletedFalse(UUID orgUnitId);
     

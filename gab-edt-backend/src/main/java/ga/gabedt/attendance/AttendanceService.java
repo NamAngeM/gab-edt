@@ -11,6 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import ga.gabedt.user.User;
+import ga.gabedt.user.UserRepository;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,6 +31,7 @@ public class AttendanceService {
     private final ScheduleEventRepository scheduleEventRepository;
     private final StudentRepository studentRepository;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public List<AttendanceDto> getAttendance(UUID eventId) {
@@ -40,15 +47,22 @@ public class AttendanceService {
 
         return students.stream().map(student -> {
             AttendanceStatus status = AttendanceStatus.PRESENT;
+            Integer delay = null;
+            boolean printed = false;
+            
             if (recordsMap.containsKey(student.getId())) {
                 status = recordsMap.get(student.getId()).getStatus();
+                delay = recordsMap.get(student.getId()).getDelayMinutes();
+                printed = recordsMap.get(student.getId()).isEntryTicketPrinted();
             }
             return new AttendanceDto(
                     student.getId(),
                     student.getUser().getFirstName(),
                     student.getUser().getLastName(),
                     student.getStudentNumber(),
-                    status
+                    status,
+                    delay,
+                    printed
             );
         }).collect(Collectors.toList());
     }
@@ -62,6 +76,10 @@ public class AttendanceService {
         List<Attendance> existingRecords = attendanceRepository.findByScheduleEventIdAndDeletedFalse(eventId);
         Map<UUID, Attendance> recordsMap = existingRecords.stream()
                 .collect(Collectors.toMap(a -> a.getStudent().getId(), a -> a));
+
+        String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User marker = userRepository.findByEmailAndDeletedFalse(currentUserEmail)
+                .orElse(null);
 
         for (AttendanceUpdateDto update : updates) {
             Attendance attendance = recordsMap.get(update.getStudentId());
@@ -78,6 +96,10 @@ public class AttendanceService {
             
             AttendanceStatus oldStatus = attendance.getStatus();
             attendance.setStatus(update.getStatus());
+            attendance.setDelayMinutes(update.getDelayMinutes());
+            attendance.setMarkedBy(marker);
+            attendance.setMarkedAt(LocalDateTime.now());
+            
             attendanceRepository.save(attendance);
 
             // Send notification to parent if newly marked as ABSENT
@@ -92,5 +114,23 @@ public class AttendanceService {
                 notificationService.sendPersonalAlert(attendance.getStudent(), title, message, "ERROR");
             }
         }
+    }
+
+    @Transactional
+    public void printEntryTicket(UUID eventId, UUID studentId) {
+        Attendance attendance = attendanceRepository.findByScheduleEventIdAndDeletedFalse(eventId)
+                .stream()
+                .filter(a -> a.getStudent().getId().equals(studentId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Attendance record not found"));
+
+        if (attendance.getStatus() != AttendanceStatus.LATE && attendance.getStatus() != AttendanceStatus.ABSENT) {
+            throw new IllegalArgumentException("Un billet d'entrée n'est nécessaire que pour les retards ou absences.");
+        }
+
+        attendance.setEntryTicketPrinted(true);
+        attendanceRepository.save(attendance);
+        
+        log.info("Billet d'entrée imprimé pour l'élève {} (Événement: {})", studentId, eventId);
     }
 }

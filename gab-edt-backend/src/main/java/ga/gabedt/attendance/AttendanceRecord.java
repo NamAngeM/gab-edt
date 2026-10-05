@@ -1,6 +1,6 @@
 package ga.gabedt.attendance;
 
-import ga.gabedt.common.entity.BaseEntity;
+import ga.gabedt.common.entity.TenantAwareEntity;
 import ga.gabedt.timetable.ScheduleEvent;
 import ga.gabedt.user.Student;
 import ga.gabedt.user.User;
@@ -12,11 +12,11 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "attendance")
+@Table(name = "attendance_records")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Attendance extends BaseEntity {
+public class AttendanceRecord extends TenantAwareEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_event_id", nullable = false)
@@ -28,20 +28,21 @@ public class Attendance extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AttendanceStatus status;
+    private AttendanceStatus status; // PRESENT, ABSENT, RETARD, EXCUSE
 
-    private String justification;
-    
     @Column(name = "delay_minutes")
-    private Integer delayMinutes;
+    private Integer delayMinutes; // If RETARD
 
     @Column(name = "entry_ticket_printed")
-    private boolean entryTicketPrinted = false;
+    private boolean entryTicketPrinted = false; // Billet d'entrée (Surveillance Générale)
+
+    @Column(length = 500)
+    private String comments;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "marked_by_id")
-    private User markedBy;
+    @JoinColumn(name = "marked_by_id", nullable = false)
+    private User markedBy; // Prof ou Surveillant qui a fait l'appel
 
-    @Column(name = "marked_at")
+    @Column(name = "marked_at", nullable = false)
     private LocalDateTime markedAt;
 }
