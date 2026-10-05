@@ -58,6 +58,7 @@ class TimetableVisibilityIntegrationTest extends AbstractPostgresIntegrationTest
     @Autowired private SubjectRepository subjectRepository;
     @Autowired private CourseRepository courseRepository;
     @Autowired private ScheduleEventRepository eventRepository;
+    @Autowired private ga.gabedt.resource.repository.RoomRepository roomRepository;
     @Autowired private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     private Institution school;
@@ -157,6 +158,29 @@ class TimetableVisibilityIntegrationTest extends AbstractPostgresIntegrationTest
                         .param("startDate", day.toString()).param("endDate", day.toString())
                         .header("Authorization", bearer(studentUser)))
                 .andExpect(jsonPath("$.data", hasSize(1)));
+    }
+
+    @Test
+    void roomOccupancyIsVisibleToEveryoneButOnlyPublished() throws Exception {
+        ga.gabedt.resource.Room room = new ga.gabedt.resource.Room();
+        room.setName("B204");
+        room.setInstitution(school);
+        room.setTenantId(school.getId());
+        room = roomRepository.save(room);
+        ScheduleEvent otherClass = event(classB, otherTeacher, 8, PublicationStatus.PUBLISHED);
+        otherClass.setRoom(room);
+        eventRepository.save(otherClass);
+        ScheduleEvent draft = event(classB, otherTeacher, 10, PublicationStatus.DRAFT);
+        draft.setRoom(room);
+        eventRepository.save(draft);
+
+        mvc.perform(get("/api/v1/schedule-events")
+                        .param("roomId", room.getId().toString())
+                        .param("startDate", day.toString()).param("endDate", day.toString())
+                        .header("Authorization", bearer(studentUser)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", hasSize(1)))
+                .andExpect(jsonPath("$.data[0].id").value(otherClass.getId().toString()));
     }
 
     @Test

@@ -14,15 +14,11 @@ export const RoomScheduleScreen = ({ route, navigation }: any) => {
   const fetchRoomSchedule = async () => {
     try {
       setLoading(true);
-      // We assume there's an endpoint to get events by room ID. 
-      // If not, we fetch all and filter for the MVP, or assume the backend supports it.
-      // E.g. GET /api/v1/schedule-events?roomId=...
-      const response = await apiClient.get('/api/v1/schedule-events');
-      
+      // Occupation de la salle (cours publiés), filtrée par l'API
+      const response = await apiClient.get('/api/v1/schedule-events', { params: { roomId } });
+
       if (response.data?.success) {
-        // Filter locally if backend doesn't support roomId filtering natively yet
-        const allEvents = response.data.data;
-        const roomEvents = allEvents.filter((e: any) => e.room?.id === roomId);
+        const roomEvents = response.data.data;
 
         const events = roomEvents.map((event: any) => {
           const start = new Date(event.startAt);

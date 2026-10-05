@@ -75,8 +75,10 @@ public class ScheduleEventService {
         boolean publishedOnly = caller == null || !isPlanner(caller);
         // Élèves et parents : uniquement leurs classes (et les niveaux parents, ex. cours communs à la promotion).
         // Enseignants : uniquement leurs propres cours.
-        java.util.Set<UUID> learnerOrgUnits = learnerOrgUnitIds(caller);
-        UUID ownTeacherId = ownTeacherId(caller);
+        // Exception : l'occupation d'une salle (scan du QR code sur la porte) reste consultable par tous.
+        boolean roomOccupancy = roomId != null;
+        java.util.Set<UUID> learnerOrgUnits = roomOccupancy ? null : learnerOrgUnitIds(caller);
+        UUID ownTeacherId = roomOccupancy ? null : ownTeacherId(caller);
         if (learnerOrgUnits != null && learnerOrgUnits.isEmpty()) {
             return List.of();
         }
