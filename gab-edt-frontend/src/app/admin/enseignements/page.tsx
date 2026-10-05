@@ -28,6 +28,13 @@ interface CourseSummary {
   remainingHours: number | null;
 }
 
+interface PeriodOption {
+  key: string;
+  label: string;
+  from?: string;
+  to?: string;
+}
+
 const EMPTY_FORM = { orgUnitId: '', subjectId: '', teacherId: '', plannedHours: '' };
 
 const hours = (h: number | null | undefined) => (h == null ? '—' : `${Number.isInteger(h) ? h : h.toFixed(1)} h`);
@@ -40,6 +47,8 @@ export default function EnseignementsPage() {
   const [teachers, setTeachers] = useState<Ref[]>([]);
   const [filterClass, setFilterClass] = useState('');
   const [filterTeacher, setFilterTeacher] = useState('');
+  const [periods, setPeriods] = useState<PeriodOption[]>([{ key: 'all', label: 'Depuis le début' }]);
+  const [periodKey, setPeriodKey] = useState('all');
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -51,6 +60,9 @@ export default function EnseignementsPage() {
     const params = new URLSearchParams();
     if (filterClass) params.set('orgUnitId', filterClass);
     if (filterTeacher) params.set('teacherId', filterTeacher);
+    const period = periods.find((p) => p.key === periodKey);
+    if (period?.from) params.set('from', period.from);
+    if (period?.to) params.set('to', period.to);
     try {
       setCourses(extractArray(await fetchWithAuth(`/courses?${params.toString()}`)));
     } catch (e) {
@@ -58,7 +70,7 @@ export default function EnseignementsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filterClass, filterTeacher]);
+  }, [filterClass, filterTeacher, periodKey, periods]);
 
   useEffect(() => {
     Promise.all([
@@ -71,6 +83,23 @@ export default function EnseignementsPage() {
       setSubjects(extractArray(subj));
       setTeachers(extractArray(teach));
     });
+  }, []);
+
+  // Période de suivi : l'année en cours et ses semestres / trimestres
+  useEffect(() => {
+    fetchWithAuth('/academic-years/current')
+      .then((res) => {
+        const year = res?.data;
+        if (!year) return;
+        setPeriods([
+          { key: 'all', label: 'Depuis le début' },
+          { key: year.id, label: `Année ${year.name}`, from: year.startDate, to: year.endDate },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...year.periods.map((p: any) => ({ key: p.id, label: p.name, from: p.startDate, to: p.endDate })),
+        ]);
+        setPeriodKey(year.id);
+      })
+      .catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -163,6 +192,9 @@ export default function EnseignementsPage() {
 
       <div className="card">
         <div style={{ padding: 'var(--space-lg)', borderBottom: '1px solid var(--border)', display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
+          <select aria-label="Période" className="form-input" style={{ minWidth: 180 }} value={periodKey} onChange={(e) => setPeriodKey(e.target.value)}>
+            {periods.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+          </select>
           <select aria-label="Filtrer par classe" className="form-input" style={{ minWidth: 200 }} value={filterClass} onChange={(e) => setFilterClass(e.target.value)}>
             <option value="">Toutes les classes</option>
             {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}

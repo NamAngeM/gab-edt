@@ -58,6 +58,9 @@ public class ScheduleEventServiceTest {
     @Mock
     private NotificationService notificationService;
 
+    @Mock
+    private ga.gabedt.academic.AcademicCalendarService academicCalendarService;
+
     @InjectMocks
     private ScheduleEventService scheduleEventService;
 

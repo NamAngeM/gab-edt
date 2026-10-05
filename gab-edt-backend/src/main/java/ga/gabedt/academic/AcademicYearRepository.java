@@ -9,4 +9,7 @@ import java.util.UUID;
 public interface AcademicYearRepository extends JpaRepository<AcademicYear, UUID> {
     List<AcademicYear> findByInstitutionIdAndDeletedFalseOrderByStartDateDesc(UUID institutionId);
     List<AcademicYear> findByTenantIdAndDeletedFalseOrderByStartDateDesc(UUID tenantId);
+
+    /** Années de l'établissement courant (filtre @TenantId). */
+    List<AcademicYear> findByDeletedFalseOrderByStartDateDesc();
 }

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import styles from './timetable.module.css';
-import { fetchWithAuth } from '@/lib/api';
+import { fetchWithAuth, isClosedPeriodError } from '@/lib/api';
 import { TimetableModal } from '@/app/components/TimetableModal';
 import { BulkCancelModal } from '@/app/components/BulkCancelModal';
 import { toast } from 'sonner';
@@ -284,14 +284,21 @@ export default function TimetablePage() {
     
     try {
       const toIsoStr = (d: Date) => new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-      await fetchWithAuth(`/schedule-events/${eventId}/reschedule`, {
+      const move = (allowDuringClosure: boolean) => fetchWithAuth(`/schedule-events/${eventId}/reschedule`, {
         method: 'PUT',
-        body: JSON.stringify({ startAt: toIsoStr(startD), endAt: toIsoStr(endD) })
+        body: JSON.stringify({ startAt: toIsoStr(startD), endAt: toIsoStr(endD), allowDuringClosure })
       });
+      try {
+        await move(false);
+      } catch (err) {
+        // Jour férié ou vacances : déplacement possible seulement après confirmation explicite
+        if (!isClosedPeriodError(err) || !confirm(err.message)) throw err;
+        await move(true);
+      }
       toast.success("Cours déplacé avec succès");
       loadSchedule();
     } catch (err) {
-      toast.error("Erreur lors du déplacement (vérifiez les conflits)");
+      toast.error(err instanceof Error ? err.message : "Erreur lors du déplacement");
     }
   };
 

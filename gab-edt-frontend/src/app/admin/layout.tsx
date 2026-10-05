@@ -37,6 +37,7 @@ const navSections: NavSection[] = [
   {
     label: 'Organisation',
     items: [
+      { label: 'Calendrier', icon: 'calendar_today', href: '/admin/calendrier' },
       { label: 'Structure pédagogique', icon: 'apartment', href: '/admin/organisation' },
       { label: 'Formations & Niveaux', icon: 'school', href: '/admin/formations' },
       { label: 'Classes & Groupes', icon: 'group_work', href: '/admin/groupes' },
@@ -62,7 +63,6 @@ const navSections: NavSection[] = [
     label: 'Communication',
     items: [
       { label: 'Annonces', icon: 'campaign', href: '/admin/annonces' },
-      { label: 'Événements académiques', icon: 'event', href: '/admin/evenements' },
     ],
   },
   {

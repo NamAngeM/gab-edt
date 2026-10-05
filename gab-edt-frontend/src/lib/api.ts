@@ -19,7 +19,8 @@ export interface SessionUser {
 const USER_KEY = 'user_data';
 
 export class ApiError extends Error {
-  constructor(public readonly status: number, message: string) {
+  /** Code métier renvoyé par l'API (ex. CLOSED_PERIOD, SCHEDULE_CONFLICT) */
+  constructor(public readonly status: number, message: string, public readonly code?: string) {
     super(message);
     this.name = 'ApiError';
   }
@@ -53,15 +54,20 @@ function redirectToLogin() {
   window.location.href = `/login?next=${next}`;
 }
 
-async function errorMessage(response: Response): Promise<string> {
+async function errorDetails(response: Response): Promise<{ message: string; code?: string }> {
   const text = await response.text().catch(() => '');
   try {
     const body = JSON.parse(text);
-    if (body?.message) return body.message;
+    if (body?.message) return { message: body.message, code: body.code };
   } catch {
     // réponse non JSON
   }
-  return text || `Erreur ${response.status}`;
+  return { message: text || `Erreur ${response.status}` };
+}
+
+/** Une séance tombe pendant une fermeture (férié, vacances) : l'API attend une confirmation explicite. */
+export function isClosedPeriodError(error: unknown): error is ApiError {
+  return error instanceof ApiError && error.code === 'CLOSED_PERIOD';
 }
 
 /**
@@ -88,7 +94,8 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}): Pro
     throw new ApiError(403, "Accès refusé : vous n'avez pas les droits pour cette action.");
   }
   if (!response.ok) {
-    throw new ApiError(response.status, await errorMessage(response));
+    const { message, code } = await errorDetails(response);
+    throw new ApiError(response.status, message, code);
   }
   return response;
 }

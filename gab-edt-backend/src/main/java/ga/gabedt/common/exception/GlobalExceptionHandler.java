@@ -53,6 +53,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(ClosedPeriodException.class)
+    public ResponseEntity<ApiError> handleClosedPeriod(ClosedPeriodException ex) {
+        ApiError error = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .code("CLOSED_PERIOD")
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
     @ExceptionHandler(ScheduleConflictException.class)
     public ResponseEntity<ApiError> handleScheduleConflict(ScheduleConflictException ex) {
         log.warn("Conflit de planification : {}", ex.getMessage());

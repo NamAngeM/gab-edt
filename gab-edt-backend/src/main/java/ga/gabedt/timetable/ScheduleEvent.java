@@ -68,4 +68,8 @@ public class ScheduleEvent extends TenantAwareEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "make_up_of_id")
     private ScheduleEvent makeUpOf;
+
+    /** Planifiée volontairement pendant une fermeture (dérogation confirmée) : pas signalée en conflit. */
+    @Column(name = "allowed_during_closure", nullable = false)
+    private boolean allowedDuringClosure = false;
 }

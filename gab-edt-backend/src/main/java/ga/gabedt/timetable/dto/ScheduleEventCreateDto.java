@@ -37,4 +37,10 @@ public class ScheduleEventCreateDto {
      * et la classe sont alors ceux de la séance d'origine.
      */
     private UUID makeUpOfId;
+
+    /**
+     * Dérogation explicite : planifier pendant une fermeture (vacances, jour férié) ou hors
+     * année académique, par exemple un rattrapage pendant les vacances.
+     */
+    private boolean allowDuringClosure;
 }

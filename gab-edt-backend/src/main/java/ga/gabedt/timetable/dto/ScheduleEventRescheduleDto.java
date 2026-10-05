@@ -12,4 +12,7 @@ public class ScheduleEventRescheduleDto {
 
     @NotNull(message = "L'heure de fin est requise")
     private LocalDateTime endAt;
+
+    /** Dérogation explicite pour déplacer la séance pendant une fermeture. */
+    private boolean allowDuringClosure;
 }

@@ -63,6 +63,7 @@ public class ScheduleEventService {
     private final HomeworkStatusRepository homeworkStatusRepository;
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
+    private final ga.gabedt.academic.AcademicCalendarService academicCalendarService;
 
     public List<ScheduleEventDto> searchEvents(UUID groupId, UUID teacherId, UUID roomId, LocalDate startDate, LocalDate endDate) {
         
@@ -307,10 +308,15 @@ public class ScheduleEventService {
             boolean isOrgUnitConflict = event.getOrgUnit() != null && 
                 scheduleEventRepository.existsOverlappingForOrgUnitWithExclude(event.getOrgUnit().getId(), event.getStartAt(), event.getEndAt(), event.getId());
 
-            if (isRoomConflict || isTeacherConflict || isOrgUnitConflict) {
+            // Séance tombant sur une fermeture ajoutée après coup (sauf dérogation confirmée)
+            java.util.Optional<String> closure = event.isAllowedDuringClosure()
+                    ? java.util.Optional.empty()
+                    : academicCalendarService.closureReason(event.getStartAt(), event.getEndAt());
+
+            if (isRoomConflict || isTeacherConflict || isOrgUnitConflict || closure.isPresent()) {
                 ScheduleEventDto dto = mapToDto(event);
                 dto.setConflict(true);
-                String desc = "";
+                String desc = closure.map(reason -> reason + " ").orElse("");
                 if (isRoomConflict) desc += "Superposition de salle. ";
                 if (isTeacherConflict) desc += "Professeur déjà occupé. ";
                 if (isOrgUnitConflict) desc += "La classe a déjà cours. ";
@@ -324,6 +330,7 @@ public class ScheduleEventService {
     @Transactional
     public ScheduleEventDto createEvent(ScheduleEventCreateDto dto) {
         ScheduleEvent makeUpOf = dto.getMakeUpOfId() != null ? resolveMakeUpOriginal(dto) : null;
+        academicCalendarService.checkSchedulable(dto.getStartAt(), dto.getEndAt(), dto.isAllowDuringClosure());
         validateNoConflict(dto.getTeacherId(), dto.getRoomId(), dto.getOrgUnitId(), dto.getStartAt(), dto.getEndAt(), null);
 
         // Find existing course or create one
@@ -373,6 +380,7 @@ public class ScheduleEventService {
         event.setPublicationStatus(ga.gabedt.timetable.enums.PublicationStatus.DRAFT);
         event.setNotes(dto.getNotes());
         event.setMakeUpOf(makeUpOf);
+        event.setAllowedDuringClosure(dto.isAllowDuringClosure());
 
         ScheduleEvent savedEvent = scheduleEventRepository.save(event);
 
@@ -388,6 +396,7 @@ public class ScheduleEventService {
 
     @Transactional
     public ScheduleEventDto updateEvent(UUID id, ScheduleEventCreateDto dto) {
+        academicCalendarService.checkSchedulable(dto.getStartAt(), dto.getEndAt(), dto.isAllowDuringClosure());
         validateNoConflict(dto.getTeacherId(), dto.getRoomId(), dto.getOrgUnitId(), dto.getStartAt(), dto.getEndAt(), id);
 
         ScheduleEvent event = scheduleEventRepository.findById(id)
@@ -440,6 +449,7 @@ public class ScheduleEventService {
         
         event.setStartAt(dto.getStartAt());
         event.setEndAt(dto.getEndAt());
+        event.setAllowedDuringClosure(dto.isAllowDuringClosure());
         if (dto.getStatus() != null) event.setStatus(dto.getStatus());
         event.setNotes(dto.getNotes());
         
@@ -457,10 +467,12 @@ public class ScheduleEventService {
         UUID roomId = event.getRoom() != null ? event.getRoom().getId() : null;
         UUID orgUnitId = event.getOrgUnit() != null ? event.getOrgUnit().getId() : null;
 
+        academicCalendarService.checkSchedulable(dto.getStartAt(), dto.getEndAt(), dto.isAllowDuringClosure());
         validateNoConflict(teacherId, roomId, orgUnitId, dto.getStartAt(), dto.getEndAt(), id);
 
         event.setStartAt(dto.getStartAt());
         event.setEndAt(dto.getEndAt());
+        event.setAllowedDuringClosure(dto.isAllowDuringClosure());
         
         ScheduleEvent savedEvent = scheduleEventRepository.save(event);
         return mapToDto(savedEvent);

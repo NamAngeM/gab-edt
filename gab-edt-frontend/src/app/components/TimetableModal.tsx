@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchWithAuth, extractArray } from '@/lib/api';
+import { fetchWithAuth, extractArray, isClosedPeriodError } from '@/lib/api';
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -142,8 +142,14 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
         ...(makeUpOf ? { makeUpOfId: makeUpOf.id } : {})
       };
 
-      // Les conflits (salle, enseignant, classe) et les refus de droits remontent avec un message explicite
-      await fetchWithAuth(url, { method, body: JSON.stringify(payload) });
+      // Les conflits (salle, enseignant, classe) et les refus de droits remontent avec un message explicite.
+      // Pendant une fermeture (férié, vacances), l'API demande une confirmation explicite.
+      try {
+        await fetchWithAuth(url, { method, body: JSON.stringify(payload) });
+      } catch (err) {
+        if (!isClosedPeriodError(err) || !confirm(err.message)) throw err;
+        await fetchWithAuth(url, { method, body: JSON.stringify({ ...payload, allowDuringClosure: true }) });
+      }
 
       onSave();
     } catch (err: any) {
