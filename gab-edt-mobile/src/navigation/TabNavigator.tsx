@@ -2,8 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
-import { Feather } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
+import { FONTS } from '../theme/fonts';
 
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { PlanningScreen } from '../screens/PlanningScreen';
@@ -56,11 +57,11 @@ const CustomHeader = () => {
           </View>
           <View style={styles.headerActions}>
             <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Notifications')}>
-              <Feather name="bell" size={18} color="#FFF" />
+              <MaterialIcons name="notifications" size={18} color="#FFF" />
               <View style={styles.notificationDot} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconBtn} onPress={logout}>
-              <Feather name="log-out" size={18} color="#FFF" />
+              <MaterialIcons name="logout" size={18} color="#FFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -147,6 +148,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 22,
     fontWeight: '900',
+    fontFamily: FONTS.black,
     color: COLORS.brand700,
   },
   gabonBadge: {
@@ -168,6 +170,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: '#FFF',
     marginBottom: 2,
   },
@@ -178,6 +181,7 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 12,
     fontWeight: '500',
+    fontFamily: FONTS.medium,
     color: 'rgba(219, 234, 254, 0.9)',
   },
   statusDot: {
@@ -190,6 +194,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 11,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: '#6EE7B7',
   },
   headerActions: {
@@ -230,10 +235,12 @@ const styles = StyleSheet.create({
   topTabText: {
     fontSize: 14,
     fontWeight: '500',
+    fontFamily: FONTS.medium,
     color: 'rgba(191, 219, 254, 1)',
   },
   topTabActiveText: {
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: '#FFF',
   },
   topTabIndicator: {

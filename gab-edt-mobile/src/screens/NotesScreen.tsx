@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert } from 'reac
 import { COLORS } from '../theme/colors';
 import { apiClient } from '../api/client';
 import { SubjectCard } from '../components/SubjectCard';
+import { AnimatedCard } from '../components/AnimatedCard';
 import { useAuth } from '../context/AuthContext';
 
 export const NotesScreen = () => {
@@ -80,14 +81,16 @@ export const NotesScreen = () => {
     <FlatList
       data={subjectsData}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <SubjectCard 
-          title={item.title}
-          coef={item.coef}
-          teacher={item.teacher}
-          color={item.color}
-          notes={item.notes}
-        />
+      renderItem={({ item, index }) => (
+        <AnimatedCard index={index}>
+          <SubjectCard
+            title={item.title}
+            coef={item.coef}
+            teacher={item.teacher}
+            color={item.color}
+            notes={item.notes}
+          />
+        </AnimatedCard>
       )}
       ListHeaderComponent={renderHeader}
       ListFooterComponent={renderFooter}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
+import { FONTS } from '../theme/fonts';
 import { apiClient } from '../api/client';
+import { AnimatedCard } from '../components/AnimatedCard';
 
 export const NotificationsScreen = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -50,14 +52,14 @@ export const NotificationsScreen = () => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>Aucune notification récente.</Text>}
-        renderItem={({ item }) => {
-          
-          // Formattage basique de la date pour l'exemple
+        renderItem={({ item, index }) => {
+
           const d = new Date(item.createdAt);
           const timeString = `${d.getDate()}/${d.getMonth()+1} à ${d.getHours()}h${d.getMinutes().toString().padStart(2, '0')}`;
 
           return (
-            <TouchableOpacity 
+            <AnimatedCard index={index}>
+            <TouchableOpacity
               style={[styles.notificationCard, !item.read && styles.unreadCard]}
               onPress={() => markAsRead(item.id, item.read)}
             >
@@ -66,14 +68,14 @@ export const NotificationsScreen = () => {
               item.type === 'ERROR' ? { backgroundColor: '#FEE2E2' } :
               { backgroundColor: '#E0F2FE' }
             ]}>
-              <Feather 
-                name={item.type === 'WARNING' ? 'clock' : item.type === 'ERROR' ? 'x-circle' : 'info'} 
-                size={20} 
+              <MaterialIcons
+                name={item.type === 'WARNING' ? 'schedule' : item.type === 'ERROR' ? 'cancel' : 'info'}
+                size={20}
                 color={
-                  item.type === 'WARNING' ? '#D97706' :
+                  item.type === 'WARNING' ? COLORS.warningDark :
                   item.type === 'ERROR' ? '#DC2626' :
                   '#0284C7'
-                } 
+                }
               />
             </View>
             <View style={styles.contentContainer}>
@@ -83,6 +85,7 @@ export const NotificationsScreen = () => {
             </View>
             {!item.read && <View style={styles.unreadDot} />}
           </TouchableOpacity>
+            </AnimatedCard>
           );
         }}
       />
@@ -100,7 +103,7 @@ const styles = StyleSheet.create({
   },
   notificationCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
@@ -111,8 +114,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   unreadCard: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
+    backgroundColor: COLORS.slate50,
+    borderColor: COLORS.slate200,
     borderWidth: 1,
   },
   iconContainer: {
@@ -129,21 +132,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.onSurface,
     marginBottom: 4,
   },
   unreadText: {
     fontWeight: '800',
+    fontFamily: FONTS.extraBold,
     color: COLORS.brand700,
   },
   message: {
     fontSize: 14,
+    fontFamily: FONTS.regular,
     color: COLORS.onSurfaceVariant,
     marginBottom: 8,
     lineHeight: 20,
   },
   time: {
     fontSize: 12,
+    fontFamily: FONTS.regular,
     color: COLORS.outline,
   },
   unreadDot: {

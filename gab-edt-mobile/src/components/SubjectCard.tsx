@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, LayoutAnimation, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
+import { FONTS } from '../theme/fonts';
 
 export const SubjectCard = ({ title, coef, teacher, notes, color }: any) => {
   const [expanded, setExpanded] = useState(false);
@@ -26,12 +27,12 @@ export const SubjectCard = ({ title, coef, teacher, notes, color }: any) => {
             <Text style={styles.teacherText} numberOfLines={1}>{teacher}</Text>
           </View>
         </View>
-        
+
         <View style={styles.subjectScoreRow}>
           <View style={styles.scoreContainer}>
             <Text style={styles.notesCountText}>{notes?.length || 0} note{(notes?.length || 0) > 1 ? 's' : ''}</Text>
           </View>
-          <Feather name={expanded ? "chevron-up" : "chevron-down"} size={20} color={COLORS.slate400} />
+          <MaterialIcons name={expanded ? "expand-less" : "expand-more"} size={20} color={COLORS.slate400} />
         </View>
       </TouchableOpacity>
 
@@ -98,6 +99,7 @@ const styles = StyleSheet.create({
   subjectTitle: {
     fontSize: 14,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.onSurface,
     marginRight: 8,
   },
@@ -110,10 +112,12 @@ const styles = StyleSheet.create({
   coefText: {
     fontSize: 10,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.onPrimaryFixedVariant,
   },
   teacherText: {
     fontSize: 11,
+    fontFamily: FONTS.regular,
     color: COLORS.onSurfaceVariant,
   },
   subjectScoreRow: {
@@ -134,6 +138,7 @@ const styles = StyleSheet.create({
   notesCountText: {
     fontSize: 12,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.onSurfaceVariant,
     marginRight: 6,
   },
@@ -157,11 +162,13 @@ const styles = StyleSheet.create({
   noteItemTitle: {
     fontSize: 13,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.onSurface,
     marginBottom: 4,
   },
   noteItemDate: {
     fontSize: 11,
+    fontFamily: FONTS.regular,
     color: COLORS.onSurfaceVariant,
   },
   noteItemScoreBadge: {
@@ -175,13 +182,16 @@ const styles = StyleSheet.create({
   noteItemScoreText: {
     fontSize: 16,
     fontWeight: '800',
+    fontFamily: FONTS.extraBold,
   },
   noteItemScoreMax: {
     fontSize: 10,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
   },
   noNotesText: {
     fontSize: 12,
+    fontFamily: FONTS.regular,
     color: COLORS.onSurfaceVariant,
     fontStyle: 'italic',
     padding: 12,

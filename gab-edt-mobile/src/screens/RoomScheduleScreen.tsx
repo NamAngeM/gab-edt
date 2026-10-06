@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
+import { FONTS } from '../theme/fonts';
 import { apiClient } from '../api/client';
 import { CourseCard } from '../components/CourseCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,7 +15,6 @@ export const RoomScheduleScreen = ({ route, navigation }: any) => {
   const fetchRoomSchedule = async () => {
     try {
       setLoading(true);
-      // Occupation de la salle (cours publiés), filtrée par l'API
       const response = await apiClient.get('/api/v1/schedule-events', { params: { roomId } });
 
       if (response.data?.success) {
@@ -24,11 +24,11 @@ export const RoomScheduleScreen = ({ route, navigation }: any) => {
           const start = new Date(event.startAt);
           const end = new Date(event.endAt);
           const formatTime = (d: Date) => `${d.getHours().toString().padStart(2, '0')}h${d.getMinutes().toString().padStart(2, '0')}`;
-          
+
           return {
             id: event.id,
             time: `${formatTime(start)} - ${formatTime(end)}`,
-            duration: "2h00", // Simplifié
+            duration: "2h00",
             type: "CM",
             typeLabel: "Cours",
             title: event.subject?.name || "Matière inconnue",
@@ -43,7 +43,6 @@ export const RoomScheduleScreen = ({ route, navigation }: any) => {
           };
         });
 
-        // Sort events by time
         events.sort((a: any, b: any) => a.time.localeCompare(b.time));
 
         setScheduleData(events);
@@ -64,7 +63,7 @@ export const RoomScheduleScreen = ({ route, navigation }: any) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
+          <MaterialIcons name="arrow-back" size={24} color={COLORS.onSurface} />
         </TouchableOpacity>
         <View style={styles.headerContent}>
           <Text style={styles.subtitle}>Planning de la salle</Text>
@@ -84,7 +83,7 @@ export const RoomScheduleScreen = ({ route, navigation }: any) => {
             data={scheduleData}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <CourseCard 
+              <CourseCard
                 time={item.time} duration={item.duration} type={item.type} typeLabel={item.typeLabel} title={item.title}
                 room={item.room} teacher={item.teacher} initial={item.initial} initialBg={item.initialBg} initialColor={item.initialColor} color={item.color}
                 isTeacher={false}
@@ -95,7 +94,7 @@ export const RoomScheduleScreen = ({ route, navigation }: any) => {
             )}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Feather name="calendar" size={48} color={COLORS.slate300} />
+                <MaterialIcons name="event-available" size={48} color={COLORS.slate300} />
                 <Text style={styles.emptyTitle}>Salle Libre</Text>
                 <Text style={styles.emptyText}>Aucun cours n'est prévu dans cette salle aujourd'hui.</Text>
               </View>
@@ -119,7 +118,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.slate200,
   },
@@ -136,11 +135,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '800',
+    fontFamily: FONTS.extraBold,
     color: COLORS.slate900,
   },
   subtitle: {
     fontSize: 12,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.slate500,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -160,6 +161,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     color: COLORS.slate500,
     fontSize: 14,
+    fontFamily: FONTS.regular,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -170,12 +172,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.slate700,
     marginTop: 16,
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 15,
+    fontFamily: FONTS.regular,
     color: COLORS.slate500,
     textAlign: 'center',
     lineHeight: 22,

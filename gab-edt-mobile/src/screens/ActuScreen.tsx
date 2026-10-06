@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
-import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
+import { FONTS } from '../theme/fonts';
 import { apiClient } from '../api/client';
 import { ActuSkeleton } from '../components/Skeleton';
 import { LayoutAnimation, UIManager, Platform } from 'react-native';
@@ -53,7 +54,7 @@ export const ActuScreen = () => {
       {/* Search and Filters */}
       <View style={styles.searchSection}>
         <View style={styles.searchBar}>
-          <Feather name="search" size={20} color={COLORS.outline} style={{ marginRight: 8 }} />
+          <MaterialIcons name="search" size={20} color={COLORS.outline} style={{ marginRight: 8 }} />
           <TextInput 
             style={styles.searchInput}
             placeholder="Rechercher une actualité..."
@@ -160,7 +161,7 @@ export const ActuScreen = () => {
           style={styles.fab} 
           onPress={() => navigation.navigate('CreateAnnouncement')}
         >
-          <Feather name="edit-2" size={24} color="#FFF" />
+          <MaterialIcons name="edit" size={24} color={COLORS.white} />
         </TouchableOpacity>
       )}
     </View>
@@ -188,6 +189,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 14,
+    fontFamily: FONTS.regular,
     color: COLORS.onSurface,
   },
   filterButton: {
@@ -214,6 +216,7 @@ const styles = StyleSheet.create({
     color: COLORS.onPrimary,
     fontSize: 12,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
   },
   filterPillInactive: {
     flexDirection: 'row',
@@ -227,6 +230,7 @@ const styles = StyleSheet.create({
     color: COLORS.onSurfaceVariant,
     fontSize: 12,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
   },
   errorDot: {
     width: 6,
@@ -249,17 +253,20 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 12,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.primary,
     marginLeft: 4,
     letterSpacing: 0.5,
   },
   headerLive: {
     fontSize: 10,
+    fontFamily: FONTS.regular,
     color: COLORS.outline,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.onSurface,
   },
 
@@ -309,6 +316,7 @@ const styles = StyleSheet.create({
     color: COLORS.onError,
     fontSize: 10,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     letterSpacing: 0.5,
   },
   heroReadTimeBadge: {
@@ -326,6 +334,7 @@ const styles = StyleSheet.create({
     color: COLORS.inverseOnSurface,
     fontSize: 10,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     marginLeft: 4,
   },
   heroTextContainer: {
@@ -337,12 +346,14 @@ const styles = StyleSheet.create({
   heroSub: {
     color: 'rgba(255,255,255,0.8)',
     fontSize: 10,
+    fontFamily: FONTS.regular,
     marginBottom: 2,
   },
   heroMain: {
     color: COLORS.white,
     fontSize: 18,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     lineHeight: 22,
     textShadowColor: 'rgba(0,0,0,0.5)',
     textShadowOffset: { width: 0, height: 1 },
@@ -353,6 +364,7 @@ const styles = StyleSheet.create({
   },
   heroDescription: {
     fontSize: 12,
+    fontFamily: FONTS.regular,
     color: COLORS.onSurfaceVariant,
     lineHeight: 18,
     marginBottom: 8,
@@ -368,6 +380,7 @@ const styles = StyleSheet.create({
   },
   heroTimeText: {
     fontSize: 11,
+    fontFamily: FONTS.regular,
     color: COLORS.outline,
     marginLeft: 4,
   },
@@ -378,6 +391,7 @@ const styles = StyleSheet.create({
   heroActionText: {
     fontSize: 12,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.primary,
     marginRight: 2,
   },
@@ -409,9 +423,11 @@ const styles = StyleSheet.create({
   articleCategoryText: {
     fontSize: 10,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
   },
   articleDate: {
     fontSize: 10,
+    fontFamily: FONTS.regular,
     color: COLORS.outline,
   },
   articleBody: {
@@ -434,12 +450,14 @@ const styles = StyleSheet.create({
   articleTitle: {
     fontSize: 14,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.onSurface,
     lineHeight: 18,
     marginBottom: 4,
   },
   articleDesc: {
     fontSize: 11,
+    fontFamily: FONTS.regular,
     color: COLORS.onSurfaceVariant,
     lineHeight: 16,
   },

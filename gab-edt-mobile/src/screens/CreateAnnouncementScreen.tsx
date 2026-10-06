@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
+import { FONTS } from '../theme/fonts';
 import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
@@ -23,8 +24,8 @@ export const CreateAnnouncementScreen = ({ navigation }: any) => {
         title,
         content,
         targetAudience,
-        validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // +30 days
-        authorId: null // Handled by backend context
+        validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        authorId: null
       });
       Alert.alert("Succès", "Votre annonce a été publiée.");
       navigation.goBack();
@@ -40,21 +41,21 @@ export const CreateAnnouncementScreen = ({ navigation }: any) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Feather name="x" size={24} color={COLORS.onSurface} />
+          <MaterialIcons name="close" size={24} color={COLORS.onSurface} />
         </TouchableOpacity>
         <Text style={styles.title}>Créer une annonce</Text>
-        <TouchableOpacity 
-          style={[styles.saveBtn, (!title || !content) && styles.saveBtnDisabled]} 
+        <TouchableOpacity
+          style={[styles.saveBtn, (!title || !content) && styles.saveBtnDisabled]}
           onPress={handleSubmit}
           disabled={saving || !title || !content}
         >
-          {saving ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={styles.saveBtnText}>Publier</Text>}
+          {saving ? <ActivityIndicator size="small" color={COLORS.white} /> : <Text style={styles.saveBtnText}>Publier</Text>}
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.label}>Titre de l'annonce</Text>
-        <TextInput 
+        <TextInput
           style={styles.input}
           placeholder="Ex: Absence exceptionnelle"
           value={title}
@@ -62,7 +63,7 @@ export const CreateAnnouncementScreen = ({ navigation }: any) => {
         />
 
         <Text style={styles.label}>Contenu du message</Text>
-        <TextInput 
+        <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Rédigez votre annonce ici..."
           multiline
@@ -79,7 +80,7 @@ export const CreateAnnouncementScreen = ({ navigation }: any) => {
             { id: 'STUDENTS', label: 'Élèves' },
             { id: 'PARENTS', label: 'Parents' }
           ].map(aud => (
-            <TouchableOpacity 
+            <TouchableOpacity
               key={aud.id}
               style={[styles.audiencePill, targetAudience === aud.id && styles.audiencePillActive]}
               onPress={() => setTargetAudience(aud.id)}
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 50,
     paddingBottom: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.outlineVariant,
   },
@@ -118,6 +119,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.onSurface,
   },
   saveBtn: {
@@ -130,8 +132,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.outlineVariant,
   },
   saveBtnText: {
-    color: '#FFF',
+    color: COLORS.white,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     fontSize: 14,
   },
   content: {
@@ -140,17 +143,19 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.onSurfaceVariant,
     marginBottom: 8,
     marginTop: 12,
   },
   input: {
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     borderWidth: 1,
     borderColor: COLORS.outlineVariant,
     borderRadius: 8,
     padding: 12,
     fontSize: 15,
+    fontFamily: FONTS.regular,
   },
   textArea: {
     height: 120,
@@ -175,9 +180,10 @@ const styles = StyleSheet.create({
   audiencePillText: {
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.onSurfaceVariant,
   },
   audiencePillActiveText: {
-    color: '#FFF',
+    color: COLORS.white,
   }
 });

@@ -1,23 +1,25 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  KeyboardAvoidingView, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
   Alert,
   ScrollView
 } from 'react-native';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { apiClient } from '../api/client';
+import { COLORS } from '../theme/colors';
+import { FONTS } from '../theme/fonts';
 
 export const LoginScreen = () => {
   const { login } = useAuth();
-  
+
   const [matricule, setMatricule] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +29,7 @@ export const LoginScreen = () => {
 
   const handleLogin = async () => {
     if (!matricule || !password) return;
-    
+
     setLoading(true);
     try {
       const response = await apiClient.post('/api/v1/auth/login', {
@@ -56,19 +58,18 @@ export const LoginScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          {/* Logo Badge */}
           <View style={styles.logoBadgeContainer}>
             <View style={styles.logoBadgeInner}>
               <View style={styles.gabonFlagPill}>
-                <View style={[styles.flagStripe, { backgroundColor: '#009e60' }]} />
-                <View style={[styles.flagStripe, { backgroundColor: '#fcd116' }]} />
-                <View style={[styles.flagStripe, { backgroundColor: '#3a75c4' }]} />
+                <View style={[styles.flagStripe, { backgroundColor: COLORS.gabonGreen }]} />
+                <View style={[styles.flagStripe, { backgroundColor: COLORS.gabonYellow }]} />
+                <View style={[styles.flagStripe, { backgroundColor: COLORS.gabonBlue }]} />
               </View>
               <Text style={styles.logoTextG}>G</Text>
               <Text style={styles.logoTextSub}>LMBA</Text>
@@ -76,8 +77,8 @@ export const LoginScreen = () => {
           </View>
 
           <Text style={styles.title}>Lycée National Léon Mba</Text>
-          <Text style={styles.subtitle}>Espace Numérique de Travail • <Text style={{ color: '#1d4ed8', fontWeight: 'bold' }}>GAB-EDT</Text></Text>
-          
+          <Text style={styles.subtitle}>Espace Numérique de Travail • <Text style={{ color: COLORS.brand600, fontFamily: FONTS.bold }}>GAB-EDT</Text></Text>
+
           <View style={styles.trustBadge}>
             <View style={styles.pulseDot} />
             <Text style={styles.trustBadgeText}>Portail Sécurisé • Année 2026–2027</Text>
@@ -86,20 +87,20 @@ export const LoginScreen = () => {
 
         <View style={styles.roleSelectorContainer}>
           <View style={styles.roleSelector}>
-            <TouchableOpacity 
-              style={[styles.roleBtn, role === 'STUDENT' && styles.roleBtnActive]} 
+            <TouchableOpacity
+              style={[styles.roleBtn, role === 'STUDENT' && styles.roleBtnActive]}
               onPress={() => setRole('STUDENT')}
             >
               <Text style={[styles.roleBtnText, role === 'STUDENT' && styles.roleBtnTextActive]}>Élève / Étudiant</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.roleBtn, role === 'PARENT' && styles.roleBtnActive]} 
+            <TouchableOpacity
+              style={[styles.roleBtn, role === 'PARENT' && styles.roleBtnActive]}
               onPress={() => setRole('PARENT')}
             >
               <Text style={[styles.roleBtnText, role === 'PARENT' && styles.roleBtnTextActive]}>Parent / Tuteur</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.roleBtn, role === 'TEACHER' && styles.roleBtnActive]} 
+            <TouchableOpacity
+              style={[styles.roleBtn, role === 'TEACHER' && styles.roleBtnActive]}
               onPress={() => setRole('TEACHER')}
             >
               <Text style={[styles.roleBtnText, role === 'TEACHER' && styles.roleBtnTextActive]}>Enseignant</Text>
@@ -107,13 +108,12 @@ export const LoginScreen = () => {
           </View>
         </View>
 
-        {/* Login Card */}
         <View style={styles.loginCard}>
           <View style={styles.cardFlagBorder}>
-            <View style={[styles.flagStripe, { backgroundColor: '#009e60' }]} />
-            <View style={[styles.flagStripe, { backgroundColor: '#fcd116' }]} />
-            <View style={[styles.flagStripe, { backgroundColor: '#fcd116' }]} />
-            <View style={[styles.flagStripe, { backgroundColor: '#3a75c4' }]} />
+            <View style={[styles.flagStripe, { backgroundColor: COLORS.gabonGreen }]} />
+            <View style={[styles.flagStripe, { backgroundColor: COLORS.gabonYellow }]} />
+            <View style={[styles.flagStripe, { backgroundColor: COLORS.gabonYellow }]} />
+            <View style={[styles.flagStripe, { backgroundColor: COLORS.gabonBlue }]} />
           </View>
 
           <View style={styles.cardHeader}>
@@ -130,11 +130,11 @@ export const LoginScreen = () => {
               <Text style={styles.labelHint}>Format : LMBA-XXXX</Text>
             </View>
             <View style={styles.inputWrapper}>
-              <Feather name="user" size={18} color="#94a3b8" style={styles.inputIcon} />
+              <MaterialIcons name="person" size={18} color={COLORS.slate400} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder={role === 'TEACHER' ? 'Ex : PROF-2024-...' : 'Ex : LMBA-2024-8942'}
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor={COLORS.slate400}
                 value={matricule}
                 onChangeText={setMatricule}
                 autoCapitalize="none"
@@ -151,42 +151,42 @@ export const LoginScreen = () => {
               </TouchableOpacity>
             </View>
             <View style={styles.inputWrapper}>
-              <Feather name="lock" size={18} color="#94a3b8" style={styles.inputIcon} />
+              <MaterialIcons name="lock" size={18} color={COLORS.slate400} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="••••••••••••"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor={COLORS.slate400}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
               />
-              <TouchableOpacity 
-                style={styles.eyeIcon} 
+              <TouchableOpacity
+                style={styles.eyeIcon}
                 onPress={() => setShowPassword(!showPassword)}
               >
-                <Feather name={showPassword ? "eye" : "eye-off"} size={18} color="#94a3b8" />
+                <MaterialIcons name={showPassword ? "visibility" : "visibility-off"} size={18} color={COLORS.slate400} />
               </TouchableOpacity>
             </View>
           </View>
 
           <TouchableOpacity style={styles.rememberMeContainer} onPress={() => setRememberMe(!rememberMe)}>
             <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
-              {rememberMe && <Feather name="check" size={12} color="#fff" />}
+              {rememberMe && <MaterialIcons name="check" size={12} color={COLORS.white} />}
             </View>
             <Text style={styles.rememberMeText}>Mémoriser cet appareil</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.loginButton, (!matricule || !password) && styles.loginButtonDisabled]}
             onPress={handleLogin}
             disabled={!matricule || !password || loading}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={COLORS.white} />
             ) : (
               <>
                 <Text style={styles.loginButtonText}>Se connecter à mon espace</Text>
-                <Feather name="arrow-right" size={18} color="#fff" style={{ marginLeft: 8 }} />
+                <MaterialIcons name="arrow-forward" size={18} color={COLORS.white} style={{ marginLeft: 8 }} />
               </>
             )}
           </TouchableOpacity>
@@ -197,7 +197,7 @@ export const LoginScreen = () => {
           </View>
 
           <TouchableOpacity style={styles.biometryButton}>
-            <MaterialCommunityIcons name="face-recognition" size={20} color="#2563eb" />
+            <MaterialIcons name="face" size={20} color={COLORS.brand500} />
             <Text style={styles.biometryText}>Biométrie</Text>
           </TouchableOpacity>
         </View>
@@ -205,9 +205,9 @@ export const LoginScreen = () => {
 
         <View style={styles.footer}>
           <View style={styles.footerFlagPill}>
-            <View style={[styles.flagStripe, { backgroundColor: '#009e60' }]} />
-            <View style={[styles.flagStripe, { backgroundColor: '#fcd116' }]} />
-            <View style={[styles.flagStripe, { backgroundColor: '#3a75c4' }]} />
+            <View style={[styles.flagStripe, { backgroundColor: COLORS.gabonGreen }]} />
+            <View style={[styles.flagStripe, { backgroundColor: COLORS.gabonYellow }]} />
+            <View style={[styles.flagStripe, { backgroundColor: COLORS.gabonBlue }]} />
           </View>
           <Text style={styles.footerText}>Ministère de l'Éducation Nationale</Text>
           <Text style={styles.footerSubText}>RÉPUBLIQUE GABONAISE • UNION - TRAVAIL - JUSTICE</Text>
@@ -222,7 +222,7 @@ export const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -244,12 +244,12 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 16,
-    backgroundColor: '#2563eb', // gradient representation
+    backgroundColor: COLORS.brand500,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
     position: 'relative',
-    shadowColor: '#2563eb',
+    shadowColor: COLORS.brand500,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -270,12 +270,14 @@ const styles = StyleSheet.create({
   logoTextG: {
     fontSize: 24,
     fontWeight: '900',
-    color: '#fff',
+    fontFamily: FONTS.black,
+    color: COLORS.white,
     marginTop: 6,
   },
   logoTextSub: {
     fontSize: 9,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: '#bfdbfe',
     marginTop: -2,
     letterSpacing: 1,
@@ -283,27 +285,29 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#0f172a',
+    fontFamily: FONTS.bold,
+    color: COLORS.slate900,
     marginBottom: 2,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#64748b',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.slate500,
     textAlign: 'center',
   },
   trustBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate200,
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 4,
     marginTop: 10,
-    shadowColor: '#0f172a',
+    shadowColor: COLORS.slate900,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -313,20 +317,21 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#10b981',
+    backgroundColor: COLORS.success,
     marginRight: 6,
   },
   trustBadgeText: {
     fontSize: 10,
     fontWeight: '500',
-    color: '#475569',
+    fontFamily: FONTS.medium,
+    color: COLORS.slate600,
   },
   roleSelectorContainer: {
     marginBottom: 16,
   },
   roleSelector: {
     flexDirection: 'row',
-    backgroundColor: '#e2e8f0',
+    backgroundColor: COLORS.slate200,
     borderRadius: 12,
     padding: 3,
   },
@@ -337,7 +342,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   roleBtnActive: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -347,19 +352,21 @@ const styles = StyleSheet.create({
   roleBtnText: {
     fontSize: 11,
     fontWeight: '500',
-    color: '#475569',
+    fontFamily: FONTS.medium,
+    color: COLORS.slate600,
   },
   roleBtnTextActive: {
     fontWeight: '700',
-    color: '#1d4ed8',
+    fontFamily: FONTS.bold,
+    color: COLORS.brand600,
   },
   loginCard: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#0f172a',
+    borderColor: COLORS.slate200,
+    shadowColor: COLORS.slate900,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.05,
     shadowRadius: 20,
@@ -384,7 +391,8 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0f172a',
+    fontFamily: FONTS.bold,
+    color: COLORS.slate900,
   },
   portailBadge: {
     backgroundColor: '#eff6ff',
@@ -397,11 +405,13 @@ const styles = StyleSheet.create({
   portailBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#1d4ed8',
+    fontFamily: FONTS.bold,
+    color: COLORS.brand600,
   },
   cardSubtitle: {
     fontSize: 12,
-    color: '#64748b',
+    fontFamily: FONTS.regular,
+    color: COLORS.slate500,
     marginBottom: 20,
   },
   inputGroup: {
@@ -416,19 +426,20 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#334155',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.slate700,
   },
   labelHint: {
     fontSize: 10,
-    color: '#64748b',
+    color: COLORS.slate500,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.background,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate200,
     borderRadius: 12,
     height: 48,
     paddingHorizontal: 12,
@@ -439,7 +450,8 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 14,
-    color: '#0f172a',
+    fontFamily: FONTS.regular,
+    color: COLORS.slate900,
   },
   eyeIcon: {
     padding: 8,
@@ -447,7 +459,8 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#2563eb',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.brand500,
   },
   rememberMeContainer: {
     flexDirection: 'row',
@@ -459,43 +472,45 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#cbd5e1',
-    backgroundColor: '#fff',
+    borderColor: COLORS.slate300,
+    backgroundColor: COLORS.white,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
   },
   checkboxActive: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
+    backgroundColor: COLORS.brand500,
+    borderColor: COLORS.brand500,
   },
   rememberMeText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#334155',
+    fontFamily: FONTS.medium,
+    color: COLORS.slate700,
   },
   loginButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: COLORS.brand500,
     height: 48,
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#2563eb',
+    shadowColor: COLORS.brand500,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   loginButtonDisabled: {
-    backgroundColor: '#94a3b8',
+    backgroundColor: COLORS.slate400,
     shadowOpacity: 0,
     elevation: 0,
   },
   loginButtonText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 14,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -507,24 +522,25 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: COLORS.slate200,
   },
   dividerText: {
     position: 'absolute',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     paddingHorizontal: 12,
     fontSize: 10,
     fontWeight: '600',
-    color: '#64748b',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.slate500,
     letterSpacing: 1,
   },
   biometryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.background,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.slate200,
     borderRadius: 12,
     height: 44,
   },
@@ -532,7 +548,8 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 13,
     fontWeight: '600',
-    color: '#334155',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.slate700,
   },
 
   footer: {
@@ -549,18 +566,21 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#334155',
+    fontFamily: FONTS.bold,
+    color: COLORS.slate700,
     marginBottom: 2,
   },
   footerSubText: {
     fontSize: 9,
     fontWeight: '600',
-    color: '#64748b',
+    fontFamily: FONTS.semiBold,
+    color: COLORS.slate500,
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   versionText: {
     fontSize: 10,
-    color: '#94a3b8',
+    fontFamily: FONTS.regular,
+    color: COLORS.slate400,
   }
 });

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS } from '../theme/colors';
+import { FONTS } from '../theme/fonts';
 
 export const QRScannerScreen = ({ navigation }: any) => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -19,7 +21,7 @@ export const QRScannerScreen = ({ navigation }: any) => {
 
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
     setScanned(true);
-    
+
     try {
       const payload = JSON.parse(data);
       if (payload.type === 'ROOM') {
@@ -28,12 +30,12 @@ export const QRScannerScreen = ({ navigation }: any) => {
           `ID de la salle : ${payload.id}\n\nVoulez-vous consulter le planning de cette salle ?`,
           [
             { text: 'Non, fermer', onPress: () => setScanned(false), style: 'cancel' },
-            { 
-              text: 'Oui', 
+            {
+              text: 'Oui',
               onPress: () => {
                 setScanned(false);
                 navigation.replace('RoomSchedule', { roomId: payload.id, roomName: payload.name });
-              } 
+              }
             },
           ]
         );
@@ -43,7 +45,6 @@ export const QRScannerScreen = ({ navigation }: any) => {
         ]);
       }
     } catch (e) {
-      // Not a JSON payload, probably a URL or plain text
       Alert.alert('QR Code scanné', data, [
         { text: 'OK', onPress: () => setScanned(false) }
       ]);
@@ -53,16 +54,16 @@ export const QRScannerScreen = ({ navigation }: any) => {
   if (hasPermission === null) {
     return (
       <View style={styles.container}>
-        <Text>Demande d'autorisation de la caméra...</Text>
+        <Text style={styles.permissionText}>Demande d'autorisation de la caméra...</Text>
       </View>
     );
   }
-  
+
   if (hasPermission === false) {
     return (
       <View style={styles.container}>
-        <Text style={{ textAlign: 'center', marginBottom: 20 }}>
-          Pas d'accès à la caméra. 
+        <Text style={styles.permissionText}>
+          Pas d'accès à la caméra.
           Veuillez autoriser l'application dans les paramètres de votre téléphone.
         </Text>
         <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
@@ -76,7 +77,7 @@ export const QRScannerScreen = ({ navigation }: any) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
-          <Ionicons name="close" size={28} color="#000" />
+          <MaterialIcons name="close" size={28} color={COLORS.onSurface} />
         </TouchableOpacity>
         <Text style={styles.title}>Scanner une Salle</Text>
         <View style={{ width: 28 }} />
@@ -90,8 +91,7 @@ export const QRScannerScreen = ({ navigation }: any) => {
           }}
           style={StyleSheet.absoluteFill}
         />
-        
-        {/* Overlay pour cibler le QR Code */}
+
         <View style={styles.overlay}>
           <View style={styles.unfocusedContainer}></View>
           <View style={styles.middleContainer}>
@@ -118,7 +118,7 @@ export const QRScannerScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     justifyContent: 'center',
   },
   header: {
@@ -134,6 +134,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
+    color: COLORS.onSurface,
+  },
+  permissionText: {
+    textAlign: 'center',
+    marginBottom: 20,
+    fontFamily: FONTS.regular,
+    color: COLORS.onSurface,
+    paddingHorizontal: 20,
   },
   cameraContainer: {
     flex: 1,
@@ -160,17 +169,18 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   instructionText: {
-    color: '#fff',
+    color: COLORS.white,
     textAlign: 'center',
     marginTop: 30,
     fontSize: 16,
+    fontFamily: FONTS.medium,
     paddingHorizontal: 20,
   },
   corner: {
     position: 'absolute',
     width: 30,
     height: 30,
-    borderColor: '#fff',
+    borderColor: COLORS.white,
   },
   topLeft: {
     top: 0,
@@ -197,13 +207,14 @@ const styles = StyleSheet.create({
     borderRightWidth: 4,
   },
   button: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: COLORS.primary,
     padding: 12,
     borderRadius: 8,
     alignSelf: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
   },
 });

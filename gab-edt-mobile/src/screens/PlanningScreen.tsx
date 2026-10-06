@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert, Modal, TextInput } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
+import { FONTS } from '../theme/fonts';
 import { apiClient } from '../api/client';
 import { CourseCard } from '../components/CourseCard';
+import { AnimatedCard } from '../components/AnimatedCard';
 import { CourseSkeleton } from '../components/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
@@ -156,7 +158,7 @@ export const PlanningScreen = () => {
 
         <View style={styles.weekNav}>
           <TouchableOpacity onPress={goToPreviousWeek} style={styles.weekNavBtn}>
-            <Feather name="chevron-left" size={20} color={COLORS.slate600} />
+            <MaterialIcons name="chevron-left" size={20} color={COLORS.slate600} />
           </TouchableOpacity>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateScrollContent}>
             {weekDays.map((d) => {
@@ -175,14 +177,14 @@ export const PlanningScreen = () => {
             })}
           </ScrollView>
           <TouchableOpacity onPress={goToNextWeek} style={styles.weekNavBtn}>
-            <Feather name="chevron-right" size={20} color={COLORS.slate600} />
+            <MaterialIcons name="chevron-right" size={20} color={COLORS.slate600} />
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.daySeparator}>
         <View style={styles.dayBadge}>
-          <Feather name="calendar" size={12} color={COLORS.brand700} style={{ marginRight: 6 }} />
+          <MaterialIcons name="event" size={12} color={COLORS.brand700} style={{ marginRight: 6 }} />
           <Text style={styles.dayBadgeText}>{planningData.length} séance{planningData.length > 1 ? 's' : ''}{isToday ? " aujourd'hui" : ''}</Text>
         </View>
       </View>
@@ -278,33 +280,35 @@ export const PlanningScreen = () => {
       <FlatList
         data={planningData}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
+        renderItem={({ item, index }) => {
           if (item.isBreak) {
             return (
               <View style={styles.lunchBreak}>
                 <View style={styles.lunchBreakBadge}>
-                  <Feather name="coffee" size={12} color="#F59E0B" style={{ marginRight: 6 }} />
+                  <MaterialIcons name="coffee" size={12} color="#F59E0B" style={{ marginRight: 6 }} />
                   <Text style={styles.lunchBreakText}>{item.text}</Text>
                 </View>
               </View>
             );
           }
           return (
-            <CourseCard
-              time={item.time} duration={item.duration} type={item.type} typeLabel={item.typeLabel} title={item.title}
-              room={item.room} teacher={item.teacher} initial={item.initial} initialBg={item.initialBg} initialColor={item.initialColor} color={item.color}
-              isTeacher={userRole === 'TEACHER'}
-              isParent={userRole === 'PARENT'}
-              onReportDelay={() => handleReportDelay(item)}
-              onCancelClass={() => handleCancelClass(item)}
-              onRollCall={() => navigation.navigate('RollCall', { eventId: item.id, title: item.title })}
-              onAddHomework={() => handleAddHomework(item)}
-              onToggleHomework={() => handleToggleHomework(item)}
-              isCancelled={item.isCancelled}
-              delayMinutes={item.delayMinutes}
-              homeworkTitle={item.homeworkTitle}
-              isHomeworkDone={item.isHomeworkDone}
-            />
+            <AnimatedCard index={index}>
+              <CourseCard
+                time={item.time} duration={item.duration} type={item.type} typeLabel={item.typeLabel} title={item.title}
+                room={item.room} teacher={item.teacher} initial={item.initial} initialBg={item.initialBg} initialColor={item.initialColor} color={item.color}
+                isTeacher={userRole === 'TEACHER'}
+                isParent={userRole === 'PARENT'}
+                onReportDelay={() => handleReportDelay(item)}
+                onCancelClass={() => handleCancelClass(item)}
+                onRollCall={() => navigation.navigate('RollCall', { eventId: item.id, title: item.title })}
+                onAddHomework={() => handleAddHomework(item)}
+                onToggleHomework={() => handleToggleHomework(item)}
+                isCancelled={item.isCancelled}
+                delayMinutes={item.delayMinutes}
+                homeworkTitle={item.homeworkTitle}
+                isHomeworkDone={item.isHomeworkDone}
+              />
+            </AnimatedCard>
           );
         }}
         ListHeaderComponent={renderHeader}
@@ -318,7 +322,7 @@ export const PlanningScreen = () => {
         style={styles.fab}
         onPress={() => navigation.navigate('QRScanner')}
       >
-        <Feather name="maximize" size={24} color="#FFF" />
+        <MaterialIcons name="qr-code-scanner" size={24} color="#FFF" />
       </TouchableOpacity>
 
       <Modal visible={promptVisible} transparent animationType="fade">
@@ -369,12 +373,14 @@ const styles = StyleSheet.create({
   dateSubtitle: {
     fontSize: 12,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.slate400,
     letterSpacing: 0.5,
   },
   dateTitle: {
     fontSize: 18,
     fontWeight: '800',
+    fontFamily: FONTS.extraBold,
     color: COLORS.slate900,
     letterSpacing: -0.5,
   },
@@ -397,6 +403,7 @@ const styles = StyleSheet.create({
   weekBadgeText: {
     fontSize: 12,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.brand700,
   },
   weekNav: {
@@ -438,22 +445,26 @@ const styles = StyleSheet.create({
   dateDayText: {
     fontSize: 11,
     fontWeight: '500',
+    fontFamily: FONTS.medium,
     color: COLORS.slate400,
     letterSpacing: 0.3,
   },
   dateDayActive: {
     color: COLORS.brand100,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
   },
   dateNumText: {
     fontSize: 15,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.slate700,
     marginTop: 2,
   },
   dateNumActive: {
     color: '#FFF',
     fontWeight: '900',
+    fontFamily: FONTS.black,
   },
   daySeparator: {
     alignItems: 'center',
@@ -478,6 +489,7 @@ const styles = StyleSheet.create({
     color: COLORS.brand700,
     fontSize: 12,
     fontWeight: '800',
+    fontFamily: FONTS.extraBold,
   },
   lunchBreak: {
     alignItems: 'center',
@@ -498,6 +510,7 @@ const styles = StyleSheet.create({
   lunchBreakText: {
     fontSize: 12,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.slate400,
   },
   fab: {
@@ -533,6 +546,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.slate900,
     marginBottom: 8,
   },
@@ -564,6 +578,7 @@ const styles = StyleSheet.create({
   modalBtnCancelText: {
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.slate500,
   },
   modalBtnConfirm: {
@@ -575,6 +590,7 @@ const styles = StyleSheet.create({
   modalBtnConfirmText: {
     fontSize: 14,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: '#FFF',
   },
 });

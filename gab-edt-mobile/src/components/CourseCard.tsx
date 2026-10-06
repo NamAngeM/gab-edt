@@ -1,15 +1,16 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
+import { FONTS } from '../theme/fonts';
 
 export const CourseCard = ({ time, duration, type, typeLabel, title, room, teacher, initial, initialBg, initialColor, color, isTeacher, onReportDelay, onCancelClass, onRollCall, onAddHomework, onToggleHomework, isCancelled, delayMinutes, homeworkTitle, isHomeworkDone, isParent }: any) => (
-  <TouchableOpacity activeOpacity={0.9} style={[styles.courseCard, isCancelled && styles.courseCardCancelled]}>
+  <View style={[styles.courseCard, isCancelled && styles.courseCardCancelled]}>
     <View style={[styles.courseColorBar, { backgroundColor: isCancelled ? COLORS.outlineVariant : color }]} />
     <View style={[styles.courseContent, isCancelled && { opacity: 0.6 }]}>
       <View style={styles.courseHeader}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={[styles.courseTime, { color: color }]}>{time}</Text>
+          <Text style={[styles.courseTime, { color }]}>{time}</Text>
           <Text style={styles.courseDuration}>({duration})</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
@@ -22,7 +23,7 @@ export const CourseCard = ({ time, duration, type, typeLabel, title, room, teach
             </View>
           )}
           {!!delayMinutes && !isCancelled && (
-            <View style={[styles.typeBadge, { backgroundColor: '#F59E0B' }]}>
+            <View style={[styles.typeBadge, { backgroundColor: COLORS.warning }]}>
               <Text style={[styles.typeBadgeText, { color: COLORS.white }]}>+{delayMinutes} MIN</Text>
             </View>
           )}
@@ -33,7 +34,7 @@ export const CourseCard = ({ time, duration, type, typeLabel, title, room, teach
 
       <View style={styles.courseFooter}>
         <View style={styles.roomBadge}>
-          <Feather name="map-pin" size={12} color={COLORS.slate500} style={{ marginRight: 4 }} />
+          <MaterialIcons name="location-on" size={13} color={COLORS.slate500} style={{ marginRight: 4 }} />
           <Text style={styles.roomText}>{room}</Text>
         </View>
         <View style={styles.teacherBadge}>
@@ -43,22 +44,22 @@ export const CourseCard = ({ time, duration, type, typeLabel, title, room, teach
           <Text style={styles.teacherText}>{teacher}</Text>
         </View>
       </View>
-      
+
       {!!homeworkTitle && (
         <View style={styles.homeworkSection}>
-          <TouchableOpacity 
-            style={styles.homeworkRow} 
+          <TouchableOpacity
+            style={styles.homeworkRow}
             onPress={(!isTeacher && !isParent) ? onToggleHomework : undefined}
             disabled={isTeacher || isParent}
           >
             {(!isTeacher && !isParent) ? (
-              <Feather 
-                name={isHomeworkDone ? "check-square" : "square"} 
-                size={18} 
-                color={isHomeworkDone ? COLORS.primary : COLORS.outline} 
+              <MaterialIcons
+                name={isHomeworkDone ? "check-box" : "check-box-outline-blank"}
+                size={20}
+                color={isHomeworkDone ? COLORS.primary : COLORS.outline}
               />
             ) : (
-              <Feather name="book-open" size={16} color={COLORS.primary} />
+              <MaterialIcons name="menu-book" size={18} color={COLORS.primary} />
             )}
             <Text style={[styles.homeworkText, isHomeworkDone && styles.homeworkTextDone]}>
               {homeworkTitle}
@@ -70,30 +71,30 @@ export const CourseCard = ({ time, duration, type, typeLabel, title, room, teach
       {isTeacher && (
         <View style={styles.teacherActions}>
           <TouchableOpacity style={styles.actionBtnAddHw} onPress={onAddHomework}>
-            <Feather name="edit-3" size={14} color="#059669" style={{ marginRight: 4 }} />
+            <MaterialIcons name="edit-note" size={16} color={COLORS.successDark} style={{ marginRight: 4 }} />
             <Text style={styles.actionBtnTextAddHw}>Devoirs</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtnRollCall} onPress={onRollCall}>
-            <Feather name="check-square" size={14} color={COLORS.primary} style={{ marginRight: 4 }} />
-            <Text style={styles.actionBtnTextRollCall}>Faire l'appel</Text>
+            <MaterialIcons name="fact-check" size={16} color={COLORS.primary} style={{ marginRight: 4 }} />
+            <Text style={styles.actionBtnTextRollCall}>Appel</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtnDelay} onPress={onReportDelay}>
-            <Feather name="clock" size={14} color="#F59E0B" style={{ marginRight: 6 }} />
+            <MaterialIcons name="schedule" size={16} color={COLORS.warningDark} style={{ marginRight: 4 }} />
             <Text style={styles.actionBtnTextDelay}>Retard</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtnCancel} onPress={onCancelClass}>
-            <Feather name="x-circle" size={14} color={COLORS.error} style={{ marginRight: 6 }} />
+            <MaterialIcons name="cancel" size={16} color={COLORS.error} style={{ marginRight: 4 }} />
             <Text style={styles.actionBtnTextCancel}>Annuler</Text>
           </TouchableOpacity>
         </View>
       )}
     </View>
-  </TouchableOpacity>
+  </View>
 );
 
 const styles = StyleSheet.create({
   courseCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     borderRadius: 14,
     marginBottom: 10,
     shadowColor: COLORS.slate900,
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
     borderWidth: 1,
-    borderColor: 'rgba(226, 232, 240, 0.7)',
+    borderColor: COLORS.slate200,
     overflow: 'hidden',
   },
   courseCardCancelled: {
@@ -128,12 +129,12 @@ const styles = StyleSheet.create({
   },
   courseTime: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: FONTS.extraBold,
     letterSpacing: -0.2,
   },
   courseDuration: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: FONTS.medium,
     color: COLORS.slate400,
     marginLeft: 6,
   },
@@ -144,12 +145,12 @@ const styles = StyleSheet.create({
   },
   typeBadgeText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: FONTS.bold,
     textTransform: 'uppercase',
   },
   courseTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.slate900,
     marginBottom: 10,
   },
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
   },
   roomText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.slate800,
   },
   teacherBadge: {
@@ -188,11 +189,11 @@ const styles = StyleSheet.create({
   },
   teacherInitialText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: FONTS.bold,
   },
   teacherText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.slate800,
   },
   teacherActions: {
@@ -208,16 +209,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: COLORS.successLight,
     borderWidth: 1,
-    borderColor: '#D1FAE5',
+    borderColor: COLORS.successBorder,
     paddingVertical: 8,
     borderRadius: 8,
   },
   actionBtnTextAddHw: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#059669',
+    fontFamily: FONTS.bold,
+    color: COLORS.successDark,
   },
   actionBtnRollCall: {
     flex: 1,
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
   },
   actionBtnTextRollCall: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.primary,
   },
   actionBtnDelay: {
@@ -240,16 +241,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFBEB',
+    backgroundColor: COLORS.warningLight,
     borderWidth: 1,
-    borderColor: '#FEF3C7',
+    borderColor: COLORS.warningBorder,
     paddingVertical: 8,
     borderRadius: 8,
   },
   actionBtnTextDelay: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#D97706',
+    fontFamily: FONTS.bold,
+    color: COLORS.warningDark,
   },
   actionBtnCancel: {
     flex: 1,
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
   },
   actionBtnTextCancel: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.onErrorContainer,
   },
   homeworkSection: {
@@ -276,7 +277,7 @@ const styles = StyleSheet.create({
   homeworkRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.slate50,
     padding: 10,
     borderRadius: 8,
     borderWidth: 1,
@@ -285,7 +286,7 @@ const styles = StyleSheet.create({
   homeworkText: {
     marginLeft: 10,
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: FONTS.medium,
     color: COLORS.slate800,
     flex: 1,
   },

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
-import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
+import { FONTS } from '../theme/fonts';
 import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
@@ -174,11 +175,13 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 24,
     fontWeight: '800',
+    fontFamily: FONTS.extraBold,
     color: COLORS.onSurface,
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 14,
+    fontFamily: FONTS.regular,
     color: COLORS.onSurfaceVariant,
     marginTop: 4,
   },
@@ -188,11 +191,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.onSurface,
     marginBottom: 12,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
@@ -212,17 +216,19 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.onSurfaceVariant,
     marginTop: 12,
   },
   emptySub: {
     fontSize: 13,
+    fontFamily: FONTS.regular,
     color: COLORS.outline,
     marginTop: 4,
   },
   eventCard: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.primaryContainer,
@@ -243,11 +249,13 @@ const styles = StyleSheet.create({
   eventTimeMain: {
     fontSize: 16,
     fontWeight: '800',
+    fontFamily: FONTS.extraBold,
     color: COLORS.primary,
   },
   eventTimeSub: {
     fontSize: 12,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.onPrimaryContainer,
     opacity: 0.7,
     marginTop: 4,
@@ -260,6 +268,7 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 16,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.onSurface,
     marginBottom: 8,
   },
@@ -279,6 +288,7 @@ const styles = StyleSheet.create({
   eventMetaText: {
     fontSize: 11,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.onSurfaceVariant,
   },
   quickActionsGrid: {
@@ -288,7 +298,7 @@ const styles = StyleSheet.create({
   },
   actionCard: {
     width: '48%',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
@@ -311,6 +321,7 @@ const styles = StyleSheet.create({
   actionTitle: {
     fontSize: 13,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.onSurface,
   },
   highlightCard: {
@@ -337,17 +348,19 @@ const styles = StyleSheet.create({
   highlightTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#FFF',
+    fontFamily: FONTS.extraBold,
+    color: COLORS.white,
     marginBottom: 8,
   },
   highlightDesc: {
     fontSize: 13,
+    fontFamily: FONTS.regular,
     color: 'rgba(255,255,255,0.9)',
     lineHeight: 18,
     marginBottom: 16,
   },
   highlightBtn: {
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 12,
@@ -356,6 +369,7 @@ const styles = StyleSheet.create({
   highlightBtnText: {
     fontSize: 13,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.primary,
   }
 });

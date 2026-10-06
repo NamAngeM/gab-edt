@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
+import { FONTS } from '../theme/fonts';
 import { apiClient } from '../api/client';
 
 export const RollCallScreen = ({ route, navigation }: any) => {
@@ -59,18 +60,18 @@ export const RollCallScreen = ({ route, navigation }: any) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Feather name="arrow-left" size={24} color={COLORS.onSurface} />
+          <MaterialIcons name="arrow-back" size={24} color={COLORS.onSurface} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.title}>Appel : {title}</Text>
           <Text style={styles.subtitle}>{students.length} élèves inscrits</Text>
         </View>
-        <TouchableOpacity 
-          style={styles.saveBtn} 
+        <TouchableOpacity
+          style={styles.saveBtn}
           onPress={saveAttendance}
           disabled={saving}
         >
-          {saving ? <ActivityIndicator size="small" color="#FFF" /> : <Feather name="check" size={20} color="#FFF" />}
+          {saving ? <ActivityIndicator size="small" color={COLORS.white} /> : <MaterialIcons name="check" size={20} color={COLORS.white} />}
         </TouchableOpacity>
       </View>
 
@@ -91,19 +92,19 @@ export const RollCallScreen = ({ route, navigation }: any) => {
             </View>
 
             <View style={styles.statusButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.statusBtn, item.status === 'PRESENT' && styles.statusBtnPresent]}
                 onPress={() => handleStatusChange(item.studentId, 'PRESENT')}
               >
                 <Text style={[styles.statusBtnText, item.status === 'PRESENT' && styles.statusBtnTextActive]}>P</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.statusBtn, item.status === 'LATE' && styles.statusBtnLate]}
                 onPress={() => handleStatusChange(item.studentId, 'LATE')}
               >
                 <Text style={[styles.statusBtnText, item.status === 'LATE' && styles.statusBtnTextActive]}>R</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.statusBtn, item.status === 'ABSENT' && styles.statusBtnAbsent]}
                 onPress={() => handleStatusChange(item.studentId, 'ABSENT')}
               >
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 50,
     paddingBottom: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.outlineVariant,
   },
@@ -142,10 +143,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.onSurface,
   },
   subtitle: {
     fontSize: 14,
+    fontFamily: FONTS.regular,
     color: COLORS.onSurfaceVariant,
   },
   saveBtn: {
@@ -163,7 +166,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.white,
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
@@ -190,14 +193,17 @@ const styles = StyleSheet.create({
   avatarText: {
     color: COLORS.onSecondaryContainer,
     fontWeight: 'bold',
+    fontFamily: FONTS.bold,
   },
   studentName: {
     fontSize: 15,
     fontWeight: '600',
+    fontFamily: FONTS.semiBold,
     color: COLORS.onSurface,
   },
   studentNumber: {
     fontSize: 12,
+    fontFamily: FONTS.regular,
     color: COLORS.outline,
     marginTop: 2,
   },
@@ -216,18 +222,19 @@ const styles = StyleSheet.create({
   statusBtnText: {
     fontSize: 12,
     fontWeight: '700',
+    fontFamily: FONTS.bold,
     color: COLORS.onSurfaceVariant,
   },
   statusBtnTextActive: {
-    color: '#FFF',
+    color: COLORS.white,
   },
   statusBtnPresent: {
-    backgroundColor: '#10B981', // emerald-500
+    backgroundColor: COLORS.success,
   },
   statusBtnLate: {
-    backgroundColor: '#F59E0B', // amber-500
+    backgroundColor: COLORS.warning,
   },
   statusBtnAbsent: {
-    backgroundColor: '#EF4444', // red-500
+    backgroundColor: COLORS.error,
   },
 });
