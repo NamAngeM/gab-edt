@@ -110,3 +110,4 @@ app:
     super-admin:
       email: ${BOOTSTRAP_SUPER_ADMIN_EMAIL:}
       password: ${BOOTSTRAP_SUPER_ADMIN_PASSWORD:}
+      reset: ${BOOTSTRAP_SUPER_ADMIN_RESET:false}

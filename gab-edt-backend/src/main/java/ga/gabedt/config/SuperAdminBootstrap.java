@@ -33,16 +33,26 @@ public class SuperAdminBootstrap implements CommandLineRunner {
     @Value("${app.bootstrap.super-admin.password:}")
     private String password;
 
+    @Value("${app.bootstrap.super-admin.reset:false}")
+    private boolean reset;
+
     @Override
     public void run(String... args) {
         if (email.isBlank() || password.isBlank()) {
             return;
         }
-        if (userRepository.existsByEmailAndDeletedFalse(email)) {
-            return;
-        }
         if (password.length() < MIN_PASSWORD_LENGTH) {
             log.error("BOOTSTRAP_SUPER_ADMIN_PASSWORD trop court ({} caractères minimum) : compte non créé", MIN_PASSWORD_LENGTH);
+            return;
+        }
+        var existing = userRepository.findByEmailAndDeletedFalse(email);
+        if (existing.isPresent()) {
+            if (reset) {
+                User admin = existing.get();
+                admin.setPasswordHash(passwordEncoder.encode(password));
+                userRepository.save(admin);
+                log.warn("Mot de passe du SUPER_ADMIN {} réinitialisé. Retirez BOOTSTRAP_SUPER_ADMIN_RESET et BOOTSTRAP_SUPER_ADMIN_PASSWORD.", email);
+            }
             return;
         }
         User admin = new User();
