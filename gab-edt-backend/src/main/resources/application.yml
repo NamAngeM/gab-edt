@@ -6,8 +6,6 @@ spring:
   application:
     name: gab-edt
 
-  profiles:
-    default: dev
 
   # JPA / Hibernate
   jpa:
