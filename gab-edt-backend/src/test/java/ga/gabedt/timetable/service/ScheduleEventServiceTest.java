@@ -60,6 +60,16 @@ public class ScheduleEventServiceTest {
 
     @Mock
     private ga.gabedt.academic.AcademicCalendarService academicCalendarService;
+    @Mock
+    private ga.gabedt.user.service.TeacherAvailabilityService teacherAvailabilityService;
+    @Mock
+    private ga.gabedt.homework.HomeworkRepository homeworkRepository;
+    @Mock
+    private ga.gabedt.homework.HomeworkStatusRepository homeworkStatusRepository;
+    @Mock
+    private ga.gabedt.user.UserRepository userRepository;
+    @Mock
+    private ga.gabedt.user.StudentRepository studentRepository;
 
     @InjectMocks
     private ScheduleEventService scheduleEventService;

@@ -64,6 +64,7 @@ public class ScheduleEventService {
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
     private final ga.gabedt.academic.AcademicCalendarService academicCalendarService;
+    private final ga.gabedt.user.service.TeacherAvailabilityService teacherAvailabilityService;
 
     public List<ScheduleEventDto> searchEvents(UUID groupId, UUID teacherId, UUID roomId, LocalDate startDate, LocalDate endDate) {
         
@@ -313,13 +314,30 @@ public class ScheduleEventService {
                     ? java.util.Optional.empty()
                     : academicCalendarService.closureReason(event.getStartAt(), event.getEndAt());
 
-            if (isRoomConflict || isTeacherConflict || isOrgUnitConflict || closure.isPresent()) {
+            String unavailability = event.getTeacher() != null
+                    ? teacherAvailabilityService.unavailabilityReason(event.getTeacher().getId(), event.getStartAt(), event.getEndAt())
+                    : null;
+
+            boolean isCapacityIssue = false;
+            String capacityMsg = null;
+            if (event.getRoom() != null && event.getRoom().getCapacity() != null && event.getOrgUnit() != null) {
+                long studentCount = studentRepository.countByOrgUnits_IdAndDeletedFalse(event.getOrgUnit().getId());
+                if (studentCount > event.getRoom().getCapacity()) {
+                    isCapacityIssue = true;
+                    capacityMsg = "Capacité insuffisante : " + studentCount + " élèves / " + event.getRoom().getCapacity() + " places.";
+                }
+            }
+
+            if (isRoomConflict || isTeacherConflict || isOrgUnitConflict || closure.isPresent()
+                    || unavailability != null || isCapacityIssue) {
                 ScheduleEventDto dto = mapToDto(event);
                 dto.setConflict(true);
                 String desc = closure.map(reason -> reason + " ").orElse("");
+                if (unavailability != null) desc += unavailability + " ";
                 if (isRoomConflict) desc += "Superposition de salle. ";
                 if (isTeacherConflict) desc += "Professeur déjà occupé. ";
                 if (isOrgUnitConflict) desc += "La classe a déjà cours. ";
+                if (isCapacityIssue) desc += capacityMsg + " ";
                 dto.setConflictDetails(desc.trim());
                 conflicts.add(dto);
             }
@@ -597,7 +615,10 @@ public class ScheduleEventService {
 
     private void validateNoConflict(UUID teacherId, UUID roomId, UUID orgUnitId, LocalDateTime start, LocalDateTime end, UUID excludeId) {
         if (teacherId != null) {
-            boolean conflict = (excludeId == null) 
+            String unavailability = teacherAvailabilityService.unavailabilityReason(teacherId, start, end);
+            if (unavailability != null) throw new ScheduleConflictException(unavailability);
+
+            boolean conflict = (excludeId == null)
                 ? scheduleEventRepository.existsOverlappingForTeacher(teacherId, start, end)
                 : scheduleEventRepository.existsOverlappingForTeacherWithExclude(teacherId, start, end, excludeId);
             if (conflict) throw new ScheduleConflictException("L'enseignant est déjà occupé sur cette plage horaire.");
@@ -607,6 +628,15 @@ public class ScheduleEventService {
                 ? scheduleEventRepository.existsOverlappingForRoom(roomId, start, end)
                 : scheduleEventRepository.existsOverlappingForRoomWithExclude(roomId, start, end, excludeId);
             if (conflict) throw new ScheduleConflictException("La salle est déjà réservée sur cette plage horaire.");
+
+            Room room = roomRepository.findById(roomId).orElse(null);
+            if (room != null && room.getCapacity() != null && orgUnitId != null) {
+                long studentCount = studentRepository.countByOrgUnits_IdAndDeletedFalse(orgUnitId);
+                if (studentCount > room.getCapacity()) {
+                    throw new ScheduleConflictException(
+                            "Capacité insuffisante : " + studentCount + " élèves pour " + room.getCapacity() + " places (" + room.getName() + ").");
+                }
+            }
         }
         if (orgUnitId != null) {
             boolean conflict = (excludeId == null)

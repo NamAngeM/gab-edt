@@ -47,6 +47,7 @@ const navSections: NavSection[] = [
     label: 'Ressources',
     items: [
       { label: 'Enseignants', icon: 'badge', href: '/admin/resources/teachers' },
+      { label: 'Disponibilités', icon: 'event_available', href: '/admin/disponibilites' },
       { label: 'Élèves & Étudiants', icon: 'groups', href: '/admin/resources/students' },
       { label: 'Matières', icon: 'menu_book', href: '/admin/resources/subjects' },
       { label: 'Salles & Équipements', icon: 'meeting_room', href: '/admin/resources/rooms' },

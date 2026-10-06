@@ -17,4 +17,5 @@ public interface StudentRepository extends JpaRepository<Student, UUID>, JpaSpec
     Optional<Student> findByUserIdAndDeletedFalse(UUID userId);
     Optional<Student> findByStudentNumberAndDeletedFalse(String studentNumber);
     List<Student> findAllByStudentNumberAndDeletedFalse(String studentNumber);
+    long countByOrgUnits_IdAndDeletedFalse(UUID orgUnitId);
 }

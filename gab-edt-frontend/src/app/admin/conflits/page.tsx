@@ -92,7 +92,7 @@ export default function ConflictsAdminPage() {
             Gestion des Conflits
           </h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Identifier et résoudre les superpositions de salles, d'enseignants ou de groupes.
+            Superpositions, indisponibilités des enseignants, capacité des salles et fermetures.
           </p>
         </div>
         <button style={{ 
