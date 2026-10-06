@@ -1,5 +1,6 @@
 package ga.gabedt.structure.service;
 
+import ga.gabedt.common.exception.BusinessConflictException;
 import ga.gabedt.structure.Institution;
 import ga.gabedt.structure.OrganizationalUnit;
 import ga.gabedt.structure.dto.OrgUnitCreateDto;
@@ -51,7 +52,9 @@ public class OrganizationalUnitService {
     public void delete(UUID id) {
         OrganizationalUnit unit = orgUnitRepository.findById(id)
                 .orElseThrow(() -> new ga.gabedt.common.exception.ResourceNotFoundException("Unité organisationnelle introuvable"));
-        // cascading deletion is managed by soft-delete or JPA cascade based on implementation
+        if (orgUnitRepository.existsByParentIdAndActiveTrue(id)) {
+            throw new BusinessConflictException("ORG_UNIT_HAS_CHILDREN", "Supprimez ou déplacez d'abord les sous-unités de cette unité.");
+        }
         unit.setActive(false);
         orgUnitRepository.save(unit);
     }

@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/confirm";
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { fetchWithAuth, extractArray, extractPageData } from '@/lib/api';
 import { z } from "zod";
@@ -95,6 +96,7 @@ export default function SubjectsAdminPage() {
   const [modalError, setModalError] = useState('');
 
   const form = useForm<SubjectFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(subjectSchema),
     defaultValues: {
       id: '', name: '', code: '', orgUnitId: ''
@@ -155,7 +157,9 @@ export default function SubjectsAdminPage() {
     const rows = subjects.map(s => [
       s.id, s.name, s.code || '', s.orgUnit ? s.orgUnit.name : 'Globale'
     ]);
-    const csvContent = [header, ...rows].map(e => e.join(",")).join("\n");
+    const csvContent = [header, ...rows]
+      .map(row => row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(","))
+      .join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -186,7 +190,7 @@ export default function SubjectsAdminPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cette matière ? Cette action est irréversible.')) return;
+    if (!(await confirmAction('Supprimer cette matière ? Cette action est irréversible.'))) return;
     try {
       await fetchWithAuth(`/subjects/${id}`, { method: 'DELETE' });
       toast.success('Matière supprimée avec succès.');
@@ -196,7 +200,7 @@ export default function SubjectsAdminPage() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Supprimer les ${selectedIds.size} matières sélectionnées ?`)) return;
+    if (!(await confirmAction(`Supprimer les ${selectedIds.size} matières sélectionnées ?`))) return;
     try {
       await fetchWithAuth(`/subjects/bulk-delete`, { 
         method: 'POST', body: JSON.stringify(Array.from(selectedIds))

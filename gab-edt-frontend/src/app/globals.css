@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
 
@@ -32,11 +31,11 @@
   --background: #F8FAFC;
 
   /* === PRIMARY / ACCENT === */
-  --primary: #2563EB;
-  --primary-dark: #1D4ED8;
-  --primary-light: #EFF6FF;
+  --primary: #007A4B;
+  --primary-dark: #00623C;
+  --primary-light: #ECFDF5;
   --on-primary: #ffffff;
-  --primary-container: #2563eb;
+  --primary-container: #007A4B;
   --on-primary-container: #eeefff;
 
   /* === SEMANTIC COLORS === */
@@ -46,8 +45,16 @@
   --warning-bg: #FFFBEB;
   --danger: #DC2626;
   --danger-bg: #FEF2F2;
-  --info: #0891B2;
-  --info-bg: #E0F7FA;
+  --info: #3A75C4;
+  --info-bg: #EAF2FB;
+
+  /* Charte gabonaise : jaune pour les mises en évidence (jamais en texte sur blanc), bleu mer pour l'information */
+  --gabon-yellow: #FCD116;
+  --gabon-yellow-soft: #FEF9DB;
+  --gabon-yellow-ink: #6B4E00;
+  --gabon-blue: #3A75C4;
+  --gabon-blue-soft: #EAF2FB;
+  --gabon-blue-ink: #1E4A8A;
   --error: #ba1a1a;
   --on-error: #ffffff;
   --error-container: #ffdad6;
@@ -93,9 +100,9 @@
   --shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.06);
 
   /* Course type colors */
-  --cm-bg: #EFF6FF;
-  --cm-border: #2563EB;
-  --cm-text: #1E40AF;
+  --cm-bg: #ECFDF5;
+  --cm-border: #009E60;
+  --cm-text: #00623C;
   --td-bg: #ECFDF5;
   --td-border: #16A34A;
   --td-text: #065F46;
@@ -176,6 +183,7 @@ a { text-decoration: none; color: inherit; }
 }
 
 .sidebar-logo {
+  position: relative;
   height: var(--topbar-height);
   padding: 0 var(--space-lg);
   display: flex;
@@ -632,6 +640,10 @@ a { text-decoration: none; color: inherit; }
 }
 
 .breadcrumb a:hover {
+  color: var(--gabon-blue-ink);
+}
+
+.breadcrumb a:not(:hover) {
   color: var(--primary);
 }
 
@@ -1090,6 +1102,7 @@ a { text-decoration: none; color: inherit; }
 }
 
 .data-table tbody tr:hover { background-color: var(--surface-container-low); }
+.data-table tbody tr.selected-row { background-color: var(--primary-light); }
 .data-table tbody tr:last-child td { border-bottom: none; }
 
 /* Cell variants */
@@ -1167,13 +1180,13 @@ a { text-decoration: none; color: inherit; }
   white-space: nowrap;
 }
 
-.badge-blue   { background: #EFF6FF; color: #1D4ED8; }
+.badge-blue   { background: #EFF6FF; color: #00623C; }
 .badge-green  { background: #F0FDF4; color: #15803D; }
-.badge-orange { background: #FFFBEB; color: #B45309; }
+.badge-orange { background: var(--gabon-yellow-soft); color: var(--gabon-yellow-ink); }
 .badge-red    { background: #FEF2F2; color: #DC2626; }
 .badge-gray   { background: var(--surface-container); color: var(--text-secondary); }
 .badge-purple { background: #FAF5FF; color: #7E22CE; }
-.badge-info   { background: #E0F7FA; color: #0E7490; }
+.badge-info   { background: var(--gabon-blue-soft); color: var(--gabon-blue-ink); }
 .badge-primary { background: var(--primary-light); color: var(--primary); }
 
 .badge .badge-dot {
@@ -1472,6 +1485,58 @@ a { text-decoration: none; color: inherit; }
 .progress-fill.danger  { background: var(--danger); }
 
 /* ============================================================
+   ALIASES & PAGE-LEVEL LAYOUT USED BY RESOURCE PAGES
+   ============================================================ */
+.btn-outline { background: var(--surface); color: var(--text-primary); border: 1px solid var(--border); }
+.btn-outline:hover:not(:disabled) { background: var(--surface-container-low); border-color: var(--border-strong); }
+
+.page-description { font-size: 14px; color: var(--text-secondary); margin: 0; line-height: 1.5; }
+.page-title-group { flex: 1; min-width: 0; }
+.page-header-right { display: flex; align-items: center; gap: var(--space-sm); flex-shrink: 0; }
+
+.filters-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+}
+
+.bulk-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-xl);
+  background: var(--primary-light);
+  border-bottom: 1px solid var(--border);
+}
+
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+.table-responsive { overflow-x: auto; }
+.table-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  background: var(--surface-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+/* ============================================================
    DIVIDER
    ============================================================ */
 .divider {
@@ -1575,7 +1640,7 @@ a { text-decoration: none; color: inherit; }
 }
 
 .ws-toast-close:hover {
-  background: var(--surface-hover);
+  background: var(--surface-container-low);
   color: var(--text-primary);
 }
 
@@ -1650,4 +1715,51 @@ a { text-decoration: none; color: inherit; }
   .sidebar {
     transition: none;
   }
+}
+
+/* Bandeau tricolore sous le logo de la barre latérale */
+.sidebar-logo::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(to right, #009E60 0 33.33%, #FCD116 33.33% 66.66%, #3A75C4 66.66%);
+}
+
+/* ============================================================
+   FORMULAIRES — base commune (charte gabonaise)
+   ============================================================ */
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: var(--gabon-blue);
+  box-shadow: 0 0 0 3px rgba(58, 117, 196, 0.18);
+}
+
+.form-input[aria-invalid="true"],
+.form-select[aria-invalid="true"],
+.form-textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.form-input[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+.form-label .required,
+.form-label-required::after {
+  color: var(--danger);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-top: var(--space-lg);
+  margin-top: var(--space-sm);
+  border-top: 1px solid var(--border);
 }

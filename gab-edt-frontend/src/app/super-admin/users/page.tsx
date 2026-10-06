@@ -2,18 +2,22 @@
 
 import React, { useState } from "react";
 
-const MOCK_USERS = [
-  { id: 1, name: "Jean Dupont",   email: "proviseur@leonmba.ga", role: "SCHOOL_ADMIN",  institution: "Lycée National Léon Mba",          lastLogin: "Il y a 2h",   status: "active",   plan: "Pro" },
-  { id: 2, name: "Alice Martin",  email: "doyen@uob.ga",         role: "SCHOOL_ADMIN",  institution: "Université Omar Bongo",             lastLogin: "Il y a 10 min",status: "active",  plan: "Enterprise" },
-  { id: 3, name: "Marc Bongo",    email: "it@ist.ga",            role: "SCHOOL_ADMIN",  institution: "Institut Supérieur de Technologie", lastLogin: "Hier",         status: "active",   plan: "Pro" },
-  { id: 4, name: "Sophie Nkoghe", email: "dir@ens.ga",           role: "SCHOOL_ADMIN",  institution: "École Normale Supérieure",          lastLogin: "Il y a 3j",    status: "trial",    plan: "Basic" },
-  { id: 5, name: "Paul Ondo",     email: "dir@lem.ga",           role: "SCHOOL_ADMIN",  institution: "Lycée d'État de Mouila",            lastLogin: "Il y a 2 mois",status: "suspended",plan: "Basic" },
-  { id: 6, name: "Fondateur GAB", email: "founder@gabedt.ga",    role: "SUPER_ADMIN",   institution: "GAB-EDT Network",                  lastLogin: "Maintenant",   status: "active",   plan: "—" },
-];
+type UserRow = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  institution: string;
+  lastLogin: string;
+  status: "active" | "trial" | "suspended";
+  plan: string;
+};
+
+const USERS: UserRow[] = [];
 
 const ROLE_CFG: Record<string, { color: string; bg: string }> = {
   SUPER_ADMIN:  { color: "#DC2626", bg: "#FEF2F2" },
-  SCHOOL_ADMIN: { color: "#2563EB", bg: "#EFF6FF" },
+  SCHOOL_ADMIN: { color: "#007A4B", bg: "#EFF6FF" },
 };
 
 const STATUS_CFG: Record<string, { label: string; color: string; bg: string }> = {
@@ -28,9 +32,9 @@ export default function UsersPage() {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [filterInst, setFilterInst]     = useState("ALL");
 
-  const institutions = [...new Set(MOCK_USERS.map(u => u.institution))];
+  const institutions = [...new Set(USERS.map(u => u.institution))];
 
-  const filtered = MOCK_USERS.filter(u =>
+  const filtered = USERS.filter(u =>
     (filterRole   === "ALL" || u.role === filterRole) &&
     (filterStatus === "ALL" || u.status === filterStatus) &&
     (filterInst   === "ALL" || u.institution === filterInst) &&
@@ -59,10 +63,10 @@ export default function UsersPage() {
       {/* Summary */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-lg)", marginBottom: "var(--space-xl)" }}>
         {[
-          { label: "Total Comptes", value: MOCK_USERS.length, color: "var(--primary)", icon: "group" },
-          { label: "Actifs",        value: MOCK_USERS.filter(u=>u.status==="active").length,    color: "#16A34A", icon: "check_circle" },
-          { label: "En essai",      value: MOCK_USERS.filter(u=>u.status==="trial").length,     color: "#B45309", icon: "schedule" },
-          { label: "Suspendus",     value: MOCK_USERS.filter(u=>u.status==="suspended").length, color: "#DC2626", icon: "block" },
+          { label: "Total Comptes", value: USERS.length, color: "var(--primary)", icon: "group" },
+          { label: "Actifs",        value: USERS.filter(u=>u.status==="active").length,    color: "#16A34A", icon: "check_circle" },
+          { label: "En essai",      value: USERS.filter(u=>u.status==="trial").length,     color: "#B45309", icon: "schedule" },
+          { label: "Suspendus",     value: USERS.filter(u=>u.status==="suspended").length, color: "#DC2626", icon: "block" },
         ].map((k,i) => (
           <div key={i} className="card" style={{ padding: "var(--space-lg)", display: "flex", alignItems: "center", gap: "16px" }}>
             <div style={{ width: 48, height: 48, borderRadius: "12px", background: `${k.color}18`, color: k.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -105,7 +109,7 @@ export default function UsersPage() {
       {/* Table */}
       <div className="card">
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.875rem" }}>
+          <table className="data-table">
             <thead>
               <tr style={{ borderBottom: "2px solid var(--border)", color: "var(--text-muted)", background: "var(--surface-container-lowest)" }}>
                 {["Utilisateur", "Rôle", "Établissement (Tenant)", "Plan", "Statut", "Dernière connexion", "Actions"].map((h, i) => (
@@ -158,7 +162,7 @@ export default function UsersPage() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={7} style={{ padding: "var(--space-xl)", textAlign: "center", color: "var(--text-muted)" }}>Aucun utilisateur trouvé.</td></tr>
+                <tr><td colSpan={7} style={{ padding: "var(--space-xl)", textAlign: "center", color: "var(--text-muted)" }}>{USERS.length === 0 ? "Liste des utilisateurs non disponible : la source n'est pas encore branchée." : "Aucun utilisateur trouvé."}</td></tr>
               )}
             </tbody>
           </table>

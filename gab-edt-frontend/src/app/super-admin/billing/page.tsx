@@ -3,15 +3,11 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
-const SUBSCRIPTIONS = [
-  { id: 1, name: "Université Omar Bongo", plan: "Enterprise", price: 180, status: "active", since: "Jan 2025", renewal: "Jan 2027", admin: "doyen@uob.ga" },
-  { id: 2, name: "Lycée National Léon Mba", plan: "Pro", price: 45, status: "active", since: "Mar 2025", renewal: "Mar 2026", admin: "proviseur@lnlm.ga" },
-  { id: 3, name: "Institut Supérieur de Technologie", plan: "Pro", price: 45, status: "active", since: "Jun 2025", renewal: "Jun 2026", admin: "dir@ist.ga" },
-  { id: 4, name: "École Normale Supérieure", plan: "Basic", price: 15, status: "trial",  since: "Sep 2026", renewal: "Oct 2026", admin: "doyen@ens.ga" },
-  { id: 5, name: "Lycée d'État de Mouila",  plan: "Basic", price: 0,  status: "suspended", since: "Feb 2025", renewal: "—", admin: "dir@lem.ga" },
-];
+type Subscription = { id: number; name: string; plan: string; price: number; status: string; since: string; renewal: string; admin: string };
 
-const PLAN_COLORS: Record<string, string> = { Enterprise: "#7E22CE", Pro: "#2563EB", Basic: "#64748B" };
+const SUBSCRIPTIONS: Subscription[] = [];
+
+const PLAN_COLORS: Record<string, string> = { Enterprise: "#7E22CE", Pro: "#007A4B", Basic: "#64748B" };
 const STATUS_CFG: Record<string, { label: string; color: string; bg: string }> = {
   active:    { label: "Actif",     color: "#16A34A", bg: "#F0FDF4" },
   trial:     { label: "Essai",     color: "#B45309", bg: "#FFFBEB" },
@@ -42,10 +38,10 @@ export default function BillingPage() {
       {/* KPIs */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-lg)", marginBottom: "var(--space-xl)" }}>
         {[
-          { label: "MRR (Revenu Mensuel)", value: `${totalMRR} kF`, sub: `${(totalMRR * 12).toLocaleString("fr-FR")} kF ARR`, color: "#16A34A", icon: "trending_up", trend: "+12.5%" },
-          { label: "Abonnements Actifs",  value: SUBSCRIPTIONS.filter(s => s.status === "active").length,    sub: "Dont 2 annuels", color: "var(--primary)", icon: "verified", trend: "+1" },
-          { label: "Essais en cours",     value: SUBSCRIPTIONS.filter(s => s.status === "trial").length,     sub: "Conversion à surveiller", color: "#B45309", icon: "schedule", trend: "→" },
-          { label: "Contrats suspendus",  value: SUBSCRIPTIONS.filter(s => s.status === "suspended").length, sub: "Action requise", color: "#DC2626", icon: "block", trend: "⚠️" },
+          { label: "MRR (Revenu Mensuel)", value: `${totalMRR} kF`, sub: `${(totalMRR * 12).toLocaleString("fr-FR")} kF ARR`, color: "#16A34A", icon: "trending_up", trend: "—" },
+          { label: "Abonnements Actifs",  value: SUBSCRIPTIONS.filter(s => s.status === "active").length,    sub: "Contrats actifs", color: "var(--primary)", icon: "verified", trend: "—" },
+          { label: "Essais en cours",     value: SUBSCRIPTIONS.filter(s => s.status === "trial").length,     sub: "En période d'essai", color: "#B45309", icon: "schedule", trend: "—" },
+          { label: "Contrats suspendus",  value: SUBSCRIPTIONS.filter(s => s.status === "suspended").length, sub: "Action requise", color: "#DC2626", icon: "block", trend: "—" },
         ].map((k, i) => (
           <div key={i} className="card" style={{ padding: "var(--space-lg)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
@@ -66,7 +62,7 @@ export default function BillingPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-lg)", marginBottom: "var(--space-xl)" }}>
         {[
           { name: "Basic",      desc: "Jusqu'à 500 utilisateurs",  price: "15 kF/mois",  color: "#64748B", features: ["Emplois du temps", "Gestion absences", "Notifications email"] },
-          { name: "Pro",        desc: "Jusqu'à 2 000 utilisateurs", price: "45 kF/mois",  color: "#2563EB", features: ["Tout Basic", "Soutenances PFE", "API REST", "Stats avancées"], popular: true },
+          { name: "Pro",        desc: "Jusqu'à 2 000 utilisateurs", price: "45 kF/mois",  color: "#007A4B", features: ["Tout Basic", "Soutenances PFE", "API REST", "Stats avancées"], popular: true },
           { name: "Enterprise", desc: "Illimité + Support dédié",  price: "Sur devis",    color: "#7E22CE", features: ["Tout Pro", "SLA 99.9%", "SSO LDAP", "Support 24/7", "Audit logs"] },
         ].map((plan, i) => (
           <div key={i} className="card" style={{ padding: "var(--space-xl)", borderTop: `4px solid ${plan.color}`, position: "relative" }}>
@@ -97,7 +93,7 @@ export default function BillingPage() {
           <h2 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-primary)" }}>Tableau des Abonnements</h2>
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher..." style={{ padding: "6px 12px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--background)", color: "var(--text-primary)", fontSize: "0.85rem", outline: "none" }} />
         </div>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
+        <table className="data-table">
           <thead>
             <tr style={{ borderBottom: "2px solid var(--border)", color: "var(--text-muted)" }}>
               {["Établissement", "Plan", "Statut", "Admin Contact", "Depuis", "Renouvellement", "Montant", "Actions"].map((h, i) => (
@@ -106,6 +102,9 @@ export default function BillingPage() {
             </tr>
           </thead>
           <tbody>
+            {filtered.length === 0 && (
+              <tr><td colSpan={8} style={{ padding: "var(--space-xl)", textAlign: "center", color: "var(--text-muted)" }}>Aucun abonnement à afficher : la source n'est pas encore branchée.</td></tr>
+            )}
             {filtered.map(sub => {
               const sc = STATUS_CFG[sub.status];
               return (

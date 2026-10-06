@@ -22,13 +22,13 @@ public class OrganizationalUnitController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public List<OrganizationalUnit> getAll() {
-        return orgUnitRepository.findAll();
+        return orgUnitRepository.findByActiveTrue();
     }
 
     @GetMapping("/parent/{parentId}")
     @PreAuthorize("isAuthenticated()")
     public List<OrganizationalUnit> getByParent(@PathVariable UUID parentId) {
-        return orgUnitRepository.findByParentId(parentId);
+        return orgUnitRepository.findByParentIdAndActiveTrue(parentId);
     }
 
     @PostMapping

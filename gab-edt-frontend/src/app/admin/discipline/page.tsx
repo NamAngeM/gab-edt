@@ -37,6 +37,7 @@ export default function DisciplinePage() {
   const [showAddModal, setShowAddModal] = useState(false);
   
   const form = useForm<RecordFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(recordSchema),
     defaultValues: {
       studentId: '', type: 'BLAME', incidentDate: new Date().toISOString().slice(0, 16), description: ''
@@ -118,7 +119,7 @@ export default function DisciplinePage() {
       <div className="card">
         {loading ? (
           <div className="empty-state">
-            <div className="loader"></div>
+            <div className="skeleton skeleton-row" />
             <p>Chargement des dossiers...</p>
           </div>
         ) : records.length === 0 ? (

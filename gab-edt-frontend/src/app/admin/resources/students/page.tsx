@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/confirm";
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { fetchWithAuth, extractArray, extractPageData } from '@/lib/api';
 import { z } from "zod";
@@ -103,6 +104,7 @@ export default function StudentsAdminPage() {
   const [modalError, setModalError] = useState('');
 
   const form = useForm<StudentFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(studentSchema),
     defaultValues: {
       id: '', firstName: '', lastName: '', email: '', studentNumber: '', phone: '', active: true, orgUnitId: ''
@@ -161,7 +163,7 @@ export default function StudentsAdminPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cet étudiant ? Cette action est irréversible.')) return;
+    if (!(await confirmAction('Supprimer cet étudiant ? Cette action est irréversible.'))) return;
     try {
       await fetchWithAuth(`/students/${id}`, { method: 'DELETE' });
       toast.success('Étudiant supprimé avec succès.');
@@ -171,7 +173,7 @@ export default function StudentsAdminPage() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Supprimer les ${selectedIds.size} étudiants sélectionnés ?`)) return;
+    if (!(await confirmAction(`Supprimer les ${selectedIds.size} étudiants sélectionnés ?`))) return;
     try {
       await fetchWithAuth(`/students/bulk-delete`, { 
         method: 'POST', body: JSON.stringify(Array.from(selectedIds))
@@ -231,7 +233,9 @@ export default function StudentsAdminPage() {
   const handleExportCSV = () => {
     const header = ['ID', 'Nom', 'Prénom', 'Email', 'Matricule', 'Téléphone', 'Statut', 'Classe'];
     const rows = students.map(s => [s.id, s.lastName, s.firstName, s.email, s.studentNumber, s.phone, s.active ? 'Actif' : 'Inactif', getOrgUnitName(s.orgUnitIds?.[0]) || 'Non affecté']);
-    const csvContent = [header, ...rows].map(e => e.join(",")).join("\n");
+    const csvContent = [header, ...rows]
+      .map(row => row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(","))
+      .join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -298,7 +302,7 @@ export default function StudentsAdminPage() {
         </div>
       )}
 
-      <div className="filters-bar" style={{ display: 'flex', gap: 16, marginBottom: 24, background: '#fff', padding: 16, borderRadius: 12, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
+      <div className="filters-bar" style={{ display: 'flex', gap: 16, marginBottom: 24, background: 'var(--surface)', padding: 16, borderRadius: 12, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
         <form onSubmit={handleSearchSubmit} className="search-box" style={{ flex: 1, minWidth: 250 }}>
           <span className="material-symbols-outlined search-box-icon">search</span>
           <input type="text" placeholder="Rechercher (nom, matricule)..." value={searchInput} onChange={e => setSearchInput(e.target.value)} />
@@ -362,7 +366,7 @@ export default function StudentsAdminPage() {
                   </td>
                   <td>{student.studentNumber ? <span className="badge badge-gray" style={{ fontFamily: 'monospace' }}>{student.studentNumber}</span> : <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
                   <td>{getOrgUnitName(student.orgUnitIds?.[0]) ? <span className="badge badge-purple">{getOrgUnitName(student.orgUnitIds?.[0])}</span> : <span style={{ color: 'var(--text-muted)', fontSize: 13, fontStyle: 'italic' }}>Non affecté</span>}</td>
-                  <td>{student.active ? <span className="badge badge-success">Actif</span> : <span className="badge badge-gray">Inactif</span>}</td>
+                  <td>{student.active ? <span className="badge badge-green">Actif</span> : <span className="badge badge-gray">Inactif</span>}</td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
                       <button className="btn btn-secondary btn-sm" onClick={() => handleOpenEdit(student)} title="Modifier"><span className="material-symbols-outlined">edit</span></button>

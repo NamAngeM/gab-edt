@@ -439,7 +439,8 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   dateItemToday: {
-    borderColor: COLORS.brand500,
+    borderColor: COLORS.gabonYellowInk,
+    backgroundColor: COLORS.gabonYellowSoft,
     borderWidth: 2,
   },
   dateDayText: {

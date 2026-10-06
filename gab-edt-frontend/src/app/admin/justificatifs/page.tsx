@@ -2,13 +2,10 @@
 
 import React, { useState } from 'react';
 
-const MOCK_JUSTIFICATIFS = [
-  { id: '1', date: '15 Sept 2026', student: 'Jean Dupont', classe: 'Terminale S2', motif: 'Maladie (Gastro)', status: 'Validé', file: true },
-  { id: '2', date: '02 Oct 2026', student: 'Marie Curie', classe: '1ère ES', motif: 'Rendez-vous médical', status: 'En attente', file: true }
-];
+type Justificatif = { id: string; date: string; student: string; classe: string; motif: string; status: string; file: boolean };
 
 export default function JustificatifsPage() {
-  const [data, setData] = useState(MOCK_JUSTIFICATIFS);
+  const [data, setData] = useState<Justificatif[]>([]);
 
   const handleValidate = (id: string) => {
     setData(prev => prev.map(item => item.id === id ? { ...item, status: 'Validé' } : item));
@@ -41,6 +38,13 @@ export default function JustificatifsPage() {
             </tr>
           </thead>
           <tbody>
+            {data.length === 0 && (
+              <tr>
+                <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                  Aucun justificatif à afficher : la liste n&apos;est pas encore reliée au backend.
+                </td>
+              </tr>
+            )}
             {data.map(item => (
               <tr key={item.id}>
                 <td>{item.date}</td>
@@ -56,9 +60,9 @@ export default function JustificatifsPage() {
                   ) : '-'}
                 </td>
                 <td>
-                  <span className={`status-badge ${
-                    item.status === 'Validé' ? 'status-active' : 
-                    item.status === 'En attente' ? 'status-pending' : 'status-inactive'
+                  <span className={`badge ${
+                    item.status === 'Validé' ? 'badge-green' :
+                    item.status === 'En attente' ? 'badge-orange' : 'badge-red'
                   }`}>
                     {item.status}
                   </span>

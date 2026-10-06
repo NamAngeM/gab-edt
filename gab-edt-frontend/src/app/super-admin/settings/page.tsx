@@ -1,9 +1,34 @@
 ﻿"use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { fetchWithAuth } from "@/lib/api";
+import { confirmAction } from "@/lib/confirm";
 
 export default function SettingsPage() {
   const [maint, setMaint]       = useState(false);
+  const [maintBusy, setMaintBusy] = useState(false);
+
+  useEffect(() => {
+    fetchWithAuth("/system/status")
+      .then(res => setMaint(Boolean(res?.data?.maintenance)))
+      .catch(() => toast.error("Impossible de lire l'état de maintenance."));
+  }, []);
+
+  const toggleMaintenance = async () => {
+    const next = !maint;
+    if (next && !(await confirmAction("Activer le mode maintenance ? Seuls les super-administrateurs pourront utiliser la plateforme.", { destructive: false }))) return;
+    setMaintBusy(true);
+    try {
+      const res = await fetchWithAuth("/system/maintenance", { method: "PUT", body: JSON.stringify({ enabled: next }) });
+      setMaint(Boolean(res?.data?.maintenance));
+      toast.success(next ? "Mode maintenance activé." : "Mode maintenance désactivé.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Mise à jour impossible.");
+    } finally {
+      setMaintBusy(false);
+    }
+  };
   const [smtpHost, setSmtpHost] = useState("smtp.gabedt.ga");
   const [smtpPort, setSmtpPort] = useState("587");
   const [smtpUser, setSmtpUser] = useState("noreply@gabedt.ga");
@@ -39,7 +64,7 @@ export default function SettingsPage() {
                 : "Activez pour bloquer temporairement l'accès à tous les utilisateurs non-admins."}
             </p>
           </div>
-          <div onClick={() => setMaint(v => !v)} style={{
+          <div onClick={() => { if (!maintBusy) void toggleMaintenance(); }} style={{
             width: 52, height: 28, borderRadius: "99px", cursor: "pointer",
             background: maint ? "#DC2626" : "var(--surface-container-high)",
             position: "relative", transition: "background 0.3s", flexShrink: 0

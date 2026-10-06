@@ -1,10 +1,12 @@
 'use client';
+import { confirmAction } from "@/lib/confirm";
 import React, { useState, useEffect } from 'react';
 import styles from './timetable.module.css';
 import { fetchWithAuth, isClosedPeriodError } from '@/lib/api';
 import { TimetableModal } from '@/app/components/TimetableModal';
 import { BulkCancelModal } from '@/app/components/BulkCancelModal';
 import { toast } from 'sonner';
+import { COURSE_PALETTE, colorIndexFor } from '@/lib/courseColors';
 // Types pour l'UI
 type CourseType = 'cm' | 'td' | 'tp' | 'transversal' | 'conflict';
 
@@ -18,12 +20,17 @@ interface UIMockupEvent {
   dayIndex: number; // 0 = Lundi, 1 = Mardi, ..., 6 = Dimanche
   startHour: number; // ex: 8.5 pour 08h30
   endHour: number;   // ex: 10.5 pour 10h30
+  subjectKey: string;
   extraInfo?: string;
   isConflict?: boolean;
   isDraft?: boolean;
   isMakeUp?: boolean;
   conflictDetails?: string;
 }
+
+const HOUR_PX = 80;
+const GRID_START_HOUR = 6;
+const EVENT_GAP_PX = 3;
 
 const getWeekDays = (date: Date) => {
   const d = new Date(date);
@@ -131,6 +138,7 @@ export default function TimetablePage() {
           dayIndex: (dStart.getDay() + 6) % 7,
           startHour: dStart.getHours() + (dStart.getMinutes() / 60),
           endHour: dEnd.getHours() + (dEnd.getMinutes() / 60),
+          subjectKey: evt.subject?.id ?? evt.subject?.name ?? evt.id,
           isConflict: evt.status === 'CANCELLED',
           conflictDetails: evt.status === 'CANCELLED' ? 'Annulé' : '',
           isDraft: evt.publicationStatus !== 'PUBLISHED',
@@ -150,7 +158,7 @@ export default function TimetablePage() {
     if (!filters.groupId) return;
     const start = formatDateLocal(weekDays[0].date);
     const end = formatDateLocal(weekDays[6].date);
-    if (!confirm(`Publier ${draftCount} cours de cette semaine ? Les élèves, parents et enseignants seront notifiés.`)) return;
+    if (!(await confirmAction(`Publier ${draftCount} cours de cette semaine ? Les élèves, parents et enseignants seront notifiés.`, { destructive: false }))) return;
     try {
       const res = await fetchWithAuth(`/schedule-events/publish?orgUnitId=${filters.groupId}&startDate=${start}&endDate=${end}`, { method: 'PUT' });
       toast.success(`${res?.data ?? 0} cours publiés.`);
@@ -209,7 +217,6 @@ export default function TimetablePage() {
   };
 
   const getEventInlineStyle = (evt: UIMockupEvent) => {
-    // Colors
     let bg = "", border = "", text = "", badgeBg = "", badgeText = "";
     if (evt.isConflict) {
       bg = "var(--danger-bg)";
@@ -218,21 +225,13 @@ export default function TimetablePage() {
       badgeBg = "var(--danger)";
       badgeText = "white";
     } else {
-      const typeColors: Record<string, any> = {
-        'cm': { bg: 'var(--cm-bg)', border: 'var(--cm-border)', text: 'var(--cm-text)' },
-        'td': { bg: 'var(--td-bg)', border: 'var(--td-border)', text: 'var(--td-text)' },
-        'tp': { bg: 'var(--tp-bg)', border: 'var(--tp-border)', text: 'var(--tp-text)' },
-        'transversal': { bg: 'var(--info-bg)', border: 'var(--info)', text: 'var(--info)' },
-      };
-      const colors = typeColors[evt.type] || typeColors['cm'];
+      const colors = COURSE_PALETTE[colorIndexFor(evt.subjectKey)];
       bg = colors.bg; border = colors.border; text = colors.text;
-      badgeBg = colors.border; badgeText = "white"; // For better contrast
+      badgeBg = colors.border; badgeText = "white";
     }
 
-    // Geometry
-    // 1 hour = 80px, starting at 8h
-    const top = (evt.startHour - 6) * 80;
-    const height = (evt.endHour - evt.startHour) * 80;
+    const top = (evt.startHour - GRID_START_HOUR) * HOUR_PX + EVENT_GAP_PX;
+    const height = (evt.endHour - evt.startHour) * HOUR_PX - EVENT_GAP_PX * 2;
 
     return {
       top: `${top}px`,
@@ -265,7 +264,7 @@ export default function TimetablePage() {
 
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
-    const droppedHour = (y / 80) + 6;
+    const droppedHour = (y / HOUR_PX) + GRID_START_HOUR;
     
     // Snap to 15 mins (0.25)
     const snappedHour = Math.round(droppedHour * 4) / 4;
@@ -292,7 +291,7 @@ export default function TimetablePage() {
         await move(false);
       } catch (err) {
         // Jour férié ou vacances : déplacement possible seulement après confirmation explicite
-        if (!isClosedPeriodError(err) || !confirm(err.message)) throw err;
+        if (!isClosedPeriodError(err) || !(await confirmAction(err.message, { destructive: false }))) throw err;
         await move(true);
       }
       toast.success("Cours déplacé avec succès");
@@ -307,7 +306,7 @@ export default function TimetablePage() {
     
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
-    const clickedHour = (y / 80) + 6;
+    const clickedHour = (y / HOUR_PX) + GRID_START_HOUR;
     const startHour = Math.floor(clickedHour);
     const startMinute = (clickedHour - startHour) >= 0.5 ? 30 : 0;
     
@@ -518,7 +517,7 @@ export default function TimetablePage() {
               
               {/* Red Time Indicator Line (example 10:45) */}
               {new Date().toDateString() === currentDate.toDateString() && (
-                <div className={styles.redIndicator} style={{ top: `${(new Date().getHours() - 6) * 80 + (new Date().getMinutes() / 60) * 80}px` }}>
+                <div className={styles.redIndicator} style={{ top: `${(new Date().getHours() - GRID_START_HOUR) * HOUR_PX + (new Date().getMinutes() / 60) * HOUR_PX}px` }}>
                   <div className={styles.redIndicatorTime}>{new Date().getHours()}:{new Date().getMinutes().toString().padStart(2, '0')}</div>
                   <div className={styles.redIndicatorDot}></div>
                   <div className={styles.redIndicatorLine}></div>
@@ -562,7 +561,7 @@ export default function TimetablePage() {
                         const styleObj = getEventInlineStyle(evt);
                         return (
                           <div key={evt.id} 
-                               className={styles.eventCard} 
+                               className={`${styles.eventCard} ${evt.endHour - evt.startHour < 1.5 ? styles.eventCardCompact : ""}`} 
                                style={styleObj}
                                draggable={true}
                                onDragStart={(e) => handleDragStart(e, evt)}

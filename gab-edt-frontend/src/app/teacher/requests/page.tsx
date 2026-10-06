@@ -14,25 +14,7 @@ import { Badge } from "@/components/ui/badge";
 export default function TeacherRequestsPage() {
   const [showForm, setShowForm] = useState(false);
   
-  // Mock requests for demo
-  const [requests, setRequests] = useState([
-    {
-      id: "REQ-001",
-      title: "Rattrapage Mathématiques",
-      type: "Rattrapage",
-      date: "Demain, 14:00 - 16:00",
-      status: "PENDING",
-      submittedAt: "Il y a 2 heures",
-    },
-    {
-      id: "REQ-002",
-      title: "Changement de salle (Besoin de vidéoprojecteur)",
-      type: "Changement",
-      date: "Vendredi 28, 10:00 - 12:00",
-      status: "APPROVED",
-      submittedAt: "Il y a 3 jours",
-    }
-  ]);
+  const requests: { id: string; title: string; type: string; date: string; status: string; submittedAt: string }[] = [];
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
@@ -119,17 +101,7 @@ export default function TeacherRequestsPage() {
               </CardContent>
               <CardFooter className="bg-slate-50 dark:bg-slate-900 border-t flex justify-end gap-3 pt-6">
                 <Button variant="ghost" onClick={() => setShowForm(false)}>Annuler</Button>
-                <Button onClick={() => {
-                  setRequests([{
-                    id: "REQ-" + Math.floor(Math.random() * 1000),
-                    title: "Nouvelle Demande",
-                    type: "Rattrapage",
-                    date: "À définir",
-                    status: "PENDING",
-                    submittedAt: "À l'instant"
-                  }, ...requests]);
-                  setShowForm(false);
-                }}>
+                <Button disabled title="Envoi non disponible : la demande n'est pas encore reliée au backend">
                   <Send className="w-4 h-4 mr-2" />
                   Soumettre la demande
                 </Button>
@@ -141,6 +113,9 @@ export default function TeacherRequestsPage() {
 
       {/* Historique */}
       <h2 className="text-xl font-bold mt-12 mb-4">Mes demandes récentes</h2>
+      {requests.length === 0 && (
+        <p className="text-slate-500 text-sm">Aucune demande à afficher : cette fonctionnalité n&apos;est pas encore reliée au backend.</p>
+      )}
       <div className="grid grid-cols-1 gap-4">
         {requests.map(req => (
           <Card key={req.id} className="shadow-sm hover:shadow-md transition-shadow">

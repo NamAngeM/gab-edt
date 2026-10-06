@@ -1,9 +1,15 @@
 'use client';
+import { confirmAction, promptAction } from "@/lib/confirm";
 import React, { useState, useEffect } from 'react';
 import styles from '@/app/admin/timetable/timetable.module.css';
 import { fetchWithAuth , formatDateLocal} from '@/lib/api';
 import { TimetableModal } from '@/app/components/TimetableModal';
+
+const HOUR_PX = 80;
+const GRID_START_HOUR = 6;
+const EVENT_GAP_PX = 3;
 import { toast } from 'sonner';
+import { COURSE_PALETTE, colorIndexFor } from '@/lib/courseColors';
 import { useRouter } from 'next/navigation';
 
 type CourseType = 'cm' | 'td' | 'tp' | 'transversal' | 'conflict';
@@ -127,19 +133,12 @@ export default function TeacherTimetablePage() {
   const getEventInlineStyle = (evt: UIMockupEvent) => {
     let bg = "", border = "", text = "", badgeBg = "", badgeText = "";
     
-    const typeColors: Record<string, any> = {
-      'cm': { bg: 'var(--cm-bg)', border: 'var(--cm-border)', text: 'var(--cm-text)' },
-      'td': { bg: 'var(--td-bg)', border: 'var(--td-border)', text: 'var(--td-text)' },
-      'tp': { bg: 'var(--tp-bg)', border: 'var(--tp-border)', text: 'var(--tp-text)' },
-      'transversal': { bg: 'var(--info-bg)', border: 'var(--info)', text: 'var(--info)' },
-    };
-    
-    const colors = typeColors[evt.type] || typeColors['cm'];
+    const colors = COURSE_PALETTE[colorIndexFor(evt.title)];
     bg = colors.bg; border = colors.border; text = colors.text;
     badgeBg = colors.border; badgeText = "white";
 
-    const top = (evt.startHour - 6) * 80;
-    const height = (evt.endHour - evt.startHour) * 80;
+    const top = (evt.startHour - GRID_START_HOUR) * HOUR_PX + EVENT_GAP_PX;
+    const height = (evt.endHour - evt.startHour) * HOUR_PX - EVENT_GAP_PX * 2;
 
     return {
       top: `${top}px`,
@@ -172,7 +171,7 @@ export default function TeacherTimetablePage() {
 
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
-    const droppedHour = (y / 80) + 6;
+    const droppedHour = (y / HOUR_PX) + GRID_START_HOUR;
     
     // Snap to 15 mins (0.25)
     const snappedHour = Math.round(droppedHour * 4) / 4;
@@ -204,8 +203,11 @@ export default function TeacherTimetablePage() {
 
   const handleReportDelay = async (e: React.MouseEvent, evt: UIMockupEvent) => {
     e.stopPropagation();
-    const minutes = prompt(`Signaler un retard pour ${evt.title} (en minutes):`, "15");
-    if (minutes) {
+    const input = await promptAction(`Signaler un retard pour ${evt.title} (en minutes) :`, "15");
+    const minutes = input?.trim() ?? "";
+    if (!/^\d{1,3}$/.test(minutes) || Number(minutes) === 0) {
+      if (input !== null) toast.error("Saisissez un nombre de minutes entre 1 et 999.");
+    } else {
       try {
         await fetchWithAuth(`/schedule-events/${evt.id}/delay?minutes=${minutes}`, { method: 'PUT' });
         toast.success(`Un retard de ${minutes} min a été signalé et notifié aux élèves.`);
@@ -218,7 +220,7 @@ export default function TeacherTimetablePage() {
 
   const handleCancelClass = async (e: React.MouseEvent, evt: UIMockupEvent) => {
     e.stopPropagation();
-    if (confirm(`Êtes-vous sûr de vouloir annuler le cours de ${evt.title} ? Une notification sera envoyée.`)) {
+    if (await confirmAction(`Êtes-vous sûr de vouloir annuler le cours de ${evt.title} ? Une notification sera envoyée.`)) {
       try {
         await fetchWithAuth(`/schedule-events/${evt.id}/cancel`, { method: 'PUT' });
         toast.success("Le cours a été annulé avec succès.");
@@ -305,7 +307,7 @@ export default function TeacherTimetablePage() {
 
           <div className={styles.timetableScroll}>
             {new Date().toDateString() === currentDate.toDateString() && (
-              <div className={styles.redIndicator} style={{ top: `${(new Date().getHours() - 6) * 80 + (new Date().getMinutes() / 60) * 80}px` }}>
+              <div className={styles.redIndicator} style={{ top: `${(new Date().getHours() - GRID_START_HOUR) * HOUR_PX + (new Date().getMinutes() / 60) * HOUR_PX}px` }}>
                 <div className={styles.redIndicatorTime}>{new Date().getHours()}:{new Date().getMinutes().toString().padStart(2, '0')}</div>
                 <div className={styles.redIndicatorDot}></div>
                 <div className={styles.redIndicatorLine}></div>
@@ -344,7 +346,7 @@ export default function TeacherTimetablePage() {
                       const styleObj = getEventInlineStyle(evt);
                       return (
                         <div key={evt.id} 
-                             className={styles.eventCard} 
+                             className={`${styles.eventCard} ${evt.endHour - evt.startHour < 1.5 ? styles.eventCardCompact : ""}`} 
                              style={styleObj}
                              draggable={true}
                              onDragStart={(e) => handleDragStart(e, evt)}

@@ -1,10 +1,10 @@
 export const COLORS = {
   // Brand
-  brand50: '#eef6ff',
-  brand100: '#d9eaff',
-  brand500: '#2563eb',
-  brand600: '#1d4ed8',
-  brand700: '#1e40af',
+  brand50: '#ecfdf5',
+  brand100: '#d1fae5',
+  brand500: '#009E60',
+  brand600: '#007A4B',
+  brand700: '#00623C',
 
   // Slate
   slate50: '#F8FAFC',
@@ -40,13 +40,17 @@ export const COLORS = {
   warningDark: '#D97706',
 
   // Material Theme
-  primary: '#0037b0',
+  primary: '#007A4B',
   onPrimary: '#ffffff',
-  primaryContainer: '#1d4ed8',
-  onPrimaryContainer: '#cad3ff',
-  primaryFixed: '#dce1ff',
-  onPrimaryFixed: '#001551',
-  onPrimaryFixedVariant: '#0039b5',
+  primaryContainer: '#007A4B',
+  gabonYellowSoft: '#FEF9DB',
+  gabonYellowInk: '#6B4E00',
+  gabonBlueSoft: '#EAF2FB',
+  gabonBlueInk: '#1E4A8A',
+  onPrimaryContainer: '#D1FAE5',
+  primaryFixed: '#D1FAE5',
+  onPrimaryFixed: '#003A24',
+  onPrimaryFixedVariant: '#00623C',
 
   secondary: '#006c49',
   onSecondary: '#ffffff',

@@ -162,7 +162,7 @@ export default function AdminDashboardPage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div>
             <h1 className="page-title" style={{ fontSize: 32, fontWeight: 700 }}>
-              Bonjour, {userName} 👋
+              Bonjour, {userName}
             </h1>
             <p className="page-subtitle">
               Voici l'aperçu de l'activité académique et l'état de planification opérationnelle en temps réel.
@@ -314,39 +314,35 @@ export default function AdminDashboardPage() {
             </div>
             <div style={{ padding: '0' }}>
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                <table className="data-table">
                   <thead>
-                    <tr style={{ background: 'var(--surface-container-low)' }}>
-                      <th style={{ padding: '8px 16px', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Salle</th>
-                      <th style={{ padding: '8px 16px', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>08h–10h</th>
-                      <th style={{ padding: '8px 16px', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>10h–12h</th>
-                      <th style={{ padding: '8px 16px', fontWeight: 600, color: 'var(--primary)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', background: 'var(--primary-light)', borderTop: '2px solid var(--primary)', textAlign: 'center' }}>14h–16h (Actuel)</th>
+                    <tr>
+                      <th>Salle</th>
+                      <th>Cours</th>
+                      <th>Horaire</th>
+                      <th>Statut</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredEvents.length > 0 ? filteredEvents.map((row, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <td style={{ padding: '10px 16px', fontWeight: 600, fontSize: 12, color: row.conflict ? 'var(--danger)' : 'var(--text-primary)', whiteSpace: 'nowrap' }}>
-                          {row.roomName}
-                          {row.conflict && <div style={{ fontSize: 11, color: 'var(--danger)', fontWeight: 600 }}>⚠ Conflit</div>}
+                    {filteredEvents.length > 0 ? filteredEvents.map((row) => (
+                      <tr key={row.id}>
+                        <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{row.roomName}</td>
+                        <td>
+                          <div style={{ fontWeight: 500 }}>{row.title}</div>
+                          {row.description && <div className="cell-name-secondary">{row.description}</div>}
                         </td>
-                        <td style={{
-                            padding: '8px 16px',
-                            background: row.conflict ? 'rgba(220,38,38,0.07)' : 'transparent',
-                            fontSize: 12,
-                            color: row.conflict ? 'var(--danger)' : 'var(--text-secondary)',
-                            fontWeight: row.conflict ? 600 : 400,
-                            whiteSpace: 'pre-line',
-                          }} colSpan={3}>
-                            {row.title} - {row.description}
-                            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                              {new Date(row.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(row.endAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </div>
+                        <td style={{ whiteSpace: 'nowrap', color: 'var(--text-secondary)' }}>
+                          {new Date(row.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} – {new Date(row.endAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td>
+                          {row.conflict
+                            ? <span className="badge badge-red">Conflit</span>
+                            : <span className="badge badge-green">Planifié</span>}
                         </td>
                       </tr>
                     )) : (
                       <tr>
-                        <td colSpan={4} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+                        <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
                           Aucun événement prévu aujourd'hui.
                         </td>
                       </tr>
@@ -420,7 +416,6 @@ export default function AdminDashboardPage() {
                 </div>
                 <h2 className="card-title" style={{ margin: 0 }}>Taux d'occupation par bâtiment</h2>
               </div>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Capacité globale: 2 400 places</span>
             </div>
             <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {stats?.buildingOccupations && stats.buildingOccupations.length > 0 ? (

@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/confirm";
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { fetchWithAuth, extractArray, extractPageData } from '@/lib/api';
 import { z } from "zod";
@@ -131,6 +132,7 @@ export default function RoomsAdminPage() {
   const [searchLoading, setSearchLoading] = useState(false);
 
   const form = useForm<RoomFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(roomSchema) as any,
     defaultValues: {
       id: '', name: '', code: '', capacity: 30, type: 'CLASSROOM', active: true, orgUnitId: '', equipments: ''
@@ -188,7 +190,7 @@ export default function RoomsAdminPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cette salle ? Cette action est irréversible.')) return;
+    if (!(await confirmAction('Supprimer cette salle ? Cette action est irréversible.'))) return;
     try {
       await fetchWithAuth(`/rooms/${id}`, { method: 'DELETE' });
       toast.success('Salle supprimée avec succès.');
@@ -198,7 +200,7 @@ export default function RoomsAdminPage() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Supprimer les ${selectedIds.size} salles sélectionnées ?`)) return;
+    if (!(await confirmAction(`Supprimer les ${selectedIds.size} salles sélectionnées ?`))) return;
     try {
       await fetchWithAuth(`/rooms/bulk-delete`, { 
         method: 'POST', body: JSON.stringify(Array.from(selectedIds))
@@ -275,7 +277,9 @@ export default function RoomsAdminPage() {
     const rows = rooms.map(r => [
       r.id, r.name, r.code, r.capacity, ROOM_TYPE_LABELS[r.type] || r.type, r.active ? 'Actif' : 'Inactif', getOrgUnitName(r.orgUnitId) || 'Non assigné'
     ]);
-    const csvContent = [header, ...rows].map(e => e.join(",")).join("\n");
+    const csvContent = [header, ...rows]
+      .map(row => row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(","))
+      .join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -345,7 +349,7 @@ export default function RoomsAdminPage() {
         </div>
       )}
 
-      <div className="filters-bar" style={{ display: 'flex', gap: 16, marginBottom: 24, background: '#fff', padding: 16, borderRadius: 12, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
+      <div className="filters-bar" style={{ display: 'flex', gap: 16, marginBottom: 24, background: 'var(--surface)', padding: 16, borderRadius: 12, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
         <form onSubmit={handleSearchSubmit} className="search-box" style={{ flex: 1, minWidth: 250 }}>
           <span className="material-symbols-outlined search-box-icon">search</span>
           <input type="text" placeholder="Rechercher (nom, code)..." value={searchInput} onChange={e => setSearchInput(e.target.value)} />
@@ -425,7 +429,7 @@ export default function RoomsAdminPage() {
                     </div>
                   </td>
                   <td>{getOrgUnitName(room.orgUnitId) ? <span className="badge badge-gray">{getOrgUnitName(room.orgUnitId)}</span> : <span style={{ color: 'var(--text-muted)', fontSize: 13, fontStyle: 'italic' }}>Non assignée</span>}</td>
-                  <td>{room.active !== false ? <span className="badge badge-success">Active</span> : <span className="badge badge-gray">Inactive</span>}</td>
+                  <td>{room.active !== false ? <span className="badge badge-green">Active</span> : <span className="badge badge-gray">Inactive</span>}</td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
                       <button className="btn btn-secondary btn-sm" onClick={() => handleOpenEdit(room)} title="Modifier"><span className="material-symbols-outlined">edit</span></button>
@@ -469,6 +473,16 @@ export default function RoomsAdminPage() {
           )}
 
           <Form {...form}>
+            {form.formState.submitCount > 0 && Object.keys(form.formState.errors).length > 0 && (
+              <div role="alert" className="alert alert-error">
+                <div>
+                  <strong>Corrigez les points suivants :</strong>
+                  <ul className="mt-1 list-disc pl-4">
+                    {Object.values(form.formState.errors).map((e, i) => (e?.message ? <li key={i}>{String(e.message)}</li> : null))}
+                  </ul>
+                </div>
+              </div>
+            )}
             <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-2">
               <FormField
                 control={form.control}

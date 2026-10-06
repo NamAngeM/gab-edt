@@ -1,5 +1,7 @@
 "use client";
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { confirmAction } from "@/lib/confirm";
 import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
@@ -60,6 +62,8 @@ export default function InstitutionsPage() {
 
   const handleAddInstitution = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitAttempted(true);
+    if (errorList.length > 0) return;
     setFormError('');
     setSubmitting(true);
     try {
@@ -77,7 +81,7 @@ export default function InstitutionsPage() {
 
   const toggleActive = async (inst: Institution) => {
     const action = inst.active ? 'suspendre' : 'réactiver';
-    if (!confirm(`Voulez-vous ${action} « ${inst.name} » ? ${inst.active ? 'Ses utilisateurs ne pourront plus se connecter.' : ''}`)) return;
+    if (!(await confirmAction(`Voulez-vous ${action} « ${inst.name} » ? ${inst.active ? 'Ses utilisateurs ne pourront plus se connecter.' : ''}`))) return;
     try {
       await fetchWithAuth(`/institutions/${inst.id}/active?value=${!inst.active}`, { method: 'PUT' });
       toast.success(inst.active ? 'Établissement suspendu.' : 'Établissement réactivé.');
@@ -92,7 +96,33 @@ export default function InstitutionsPage() {
     (statusFilter === 'all' || (statusFilter === 'active') === i.active)
   );
 
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+
+  const FIELD_LABELS: Record<keyof typeof EMPTY_FORM, string> = {
+    name: "Nom de l'établissement",
+    code: "Code court",
+    city: "Ville",
+    type: "Type d'établissement",
+    adminFirstName: "Prénom de l'administrateur",
+    adminLastName: "Nom de l'administrateur",
+    adminEmail: "Email de l'administrateur",
+    adminPassword: "Mot de passe initial",
+  };
+
+  const errors: Partial<Record<keyof typeof EMPTY_FORM, string>> = {};
+  const REQUIRED: (keyof typeof EMPTY_FORM)[] = ["name", "code", "type", "adminFirstName", "adminLastName", "adminEmail", "adminPassword"];
+  for (const key of REQUIRED) {
+    if (!String(formData[key] ?? "").trim()) errors[key] = "Ce champ est obligatoire.";
+  }
+  if (!errors.adminEmail && !/^[^s@]+@[^s@]+.[^s@]+$/.test(formData.adminEmail)) errors.adminEmail = "Adresse email invalide.";
+  if (!errors.adminPassword && formData.adminPassword.length < 12) errors.adminPassword = "12 caractères minimum.";
+  const visibleError = (key: keyof typeof EMPTY_FORM) => ((touched[key] || submitAttempted) ? errors[key] : undefined);
+  const errorList = Object.values(errors).filter(Boolean);
+
   const field = (key: keyof typeof EMPTY_FORM) => ({
+    name: key,
+    "aria-invalid": visibleError(key) ? true : undefined,
     value: formData[key],
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setFormData({ ...formData, [key]: e.target.value }),
   });
@@ -128,7 +158,7 @@ export default function InstitutionsPage() {
         </div>
 
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table className="data-table">
             <thead>
               <tr style={{ background: 'var(--surface-container-lowest)', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
                 <th style={{ padding: 'var(--space-md) var(--space-lg)', fontWeight: 500 }}>Établissement</th>
@@ -183,31 +213,36 @@ export default function InstitutionsPage() {
         </div>
       </div>
 
-      {isModalOpen && (
-        <div role="dialog" aria-modal="true" aria-labelledby="new-institution-title" style={{
-          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 16,
-        }}>
-          <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '520px', padding: 0, maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ padding: 'var(--space-lg)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 id="new-institution-title" style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>Nouvel établissement</h2>
-              <button aria-label="Fermer" onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
+      <Dialog open={isModalOpen} onOpenChange={open => { if (!open) setIsModalOpen(false); }}>
+        <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Nouvel établissement</DialogTitle>
+          </DialogHeader>
 
-            <form onSubmit={handleAddInstitution} style={{ padding: 'var(--space-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+            <form noValidate onSubmit={handleAddInstitution} onBlurCapture={e => { const n = (e.target as unknown as HTMLInputElement).name; if (n) setTouched(t => ({ ...t, [n]: true })); }} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+              {submitAttempted && errorList.length > 0 && (
+                <div role="alert" className="alert alert-error">
+                  <div>
+                    <strong>Corrigez les points suivants :</strong>
+                    <ul className="mt-1 list-disc pl-4">
+                      {REQUIRED.concat(["adminEmail", "adminPassword"]).filter((k, i, a) => a.indexOf(k) === i && errors[k]).map(k => <li key={k}>{FIELD_LABELS[k]} : {errors[k]}</li>)}
+                    </ul>
+                  </div>
+                </div>
+              )}
               {formError && (
                 <div role="alert" style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: 10, borderRadius: 8, fontSize: '0.875rem' }}>{formError}</div>
               )}
               <div className="form-group">
                 <label className="form-label">Nom de l&apos;établissement</label>
                 <input type="text" className="form-input" required {...field('name')} />
-              </div>
+              {visibleError('name') && <p className="form-error-msg">{visibleError('name')}</p>}
+                </div>
               <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
                 <div className="form-group" style={{ flex: 1, minWidth: 140 }}>
                   <label className="form-label">Code court</label>
                   <input type="text" className="form-input" required maxLength={20} {...field('code')} />
+                {visibleError('code') && <p className="form-error-msg">{visibleError('code')}</p>}
                 </div>
                 <div className="form-group" style={{ flex: 1, minWidth: 140 }}>
                   <label className="form-label">Ville</label>
@@ -219,36 +254,40 @@ export default function InstitutionsPage() {
                 <select className="form-input" required {...field('type')}>
                   {Object.entries(TYPE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                 </select>
-              </div>
+              {visibleError('type') && <p className="form-error-msg">{visibleError('type')}</p>}
+                </div>
 
               <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginTop: 'var(--space-sm)' }}>Premier administrateur</h3>
               <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
                 <div className="form-group" style={{ flex: 1, minWidth: 140 }}>
                   <label className="form-label">Prénom</label>
                   <input type="text" className="form-input" required {...field('adminFirstName')} />
+                {visibleError('adminFirstName') && <p className="form-error-msg">{visibleError('adminFirstName')}</p>}
                 </div>
                 <div className="form-group" style={{ flex: 1, minWidth: 140 }}>
                   <label className="form-label">Nom</label>
                   <input type="text" className="form-input" required {...field('adminLastName')} />
+                {visibleError('adminLastName') && <p className="form-error-msg">{visibleError('adminLastName')}</p>}
                 </div>
               </div>
               <div className="form-group">
                 <label className="form-label">Email</label>
                 <input type="email" className="form-input" required {...field('adminEmail')} />
-              </div>
+              {visibleError('adminEmail') && <p className="form-error-msg">{visibleError('adminEmail')}</p>}
+                </div>
               <div className="form-group">
                 <label className="form-label">Mot de passe initial (12 caractères minimum)</label>
                 <input type="password" className="form-input" required minLength={12} autoComplete="new-password" {...field('adminPassword')} />
-              </div>
+              {visibleError('adminPassword') && <p className="form-error-msg">{visibleError('adminPassword')}</p>}
+                </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginTop: 'var(--space-sm)' }}>
                 <button type="button" className="btn btn-outline" onClick={() => setIsModalOpen(false)}>Annuler</button>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? 'Création…' : 'Créer'}</button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

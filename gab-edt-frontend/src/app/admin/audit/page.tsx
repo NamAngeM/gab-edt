@@ -8,20 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const mockLogs = [
-  { id: 'LOG-001', date: '2024-03-15T10:24:00', user: 'Jean Dupont', action: 'CREATE_COURSE', resource: 'Maths L1', status: 'SUCCESS', ip: '192.168.1.42' },
-  { id: 'LOG-002', date: '2024-03-15T11:05:30', user: 'Admin Sys', action: 'UPDATE_ACL', resource: 'User: jean.dupont', status: 'SUCCESS', ip: '10.0.0.1' },
-  { id: 'LOG-003', date: '2024-03-15T14:45:12', user: 'Marie Curie', action: 'LOGIN_FAILED', resource: 'Auth System', status: 'ERROR', ip: '82.114.55.10' },
-  { id: 'LOG-004', date: '2024-03-15T16:20:00', user: 'Alice Liddell', action: 'DELETE_EVENT', resource: 'Soutenance Info', status: 'WARNING', ip: '192.168.1.105' },
-  { id: 'LOG-005', date: '2024-03-16T08:15:00', user: 'System', action: 'BACKUP_DB', resource: 'Database', status: 'SUCCESS', ip: '127.0.0.1' },
-  { id: 'LOG-006', date: '2024-03-16T09:30:22', user: 'Admin Sys', action: 'MASS_IMPORT', resource: 'Students', status: 'SUCCESS', ip: '10.0.0.1' },
-];
+const auditLogs: { id: string; date: string; user: string; action: string; resource: string; status: string; ip: string }[] = [];
 
 export default function AuditPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAction, setFilterAction] = useState('ALL');
 
-  const filteredLogs = mockLogs.filter(log => {
+  const filteredLogs = auditLogs.filter(log => {
     const matchesSearch = log.user.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           log.resource.toLowerCase().includes(searchTerm.toLowerCase());
@@ -150,7 +143,7 @@ export default function AuditPage() {
             {filteredLogs.length === 0 && (
               <div className="p-12 text-center flex flex-col items-center justify-center">
                 <FileText className="w-12 h-12 text-slate-300 dark:text-slate-700 mb-3" />
-                <p className="text-slate-500 text-lg font-medium">Aucun journal trouvé</p>
+                <p className="text-slate-500 text-lg font-medium">{auditLogs.length === 0 ? "Journal non disponible" : "Aucun journal trouvé"}</p>
                 <p className="text-slate-400 text-sm mt-1">Essayez de modifier vos filtres de recherche.</p>
               </div>
             )}

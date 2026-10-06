@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/confirm";
 import React, { useEffect, useState } from 'react';
 import { fetchWithAuth } from '@/lib/api';
 import { z } from "zod";
@@ -39,6 +40,7 @@ export default function GroupesAdminPage() {
   const [modalError, setModalError] = useState('');
 
   const form = useForm<GroupeFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(groupeSchema),
     defaultValues: {
       id: '', name: '', type: 'CLASS', parentId: '', institutionId: ''
@@ -78,7 +80,7 @@ export default function GroupesAdminPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer ce groupe / cette promotion ?')) return;
+    if (!(await confirmAction('Supprimer ce groupe / cette promotion ?'))) return;
     try {
       await fetchWithAuth(`/org-units/${id}`, { method: 'DELETE' });
       toast.success("Supprimé avec succès.");

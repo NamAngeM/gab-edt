@@ -51,6 +51,7 @@ export default function UsersAdminPage() {
   const [modalError, setModalError] = useState('');
 
   const aclForm = useForm<AclFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(aclSchema),
     defaultValues: { managedOrgUnitIds: [] }
   });
@@ -60,6 +61,7 @@ export default function UsersAdminPage() {
   const [userModalError, setUserModalError] = useState('');
 
   const userForm = useForm<UserFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(userSchema),
     defaultValues: {
       id: '', email: '', password: '', firstName: '', lastName: '', phone: '', role: 'TEACHER', active: true

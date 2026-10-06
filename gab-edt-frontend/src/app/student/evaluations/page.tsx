@@ -5,23 +5,8 @@ import React, { useState } from 'react';
 export default function StudentEvaluationsPage() {
   const [activeTab, setActiveTab] = useState<'soutenances' | 'examens'>('soutenances');
 
-  // Mocks pour la vue étudiant
-  const myDefenses = [
-    {
-      id: 1,
-      type: "Soutenance PFE",
-      title: "Optimisation des algorithmes de NLP pour la détection de fraude",
-      date: "2026-10-15T14:30:00",
-      room: "Salle des Actes",
-      jury: ["Dr. Alain Nguema (Président)", "Pr. Sophie Dubois (Rapporteur)", "M. Jean Ondo (Examinateur)"],
-      status: "Planifiée"
-    }
-  ];
-
-  const upcomingExams = [
-    { id: 101, subject: "Architecture des Microservices", date: "2026-11-02T08:00:00", duration: "2h00", room: "Amphi A", coef: 3 },
-    { id: 102, subject: "Machine Learning Avancé", date: "2026-11-05T10:00:00", duration: "1h30", room: "Salle B4", coef: 4 },
-  ];
+  const myDefenses: { id: number; type: string; title: string; date: string; room: string; jury: string[]; status: string }[] = [];
+  const upcomingExams: { id: number; subject: string; date: string; duration: string; room: string; coef: number }[] = [];
 
   const formatDate = (isoString: string) => {
     return new Date(isoString).toLocaleDateString('fr-FR', {
@@ -148,6 +133,11 @@ export default function StudentEvaluationsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
+                    {upcomingExams.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="py-12 text-center text-slate-500">Aucun examen à afficher : la liste n&apos;est pas encore reliée au backend.</td>
+                      </tr>
+                    )}
                     {upcomingExams.map(exam => (
                       <tr key={exam.id} className="hover:bg-slate-50 transition-colors">
                         <td className="py-4 px-4 font-bold text-slate-800">{exam.subject}</td>

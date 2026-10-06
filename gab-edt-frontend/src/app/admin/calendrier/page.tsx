@@ -1,5 +1,7 @@
 "use client";
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { confirmAction } from "@/lib/confirm";
 import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { extractArray, fetchWithAuth } from '@/lib/api';
@@ -107,7 +109,7 @@ export default function CalendrierPage() {
   };
 
   const deleteYear = async (year: AcademicYear) => {
-    if (!confirm(`Supprimer l'année ${year.name} ?`)) return;
+    if (!(await confirmAction(`Supprimer l'année ${year.name} ?`))) return;
     try {
       await fetchWithAuth(`/academic-years/${year.id}`, { method: 'DELETE' });
       void load();
@@ -153,7 +155,7 @@ export default function CalendrierPage() {
   };
 
   const deleteEvent = async (ev: CalendarEvent) => {
-    if (!confirm(`Supprimer « ${ev.title} » ?`)) return;
+    if (!(await confirmAction(`Supprimer « ${ev.title} » ?`))) return;
     try {
       await fetchWithAuth(`/communication/events/${ev.id}`, { method: 'DELETE' });
       void load();
@@ -164,10 +166,6 @@ export default function CalendrierPage() {
 
   const civilYears = Array.from(new Set(years.flatMap((y) => [Number(y.startDate.slice(0, 4)), Number(y.endDate.slice(0, 4))]))).sort();
 
-  const modalStyle: React.CSSProperties = {
-    position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', display: 'flex',
-    alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 16,
-  };
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xl)' }}>
@@ -255,9 +253,12 @@ export default function CalendrierPage() {
       </section>
 
       {yearForm && (
-        <div role="dialog" aria-modal="true" aria-labelledby="year-title" style={modalStyle}>
-          <form onSubmit={saveYear} className="card" style={{ width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', padding: 'var(--space-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-            <h2 id="year-title" style={{ fontSize: '1.2rem', fontWeight: 600 }}>{yearForm.id ? 'Modifier' : 'Nouvelle'} année académique</h2>
+      <Dialog open onOpenChange={open => { if (!open) setYearForm(null); }}>
+        <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{yearForm?.id ? 'Modifier' : 'Nouvelle'} année académique</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={saveYear} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
             {error && <div role="alert" style={{ color: 'var(--danger)', fontSize: '0.875rem' }}>{error}</div>}
             <div className="form-group">
               <label className="form-label" htmlFor="year-name">Nom</label>
@@ -294,13 +295,17 @@ export default function CalendrierPage() {
               <button type="submit" className="btn btn-primary">Enregistrer</button>
             </div>
           </form>
-        </div>
+        </DialogContent>
+      </Dialog>
       )}
 
       {eventForm && (
-        <div role="dialog" aria-modal="true" aria-labelledby="event-title" style={modalStyle}>
-          <form onSubmit={saveEvent} className="card" style={{ width: '100%', maxWidth: 460, padding: 'var(--space-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-            <h2 id="event-title" style={{ fontSize: '1.2rem', fontWeight: 600 }}>Vacances, jour férié ou événement</h2>
+      <Dialog open onOpenChange={open => { if (!open) setEventForm(null); }}>
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogHeader>
+            <DialogTitle>Vacances, jour férié ou événement</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={saveEvent} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
             {error && <div role="alert" style={{ color: 'var(--danger)', fontSize: '0.875rem' }}>{error}</div>}
             <div className="form-group">
               <label className="form-label" htmlFor="ev-title">Intitulé</label>
@@ -325,7 +330,8 @@ export default function CalendrierPage() {
               <button type="submit" className="btn btn-primary">Ajouter</button>
             </div>
           </form>
-        </div>
+        </DialogContent>
+      </Dialog>
       )}
     </div>
   );

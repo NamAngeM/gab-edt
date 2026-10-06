@@ -37,7 +37,7 @@ public class ResourceTreeService {
         iNode.setType(inst.getType().name());
 
         List<OrganizationalUnit> rootUnits = organizationalUnitRepository.findByInstitutionIdAndParentIsNull(inst.getId());
-        iNode.setRootUnits(rootUnits.stream().map(this::mapToNode).collect(Collectors.toList()));
+        iNode.setRootUnits(rootUnits.stream().filter(OrganizationalUnit::isActive).map(this::mapToNode).collect(Collectors.toList()));
         
         tree.setInstitution(iNode);
         return tree;
@@ -51,7 +51,7 @@ public class ResourceTreeService {
 
         // Fetch children
         if (unit.getChildren() != null) {
-            node.setChildren(unit.getChildren().stream().map(this::mapToNode).collect(Collectors.toList()));
+            node.setChildren(unit.getChildren().stream().filter(OrganizationalUnit::isActive).map(this::mapToNode).collect(Collectors.toList()));
         }
 
         // Fetch Teachers

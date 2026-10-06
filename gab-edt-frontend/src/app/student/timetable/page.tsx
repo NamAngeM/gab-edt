@@ -2,6 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import styles from '@/app/admin/timetable/timetable.module.css';
 import { fetchWithAuth , formatDateLocal} from '@/lib/api';
+import { COURSE_PALETTE, colorIndexFor } from '@/lib/courseColors';
+
+const HOUR_PX = 80;
+const GRID_START_HOUR = 6;
+const EVENT_GAP_PX = 3;
 
 type CourseType = 'cm' | 'td' | 'tp' | 'transversal' | 'conflict';
 
@@ -102,19 +107,12 @@ export default function StudentTimetablePage() {
   const getEventInlineStyle = (evt: UIMockupEvent) => {
     let bg = "", border = "", text = "", badgeBg = "", badgeText = "";
     
-    const typeColors: Record<string, any> = {
-      'cm': { bg: 'var(--cm-bg)', border: 'var(--cm-border)', text: 'var(--cm-text)' },
-      'td': { bg: 'var(--td-bg)', border: 'var(--td-border)', text: 'var(--td-text)' },
-      'tp': { bg: 'var(--tp-bg)', border: 'var(--tp-border)', text: 'var(--tp-text)' },
-      'transversal': { bg: 'var(--info-bg)', border: 'var(--info)', text: 'var(--info)' },
-    };
-    
-    const colors = typeColors[evt.type] || typeColors['cm'];
+    const colors = COURSE_PALETTE[colorIndexFor(evt.title)];
     bg = colors.bg; border = colors.border; text = colors.text;
     badgeBg = colors.border; badgeText = "white";
 
-    const top = (evt.startHour - 6) * 80;
-    const height = (evt.endHour - evt.startHour) * 80;
+    const top = (evt.startHour - GRID_START_HOUR) * HOUR_PX + EVENT_GAP_PX;
+    const height = (evt.endHour - evt.startHour) * HOUR_PX - EVENT_GAP_PX * 2;
 
     return {
       top: `${top}px`,
@@ -184,7 +182,7 @@ export default function StudentTimetablePage() {
 
           <div className={styles.timetableScroll}>
             {new Date().toDateString() === currentDate.toDateString() && (
-              <div className={styles.redIndicator} style={{ top: `${(new Date().getHours() - 6) * 80 + (new Date().getMinutes() / 60) * 80}px` }}>
+              <div className={styles.redIndicator} style={{ top: `${(new Date().getHours() - GRID_START_HOUR) * HOUR_PX + (new Date().getMinutes() / 60) * HOUR_PX}px` }}>
                 <div className={styles.redIndicatorTime}>{new Date().getHours()}:{new Date().getMinutes().toString().padStart(2, '0')}</div>
                 <div className={styles.redIndicatorDot}></div>
                 <div className={styles.redIndicatorLine}></div>
@@ -218,7 +216,7 @@ export default function StudentTimetablePage() {
                     {dayEvents.map((evt) => {
                       const styleObj = getEventInlineStyle(evt);
                       return (
-                        <div key={evt.id} className={styles.eventCard} style={styleObj}>
+                        <div key={evt.id} className={`${styles.eventCard} ${evt.endHour - evt.startHour < 1.5 ? styles.eventCardCompact : ""}`} style={styleObj}>
                           <div className={styles.eventHeader}>
                             <div style={{display: 'flex', gap: '4px', flexWrap: 'wrap'}}>
                               <span className={styles.eventBadge} style={{ background: 'var(--badge-bg)', color: 'var(--badge-text)' }}>{evt.type}</span>

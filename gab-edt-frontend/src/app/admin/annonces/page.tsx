@@ -38,6 +38,7 @@ export default function AnnoncesPage() {
   const [teachers, setTeachers] = useState<any[]>([]);
   
   const form = useForm<AnnouncementFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(announcementSchema),
     defaultValues: {
       title: '', content: '', targetAudience: 'ALL', validUntil: '', authorId: ''
@@ -113,7 +114,7 @@ export default function AnnoncesPage() {
       <div className="card">
         {loading ? (
           <div className="empty-state">
-            <div className="loader"></div>
+            <div className="skeleton skeleton-row" />
             <p>Chargement des annonces...</p>
           </div>
         ) : announcements.length === 0 ? (
@@ -124,7 +125,7 @@ export default function AnnoncesPage() {
           </div>
         ) : (
           <div className="table-responsive">
-            <table className="table">
+            <table className="data-table">
               <thead>
                 <tr>
                   <th>Titre</th>
@@ -139,7 +140,7 @@ export default function AnnoncesPage() {
                   <tr key={a.id}>
                     <td className="font-medium">{a.title}</td>
                     <td>
-                      <span className={`badge ${a.targetAudience === 'ALL' ? 'badge-primary' : 'badge-warning'}`}>
+                      <span className={`badge ${a.targetAudience === 'ALL' ? 'badge-primary' : 'badge-orange'}`}>
                         {a.targetAudience}
                       </span>
                     </td>

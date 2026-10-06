@@ -90,6 +90,10 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}): Pro
     redirectToLogin();
     throw new ApiError(401, 'Session expirée. Veuillez vous reconnecter.');
   }
+  if (response.status === 503 && typeof window !== 'undefined') {
+    window.location.href = '/maintenance';
+    throw new ApiError(503, 'La plateforme est en maintenance.');
+  }
   if (response.status === 403) {
     throw new ApiError(403, "Accès refusé : vous n'avez pas les droits pour cette action.");
   }

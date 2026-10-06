@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { fetchWithAuth } from '@/lib/api';
+import { fetchWithAuth, extractArray } from '@/lib/api';
+import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function ConflictsAdminPage() {
   const [conflicts, setConflicts] = useState<any[]>([]);
@@ -22,8 +24,8 @@ export default function ConflictsAdminPage() {
         fetchWithAuth('/rooms').catch(() => ({ data: [] }))
       ]);
       setConflicts(resConflicts.data || []);
-      setTeachers(resTeachers.data || []);
-      setRooms(resRooms.data || []);
+      setTeachers(extractArray(resTeachers));
+      setRooms(extractArray(resRooms));
     } catch (err) {
       console.error(err);
     } finally {
@@ -78,7 +80,7 @@ export default function ConflictsAdminPage() {
       await loadData();
     } catch (e) {
       console.error(e);
-      alert("Erreur lors de la résolution du conflit.");
+      toast.error("Erreur lors de la résolution du conflit.");
     } finally {
       setSaving(false);
     }
@@ -154,19 +156,20 @@ export default function ConflictsAdminPage() {
         </div>
       )}
 
-      {resolvingConflict && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '16px', width: '500px', maxWidth: '90vw' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '16px' }}>Résolution du conflit</h2>
+      <Dialog open={!!resolvingConflict} onOpenChange={open => { if (!open) setResolvingConflict(null); }}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Résolution du conflit</DialogTitle>
+          </DialogHeader>
             <div style={{ background: 'var(--danger-bg)', color: 'var(--danger)', padding: '12px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px', fontWeight: 500 }}>
-              {resolvingConflict.conflictDetails}
+              {resolvingConflict?.conflictDetails}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px', color: 'var(--text-secondary)' }}>Enseignant</label>
+                <label className="form-label">Enseignant</label>
                 <select 
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-container)' }}
+                  className="form-input"
                   value={editData.teacherId} 
                   onChange={e => setEditData({...editData, teacherId: e.target.value})}
                 >
@@ -176,9 +179,9 @@ export default function ConflictsAdminPage() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px', color: 'var(--text-secondary)' }}>Salle</label>
+                <label className="form-label">Salle</label>
                 <select 
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-container)' }}
+                  className="form-input"
                   value={editData.roomId} 
                   onChange={e => setEditData({...editData, roomId: e.target.value})}
                 >
@@ -189,19 +192,19 @@ export default function ConflictsAdminPage() {
 
               <div style={{ display: 'flex', gap: '12px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px', color: 'var(--text-secondary)' }}>Début</label>
+                  <label className="form-label">Début</label>
                   <input 
                     type="datetime-local" 
-                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-container)' }}
+                    className="form-input"
                     value={editData.startAt} 
                     onChange={e => setEditData({...editData, startAt: e.target.value})}
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px', color: 'var(--text-secondary)' }}>Fin</label>
+                  <label className="form-label">Fin</label>
                   <input 
                     type="datetime-local" 
-                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-container)' }}
+                    className="form-input"
                     value={editData.endAt} 
                     onChange={e => setEditData({...editData, endAt: e.target.value})}
                   />
@@ -224,9 +227,8 @@ export default function ConflictsAdminPage() {
                 {saving ? 'Sauvegarde...' : 'Appliquer les modifications'}
               </button>
             </div>
-          </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

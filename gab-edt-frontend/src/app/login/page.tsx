@@ -28,6 +28,22 @@ const ROLE_HOME: Record<string, string> = {
   PARENT: '/student',
 };
 
+const TIMETABLE_BLOCKS = [
+  { col: 0, row: 1, span: 2, tone: "blue" },
+  { col: 1, row: 3, span: 2, tone: "green" },
+  { col: 2, row: 0, span: 3, tone: "yellow" },
+  { col: 3, row: 4, span: 2, tone: "blue" },
+  { col: 4, row: 2, span: 2, tone: "green" },
+  { col: 0, row: 5, span: 1, tone: "yellow" },
+  { col: 5, row: 1, span: 3, tone: "blue" },
+] as const;
+
+const TONE_CLASS: Record<string, string> = {
+  blue: "bg-sky-400/10 border-sky-300/25",
+  green: "bg-emerald-400/10 border-emerald-300/25",
+  yellow: "bg-amber-300/10 border-amber-200/25",
+};
+
 export default function LoginPage() {
   return (
     <Suspense>
@@ -78,45 +94,90 @@ function LoginContent() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `
-        .mesh-gradient-bg {
-          background-color: #0c1c38;
-          background-image:
-            radial-gradient(at 80% 0%, hsla(217,91%,28%,0.75) 0px, transparent 55%),
-            radial-gradient(at 20% 20%, hsla(224,76%,22%,0.9) 0px, transparent 60%),
-            radial-gradient(at 50% 100%, hsla(217,95%,45%,0.4) 0px, transparent 65%),
-            radial-gradient(at 95% 85%, hsla(220,90%,16%,0.85) 0px, transparent 50%);
-        }
-        .font-plus-jakarta {
-          font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-        }
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes login-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+        @keyframes login-glow { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+        .login-rise { animation: login-rise .7s cubic-bezier(.16,1,.3,1) both; }
+        .login-block { animation: login-glow 6s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .login-rise, .login-block { animation: none; } }
       `}} />
-      <div className="font-plus-jakarta text-slate-800 antialiased mesh-gradient-bg flex flex-col justify-between min-h-screen selection:bg-brand-500 selection:text-white">
-        <main className="flex-grow flex items-center justify-center px-4 py-8 sm:px-6 relative z-10">
-          <div className="w-full max-w-[420px]">
-            <div className="text-center mb-6 space-y-1">
-              <div className="inline-flex items-center justify-center p-1.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 shadow-inner">
-                <svg className="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round"></path>
-                  <path d="M9 15h2v2H9z" strokeLinecap="round" strokeLinejoin="round"></path>
-                </svg>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">GAB-EDT</h1>
-              <p className="text-xs text-blue-200/80">Emplois du temps des établissements</p>
+
+      <div className="relative min-h-screen overflow-hidden bg-[#07152b] text-slate-100 antialiased">
+        {/* Grille d'emploi du temps en fond */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-20"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, rgba(148,163,184,.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,.08) 1px, transparent 1px)",
+            backgroundSize: "calc(100% / 7) 56px",
+            maskImage: "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+          }}
+        >
+          <div className="absolute inset-0 grid grid-cols-7 grid-rows-[repeat(8,56px)]">
+            {TIMETABLE_BLOCKS.map((b, i) => (
+              <div
+                key={i}
+                className={`login-block absolute rounded-md border ${TONE_CLASS[b.tone]}`}
+                style={{
+                  left: `calc(${b.col} * (100% / 7) + 6px)`,
+                  width: `calc(${b.span} * (100% / 7) - 12px)`,
+                  top: `${b.row * 56 + 6}px`,
+                  height: "44px",
+                  animationDelay: `${i * 0.7}s`,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Halo lumineux */}
+        <div aria-hidden="true" className="pointer-events-none absolute -top-40 -right-40 h-[32rem] w-[32rem] rounded-full bg-emerald-500/20 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-48 -left-32 h-[28rem] w-[28rem] rounded-full bg-yellow-300/10 blur-3xl" />
+
+        <main className="relative z-10 mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-6 py-12 lg:grid-cols-[1.1fr_0.9fr] lg:px-10">
+          {/* Volet marque */}
+          <section className="login-rise hidden lg:block">
+            <div className="mb-8 flex h-1.5 w-40 overflow-hidden rounded-full">
+              <span className="flex-1 bg-emerald-500" />
+              <span className="flex-1 bg-yellow-400" />
+              <span className="flex-1 bg-sky-500" />
+            </div>
+            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-yellow-300/90">GAB-EDT</p>
+            <h1 className="mt-4 text-5xl font-black leading-[1.05] tracking-tight text-white">
+              Toute votre semaine,<br />
+              <span className="text-yellow-300">en un seul regard.</span>
+            </h1>
+            <p className="mt-6 max-w-md text-base leading-relaxed text-slate-300">
+              Emplois du temps, salles, examens et annonces des établissements, pour l&apos;administration, les enseignants, les élèves et les parents.
+            </p>
+            <ul className="mt-10 grid max-w-md grid-cols-2 gap-3 text-sm text-slate-300">
+              {["Planning en temps réel", "Conflits détectés", "Présences & justificatifs", "Accès selon votre compte"].map(item => (
+                <li key={item} className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* Volet formulaire */}
+          <section className="login-rise w-full max-w-md justify-self-center" style={{ animationDelay: ".12s" }}>
+            <div className="mb-6 text-center lg:hidden">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-yellow-300/90">GAB-EDT</p>
+              <h1 className="mt-2 text-3xl font-black text-white">Emplois du temps</h1>
             </div>
 
-            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100/90" style={{boxShadow: "0 25px 60px -15px rgba(2, 6, 23, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.3) inset"}}>
-              <div className="mb-5">
-                <h2 className="text-xl font-bold text-slate-900 tracking-tight">Connexion</h2>
-                <p className="text-xs text-slate-500 mt-1">
-                  Administration, enseignants, élèves et parents : un seul accès, votre espace s&apos;ouvre selon votre compte.
-                </p>
+            <div className="rounded-[28px] border border-white/15 bg-[#0c1f3d]/80 p-7 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
+              <div className="mb-7">
+                <h2 className="text-2xl font-bold text-white">Connexion</h2>
+                <p className="mt-1.5 text-sm text-slate-400">Un seul accès : votre espace s&apos;ouvre selon votre compte.</p>
               </div>
 
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5" noValidate>
                   {serverError && (
-                    <div role="alert" className="bg-red-50 text-red-700 p-2.5 rounded-lg text-xs border border-red-100">
+                    <div role="alert" className="rounded-xl border border-rose-400/30 bg-rose-500/10 p-3 text-sm text-rose-200">
                       {serverError}
                     </div>
                   )}
@@ -126,17 +187,17 @@ function LoginContent() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs font-semibold text-slate-700">Email ou matricule</FormLabel>
+                        <FormLabel className="text-xs font-semibold uppercase tracking-wider text-slate-300">Email ou matricule</FormLabel>
                         <FormControl>
                           <Input
                             autoComplete="username"
                             placeholder="prenom.nom@etablissement.ga ou ETU-0001"
-                            className="bg-slate-50/70 border-slate-200 text-sm focus-visible:ring-brand-600 focus-visible:bg-white"
+                            className="h-12 rounded-xl border-slate-300/40 bg-white/15 text-base text-white placeholder:text-slate-300/70 focus-visible:border-emerald-300 focus-visible:bg-white/20 focus-visible:ring-emerald-300/40"
                             {...field}
                           />
                         </FormControl>
-                        <p className="text-[10px] text-slate-500">Parents : utilisez le matricule de l&apos;élève et votre mot de passe parent.</p>
-                        <FormMessage className="text-[10px]" />
+                        <p className="text-xs text-slate-500">Parents : matricule de l&apos;élève et votre mot de passe parent.</p>
+                        <FormMessage className="text-xs text-rose-300" />
                       </FormItem>
                     )}
                   />
@@ -147,8 +208,8 @@ function LoginContent() {
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex items-center justify-between">
-                          <FormLabel className="text-xs font-semibold text-slate-700">Mot de passe</FormLabel>
-                          <Link className="text-[11px] font-medium text-brand-600 hover:text-brand-700 hover:underline" href="/forgot-password">
+                          <FormLabel className="text-xs font-semibold uppercase tracking-wider text-slate-300">Mot de passe</FormLabel>
+                          <Link className="text-xs font-medium text-yellow-300 hover:text-yellow-200 hover:underline" href="/forgot-password">
                             Mot de passe oublié ?
                           </Link>
                         </div>
@@ -158,22 +219,22 @@ function LoginContent() {
                               type={showPwd ? "text" : "password"}
                               autoComplete="current-password"
                               placeholder="••••••••"
-                              className="pr-10 bg-slate-50/70 border-slate-200 text-sm focus-visible:ring-brand-600 focus-visible:bg-white"
+                              className="h-12 rounded-xl border-slate-300/40 bg-white/15 pr-12 text-base text-white placeholder:text-slate-300/70 focus-visible:border-emerald-300 focus-visible:bg-white/20 focus-visible:ring-emerald-300/40"
                               {...field}
                             />
                             <button
                               type="button"
                               onClick={() => setShowPwd(!showPwd)}
                               aria-label={showPwd ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                              className="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-600"
+                              className="absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400 transition-colors hover:text-white"
                             >
-                              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
                                 {showPwd ? 'visibility_off' : 'visibility'}
                               </span>
                             </button>
                           </div>
                         </FormControl>
-                        <FormMessage className="text-[10px]" />
+                        <FormMessage className="text-xs text-rose-300" />
                       </FormItem>
                     )}
                   />
@@ -181,21 +242,19 @@ function LoginContent() {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-5 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700"
+                    className="h-12 w-full rounded-xl bg-gradient-to-r from-[#009E60] to-[#007A4B] text-base font-bold text-white shadow-lg shadow-emerald-900/40 transition-all hover:from-[#00AE6C] hover:to-[#009E60] hover:shadow-emerald-700/50 disabled:opacity-60"
                   >
-                    {isLoading ? 'Connexion…' : 'Se connecter'}
+                    {isLoading ? 'Connexion…' : 'Se connecter à mon espace'}
                   </Button>
                 </form>
               </Form>
             </div>
-          </div>
-        </main>
 
-        <footer className="w-full border-t border-white/10 py-3 relative z-10 text-[10px] text-blue-200/70">
-          <div className="max-w-7xl mx-auto px-4 flex items-center justify-center">
-            <span><span className="font-semibold text-slate-300">GAB-EDT</span> © {new Date().getFullYear()}</span>
-          </div>
-        </footer>
+            <p className="mt-6 text-center text-xs text-slate-500">
+              GAB-EDT © {new Date().getFullYear()} · République gabonaise
+            </p>
+          </section>
+        </main>
       </div>
     </>
   );

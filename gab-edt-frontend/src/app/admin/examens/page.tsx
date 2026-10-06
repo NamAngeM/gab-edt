@@ -34,6 +34,7 @@ export default function ExamensPage() {
   const [orgUnits, setOrgUnits] = useState<any[]>([]);
 
   const form = useForm<SessionFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(sessionSchema),
     defaultValues: {
       name: '', startDate: '', endDate: '', orgUnitId: ''
@@ -58,6 +59,12 @@ export default function ExamensPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const formatDate = (value: string) => {
+    if (!value) return '—';
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? value : d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
 
   const handleOpenAdd = () => {
     form.reset({ name: '', startDate: '', endDate: '', orgUnitId: '' });
@@ -102,19 +109,22 @@ export default function ExamensPage() {
 
       <div className="card">
         {loading ? (
-          <div className="empty-state">
-            <div className="loader"></div>
-            <p>Chargement des sessions...</p>
+          <div style={{ padding: 'var(--space-xl)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div className="skeleton skeleton-row" />
+            <div className="skeleton skeleton-row" />
+            <div className="skeleton skeleton-row" />
           </div>
         ) : sessions.length === 0 ? (
           <div className="empty-state">
-            <span className="material-symbols-outlined empty-icon">event_busy</span>
-            <h3>Aucune session d'examen</h3>
-            <p>Commencez par créer une nouvelle session.</p>
+            <div className="empty-state-icon">
+              <span className="material-symbols-outlined">event_busy</span>
+            </div>
+            <p className="empty-state-title">Aucune session d&apos;examen</p>
+            <p className="empty-state-desc">Commencez par créer une nouvelle session.</p>
           </div>
         ) : (
           <div className="table-responsive">
-            <table className="table">
+            <table className="data-table">
               <thead>
                 <tr>
                   <th>Nom</th>
@@ -122,27 +132,29 @@ export default function ExamensPage() {
                   <th>Date de fin</th>
                   <th>Promotion / Groupe ciblée</th>
                   <th>Statut</th>
-                  <th style={{ width: '80px', textAlign: 'center' }}>Actions</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {sessions.map(s => (
                   <tr key={s.id}>
-                    <td className="font-medium">{s.name}</td>
-                    <td>{s.startDate}</td>
-                    <td>{s.endDate}</td>
+                    <td style={{ fontWeight: 600 }}>{s.name}</td>
+                    <td>{formatDate(s.startDate)}</td>
+                    <td>{formatDate(s.endDate)}</td>
                     <td>{s.orgUnitName}</td>
                     <td>
                       {s.published ? (
-                        <span className="badge badge-success">Publiée</span>
+                        <span className="badge badge-green">Publiée</span>
                       ) : (
-                        <span className="badge badge-warning">Brouillon</span>
+                        <span className="badge badge-orange">Brouillon</span>
                       )}
                     </td>
-                    <td className="table-actions">
-                      <button className="icon-btn text-primary-color" title="Gérer les examens">
-                        <span className="material-symbols-outlined">list_alt</span>
-                      </button>
+                    <td>
+                      <div className="table-actions">
+                        <button className="btn btn-secondary btn-sm" title="Gérer les examens">
+                          <span className="material-symbols-outlined">list_alt</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -1,6 +1,8 @@
 package ga.gabedt.config;
 
 import ga.gabedt.auth.JwtAuthenticationFilter;
+import ga.gabedt.system.MaintenanceFilter;
+import ga.gabedt.system.MaintenanceService;
 import ga.gabedt.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -34,6 +36,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserRepository userRepository;
+    private final MaintenanceService maintenanceService;
 
     private static final String[] PUBLIC_URLS = {
             // Documentation : désactivée en production par springdoc (application-prod.yml)
@@ -98,6 +101,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(PUBLIC_URLS).permitAll()
                         .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/system/status").permitAll()
+                        .requestMatchers("/api/v1/system/**").hasRole("SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -112,7 +117,8 @@ public class SecurityConfig {
                         .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31536000))
                 )
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new MaintenanceFilter(maintenanceService), JwtAuthenticationFilter.class);
 
         return http.build();
     }

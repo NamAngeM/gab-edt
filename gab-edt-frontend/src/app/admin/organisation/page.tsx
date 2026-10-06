@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/confirm";
 import React, { useEffect, useState } from 'react';
 import { fetchWithAuth } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -44,6 +45,7 @@ export default function OrganisationAdminPage() {
   const [modalError, setModalError] = useState('');
   
   const form = useForm<OrgUnitFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(orgUnitSchema),
     defaultValues: { id: '', name: '', type: 'CAMPUS', parentId: '', institutionId: '' }
   });
@@ -79,14 +81,14 @@ export default function OrganisationAdminPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette unité ? (Les sous-unités pourraient être affectées)')) return;
+    if (!(await confirmAction('Êtes-vous sûr de vouloir supprimer cette unité ? (Les sous-unités pourraient être affectées)'))) return;
     
     try {
       await fetchWithAuth(`/org-units/${id}`, { method: 'DELETE' });
       toast.success('Unité supprimée avec succès.');
       loadData();
     } catch (err) {
-      toast.error('Erreur lors de la suppression.');
+      toast.error(err instanceof Error ? err.message : 'Erreur lors de la suppression.');
     }
   };
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth, extractArray } from '@/lib/api';
 
@@ -63,7 +64,7 @@ export default function SoutenancesPage() {
       loadData();
     } catch (err) {
       console.error(err);
-      alert('Erreur lors de la création');
+      toast.error('Erreur lors de la création');
     }
   };
 
@@ -100,7 +101,7 @@ export default function SoutenancesPage() {
       <div className="card">
         {loading ? (
           <div className="empty-state">
-            <div className="loader"></div>
+            <div className="skeleton skeleton-row" />
             <p>Chargement des soutenances...</p>
           </div>
         ) : defenses.length === 0 ? (
@@ -111,7 +112,7 @@ export default function SoutenancesPage() {
           </div>
         ) : (
           <div className="table-responsive">
-            <table className="table">
+            <table className="data-table">
               <thead>
                 <tr>
                   <th>Date & Heure</th>
@@ -134,7 +135,7 @@ export default function SoutenancesPage() {
                     <td>{d.roomName}</td>
                     <td>
                       {d.president && <div className="badge badge-primary">P: {d.president.firstName} {d.president.lastName}</div>}
-                      {d.reporter && <div className="badge badge-warning" style={{marginLeft: 4}}>R: {d.reporter.firstName} {d.reporter.lastName}</div>}
+                      {d.reporter && <div className="badge badge-orange" style={{marginLeft: 4}}>R: {d.reporter.firstName} {d.reporter.lastName}</div>}
                     </td>
                   </tr>
                 ))}

@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/confirm";
 import React, { useEffect, useState } from 'react';
 import { fetchWithAuth } from '@/lib/api';
 import { z } from "zod";
@@ -39,6 +40,7 @@ export default function FormationsAdminPage() {
   const [modalError, setModalError] = useState('');
 
   const form = useForm<FormationFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(formationSchema),
     defaultValues: {
       id: '', name: '', type: 'PROGRAM', parentId: '', institutionId: ''
@@ -78,7 +80,7 @@ export default function FormationsAdminPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cette formation ?')) return;
+    if (!(await confirmAction('Supprimer cette formation ?'))) return;
     try {
       await fetchWithAuth(`/org-units/${id}`, { method: 'DELETE' });
       toast.success("Supprimé avec succès.");

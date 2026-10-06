@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmAction } from "@/lib/confirm";
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { fetchWithAuth, extractArray, extractPageData } from '@/lib/api';
 import { z } from "zod";
@@ -105,6 +106,7 @@ export default function TeachersAdminPage() {
   const [modalError, setModalError] = useState('');
 
   const form = useForm<TeacherFormValues>({
+    mode: "onTouched",
     resolver: zodResolver(teacherSchema),
     defaultValues: {
       id: '', firstName: '', lastName: '', email: '', employeeNumber: '', phone: '', active: true, orgUnitId: ''
@@ -174,7 +176,7 @@ export default function TeachersAdminPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cet enseignant ? Cette action est irréversible.')) return;
+    if (!(await confirmAction('Supprimer cet enseignant ? Cette action est irréversible.'))) return;
     try {
       await fetchWithAuth(`/teachers/${id}`, { method: 'DELETE' });
       toast.success('Enseignant supprimé avec succès.');
@@ -184,7 +186,7 @@ export default function TeachersAdminPage() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Supprimer les ${selectedIds.size} enseignants sélectionnés ?`)) return;
+    if (!(await confirmAction(`Supprimer les ${selectedIds.size} enseignants sélectionnés ?`))) return;
     try {
       await fetchWithAuth(`/teachers/bulk-delete`, { 
         method: 'POST', body: JSON.stringify(Array.from(selectedIds))
@@ -259,7 +261,9 @@ export default function TeachersAdminPage() {
     const rows = teachers.map(t => [
       t.id, t.lastName, t.firstName, t.email, t.employeeNumber, t.phone, t.active ? 'Actif' : 'Inactif', getOrgUnitName(t.orgUnitIds?.[0]) || 'Non assigné'
     ]);
-    const csvContent = [header, ...rows].map(e => e.join(",")).join("\n");
+    const csvContent = [header, ...rows]
+      .map(row => row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(","))
+      .join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -336,7 +340,7 @@ export default function TeachersAdminPage() {
       )}
 
       {/* Advanced Filters */}
-      <div className="filters-bar" style={{ display: 'flex', gap: 16, marginBottom: 24, background: '#fff', padding: 16, borderRadius: 12, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
+      <div className="filters-bar" style={{ display: 'flex', gap: 16, marginBottom: 24, background: 'var(--surface)', padding: 16, borderRadius: 12, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
         <form onSubmit={handleSearchSubmit} className="search-box" style={{ flex: 1, minWidth: 250 }}>
           <span className="material-symbols-outlined search-box-icon">search</span>
           <input
@@ -380,7 +384,7 @@ export default function TeachersAdminPage() {
             <thead>
               <tr>
                 <th style={{ width: 40 }}>
-                  <input type="checkbox" checked={selectedIds.size === teachers.length && teachers.length > 0} onChange={toggleSelectAll} />
+                  <input type="checkbox" aria-label="Sélectionner tous les enseignants" checked={selectedIds.size === teachers.length && teachers.length > 0} onChange={toggleSelectAll} />
                 </th>
                 <th>Enseignant</th>
                 <th>Email / Tél</th>
@@ -430,7 +434,7 @@ export default function TeachersAdminPage() {
                         {orgName ? <span className="badge badge-blue">{orgName}</span> : <span style={{ color: 'var(--text-muted)', fontSize: 13, fontStyle: 'italic' }}>Non assigné</span>}
                       </td>
                       <td>
-                        {teacher.active ? <span className="badge badge-success">Actif</span> : <span className="badge badge-gray">Inactif</span>}
+                        {teacher.active ? <span className="badge badge-green">Actif</span> : <span className="badge badge-gray">Inactif</span>}
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>

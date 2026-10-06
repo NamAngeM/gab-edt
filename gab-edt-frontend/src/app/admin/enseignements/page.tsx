@@ -1,5 +1,7 @@
 "use client";
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { confirmAction } from "@/lib/confirm";
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -150,7 +152,7 @@ export default function EnseignementsPage() {
   };
 
   const remove = async (course: CourseSummary) => {
-    if (!confirm(`Supprimer l'enseignement « ${course.subject.name} — ${course.group.name} » ?`)) return;
+    if (!(await confirmAction(`Supprimer l'enseignement « ${course.subject.name} — ${course.group.name} » ?`))) return;
     try {
       await fetchWithAuth(`/courses/${course.id}`, { method: 'DELETE' });
       toast.success('Enseignement supprimé.');
@@ -211,7 +213,7 @@ export default function EnseignementsPage() {
         </div>
 
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+          <table className="data-table">
             <thead>
               <tr style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                 {['Classe', 'Matière', 'Enseignant', 'Prévu', 'Avancement (réalisé / prévu)', 'Planifié', 'À rattraper', ''].map((h) => (
@@ -290,14 +292,13 @@ export default function EnseignementsPage() {
         </div>
       </div>
 
-      {isModalOpen && (
-        <div role="dialog" aria-modal="true" aria-labelledby="new-course-title" style={{
-          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', display: 'flex',
-          alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 16,
-        }}>
-          <form onSubmit={create} className="card" style={{ width: '100%', maxWidth: 460, padding: 'var(--space-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-            <h2 id="new-course-title" style={{ fontSize: '1.2rem', fontWeight: 600 }}>Nouvel enseignement</h2>
-            {formError && <div role="alert" style={{ color: 'var(--danger)', fontSize: '0.875rem' }}>{formError}</div>}
+      <Dialog open={isModalOpen} onOpenChange={open => { if (!open) setIsModalOpen(false); }}>
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogHeader>
+            <DialogTitle>Nouvel enseignement</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={create} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+            {formError && <div role="alert" className="alert alert-error">{formError}</div>}
             {([
               ['orgUnitId', 'Classe', classes.map((c) => ({ id: c.id, label: c.name ?? '' }))],
               ['subjectId', 'Matière', subjects.map((s) => ({ id: s.id, label: `${s.name}${s.code ? ` (${s.code})` : ''}` }))],
@@ -316,13 +317,13 @@ export default function EnseignementsPage() {
               <input id="plannedHours" type="number" min={0} step={0.5} className="form-input" placeholder="ex. 60"
                      value={form.plannedHours} onChange={(e) => setForm({ ...form, plannedHours: e.target.value })} />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)' }}>
+            <div className="form-actions">
               <button type="button" className="btn btn-outline" onClick={() => setIsModalOpen(false)}>Annuler</button>
               <button type="submit" className="btn btn-primary">Ajouter</button>
             </div>
           </form>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

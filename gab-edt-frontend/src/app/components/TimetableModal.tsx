@@ -1,3 +1,4 @@
+import { confirmAction } from "@/lib/confirm";
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth, extractArray, isClosedPeriodError } from '@/lib/api';
 import { z } from "zod";
@@ -51,6 +52,7 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
 
   const form = useForm<ScheduleFormValues>({
     resolver: zodResolver(scheduleSchema),
+    mode: "onTouched",
     defaultValues: {
       subjectId: "",
       teacherId: "",
@@ -147,7 +149,7 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
       try {
         await fetchWithAuth(url, { method, body: JSON.stringify(payload) });
       } catch (err) {
-        if (!isClosedPeriodError(err) || !confirm(err.message)) throw err;
+        if (!isClosedPeriodError(err) || !(await confirmAction(err.message, { destructive: false }))) throw err;
         await fetchWithAuth(url, { method, body: JSON.stringify({ ...payload, allowDuringClosure: true }) });
       }
 
@@ -159,7 +161,7 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px] font-plus-jakarta">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-slate-900">
             {makeUpOf ? 'Planifier le rattrapage' : existingEvent ? 'Modifier le cours' : 'Planifier un cours'}
@@ -167,20 +169,30 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
         </DialogHeader>
 
         {serverError && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-100 flex items-start gap-2">
+          <div role="alert" className="alert alert-error">
             <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <span>{serverError}</span>
           </div>
         )}
 
         {makeUpOf && (
-          <p className="text-sm text-slate-600 bg-amber-50 border border-amber-100 rounded-lg p-3">
+          <p className="text-sm rounded-lg p-3 border" style={{ background: "var(--gabon-yellow-soft)", borderColor: "#FDE68A", color: "var(--gabon-yellow-ink)" }}>
             Séance annulée du {new Date(makeUpOf.startAt).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} :
             choisissez le nouveau créneau et la salle.
           </p>
         )}
 
         <Form {...form}>
+          {form.formState.submitCount > 0 && Object.keys(form.formState.errors).length > 0 && (
+            <div role="alert" className="alert alert-error">
+              <div>
+                <strong>Corrigez les points suivants :</strong>
+                <ul className="mt-1 list-disc pl-4">
+                  {Object.values(form.formState.errors).map((e, i) => (e?.message ? <li key={i}>{String(e.message)}</li> : null))}
+                </ul>
+              </div>
+            </div>
+          )}
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
             
             <FormField
@@ -305,7 +317,7 @@ export const TimetableModal: React.FC<TimetableModalProps> = ({
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+            <div className="form-actions">
               <Button type="button" variant="outline" onClick={onClose}>
                 Annuler
               </Button>
