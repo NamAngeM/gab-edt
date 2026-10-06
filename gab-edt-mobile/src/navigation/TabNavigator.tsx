@@ -1,30 +1,34 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
 
-// Screens
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { PlanningScreen } from '../screens/PlanningScreen';
 import { ActuScreen } from '../screens/ActuScreen';
-import { ServicesScreen } from '../screens/ServicesScreen';
 import { NotesScreen } from '../screens/NotesScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
-import { LiaisonScreen } from '../screens/LiaisonScreen';
 import { useAuth } from '../context/AuthContext';
 
 const Tab = createBottomTabNavigator();
 
+const TABS_BY_ROLE: Record<string, string[]> = {
+  STUDENT: ['Dashboard', 'Planning', 'Actu', 'Notes'],
+  PARENT:  ['Dashboard', 'Planning', 'Actu', 'Notes'],
+  TEACHER: ['Dashboard', 'Planning', 'Actu', 'Notes'],
+};
+
 const CustomHeader = () => {
-  const { logout, userRole } = useAuth();
+  const { logout, userRole, userData } = useAuth();
   const navigation = useNavigation<any>();
-  
-  // To highlight the active top tab, we need the current route name.
-  // A hacky but effective way in a custom header is to read the state.
+
   const state = navigation.getState();
   const activeTab = state ? state.routes[state.index].name : 'Dashboard';
+
+  const tabs = TABS_BY_ROLE[userRole || 'STUDENT'] || TABS_BY_ROLE.STUDENT;
+  const institutionName = userData?.institutionName || 'GAB-EDT';
 
   return (
     <SafeAreaView style={styles.headerSafeArea}>
@@ -42,9 +46,9 @@ const CustomHeader = () => {
               </View>
             </View>
             <View>
-              <Text style={styles.headerTitle}>Lycée National Léon Mba</Text>
+              <Text style={styles.headerTitle} numberOfLines={1}>{institutionName}</Text>
               <View style={styles.headerStatusRow}>
-                <Text style={styles.headerSubtitle}>GAB-EDT • Màj 20:55</Text>
+                <Text style={styles.headerSubtitle}>GAB-EDT</Text>
                 <View style={styles.statusDot} />
                 <Text style={styles.statusText}>En direct</Text>
               </View>
@@ -61,19 +65,11 @@ const CustomHeader = () => {
           </View>
         </View>
 
-        {/* TOP NAVIGATION TABS */}
         <View style={styles.topTabs}>
-          {['Dashboard', 'Planning', 'Actu', 'Services', 'Notes', 'Liaison']
-            .filter(tab => {
-              if (userRole === 'PARENT') {
-                return tab === 'Dashboard' || tab === 'Planning' || tab === 'Notes' || tab === 'Liaison';
-              }
-              return tab !== 'Liaison';
-            })
-            .map(tab => (
-            <TouchableOpacity 
-              key={tab} 
-              style={styles.topTab} 
+          {tabs.map(tab => (
+            <TouchableOpacity
+              key={tab}
+              style={styles.topTab}
               onPress={() => navigation.navigate(tab)}
             >
               <Text style={[styles.topTabText, activeTab === tab && styles.topTabActiveText]}>
@@ -91,24 +87,21 @@ const CustomHeader = () => {
 export const TabNavigator = () => {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
+      screenOptions={{
         header: () => <CustomHeader />,
         tabBarStyle: { display: 'none' },
-      })}
+      }}
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Planning" component={PlanningScreen} />
       <Tab.Screen name="Actu" component={ActuScreen} />
-      <Tab.Screen name="Services" component={ServicesScreen} />
       <Tab.Screen name="Notes" component={NotesScreen} />
       <Tab.Screen name="Notifications" component={NotificationsScreen} />
-      <Tab.Screen name="Liaison" component={LiaisonScreen} />
     </Tab.Navigator>
   );
 };
 
 const styles = StyleSheet.create({
-  // HEADER STYLES
   headerSafeArea: {
     backgroundColor: COLORS.brand700,
   },
@@ -132,6 +125,7 @@ const styles = StyleSheet.create({
   headerLogoRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   logoWrapper: {
     position: 'relative',
@@ -221,12 +215,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.brand700,
   },
-
-  // TOP TABS (Restored)
   topTabs: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(59, 130, 246, 0.3)', // blue-500/30
+    borderTopColor: 'rgba(59, 130, 246, 0.3)',
     paddingHorizontal: 12,
   },
   topTab: {
@@ -238,7 +230,7 @@ const styles = StyleSheet.create({
   topTabText: {
     fontSize: 14,
     fontWeight: '500',
-    color: 'rgba(191, 219, 254, 1)', // blue-200
+    color: 'rgba(191, 219, 254, 1)',
   },
   topTabActiveText: {
     fontWeight: '700',
@@ -254,6 +246,4 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 4,
     borderTopRightRadius: 4,
   },
-
-  // Removed bottom tab styles
 });

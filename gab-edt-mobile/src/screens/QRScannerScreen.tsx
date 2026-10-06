@@ -65,7 +65,7 @@ export const QRScannerScreen = ({ navigation }: any) => {
           Pas d'accès à la caméra. 
           Veuillez autoriser l'application dans les paramètres de votre téléphone.
         </Text>
-        <TouchableOpacity style={styles.button} onClick={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
           <Text style={styles.buttonText}>Retour</Text>
         </TouchableOpacity>
       </View>
@@ -88,7 +88,7 @@ export const QRScannerScreen = ({ navigation }: any) => {
           barcodeScannerSettings={{
             barcodeTypes: ["qr"],
           }}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
         
         {/* Overlay pour cibler le QR Code */}

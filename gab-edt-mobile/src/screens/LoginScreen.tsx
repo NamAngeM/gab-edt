@@ -35,12 +35,14 @@ export const LoginScreen = () => {
         password: password
       });
 
-      const token = response.data?.data?.token || response.data?.token;
-      const backendRole = response.data?.data?.role || response.data?.role || role;
-      const refreshToken = response.data?.data?.refreshToken;
+      const data = response.data?.data || response.data;
+      const token = data?.token;
+      const backendRole = data?.role || role;
+      const refreshToken = data?.refreshToken;
+      const user = data?.firstName ? { firstName: data.firstName, lastName: data.lastName || '', email: data.email || matricule, institutionName: data.institutionName } : undefined;
 
       if (token) {
-        await login(token, backendRole, refreshToken);
+        await login(token, backendRole, refreshToken, user);
       } else {
         Alert.alert('Erreur', 'Token manquant dans la réponse du serveur.');
       }

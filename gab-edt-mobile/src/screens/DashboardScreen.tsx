@@ -143,19 +143,15 @@ export const DashboardScreen = () => {
       </View>
 
       {/* HIGHLIGHT WIDGET */}
-      <View style={[styles.highlightCard, { backgroundColor: userRole === 'TEACHER' ? COLORS.primary : COLORS.tertiary }]}>
-        <MaterialIcons name={userRole === 'TEACHER' ? 'class' : 'menu-book'} size={48} color="rgba(255,255,255,0.2)" style={styles.highlightIconBg} />
+      <View style={[styles.highlightCard, { backgroundColor: COLORS.primary }]}>
+        <MaterialIcons name="calendar-month" size={48} color="rgba(255,255,255,0.2)" style={styles.highlightIconBg} />
         <View style={styles.highlightContent}>
-          <Text style={styles.highlightTitle}>
-            {userRole === 'TEACHER' ? 'Fin de Semestre' : 'Examens à venir'}
-          </Text>
+          <Text style={styles.highlightTitle}>Emploi du temps</Text>
           <Text style={styles.highlightDesc}>
-            {userRole === 'TEACHER' 
-              ? 'N\'oubliez pas de saisir toutes vos notes avant le 15.' 
-              : 'Consultez le calendrier de vos partiels dans l\'onglet Planning.'}
+            Consultez votre planning complet, les examens et les annonces dans les onglets.
           </Text>
-          <TouchableOpacity style={styles.highlightBtn} onPress={() => navigation.navigate(userRole === 'TEACHER' ? 'Services' : 'Planning')}>
-            <Text style={styles.highlightBtnText}>En savoir plus</Text>
+          <TouchableOpacity style={styles.highlightBtn} onPress={() => navigation.navigate('Planning')}>
+            <Text style={styles.highlightBtnText}>Voir le planning</Text>
           </TouchableOpacity>
         </View>
       </View>

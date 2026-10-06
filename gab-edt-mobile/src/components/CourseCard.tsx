@@ -22,7 +22,7 @@ export const CourseCard = ({ time, duration, type, typeLabel, title, room, teach
             </View>
           )}
           {!!delayMinutes && !isCancelled && (
-            <View style={[styles.typeBadge, { backgroundColor: COLORS.warning }]}>
+            <View style={[styles.typeBadge, { backgroundColor: '#F59E0B' }]}>
               <Text style={[styles.typeBadgeText, { color: COLORS.white }]}>+{delayMinutes} MIN</Text>
             </View>
           )}

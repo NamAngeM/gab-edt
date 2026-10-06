@@ -33,7 +33,7 @@ export const Skeleton = ({ style, width, height, borderRadius = 8 }: SkeletonPro
     <Animated.View
       style={[
         styles.skeleton,
-        { width, height, borderRadius, opacity: animatedValue },
+        { width: width as any, height: height as any, borderRadius, opacity: animatedValue },
         style
       ]}
     />

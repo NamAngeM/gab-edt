@@ -50,11 +50,9 @@ export async function registerForPushNotificationsAsync(): Promise<string | unde
       return undefined;
     }
     
-    // token = (await Notifications.getExpoPushTokenAsync({
-    //   projectId: Constants.expoConfig?.extra?.eas?.projectId,
-    // })).data;
-    
-    console.log("Expo Push Token fetch disabled in Expo Go to prevent crash");
+    token = (await Notifications.getExpoPushTokenAsync({
+      projectId: Constants.expoConfig?.extra?.eas?.projectId,
+    })).data;
   } else {
     console.log('Must use physical device for Push Notifications');
   }

@@ -44,7 +44,7 @@ export const SubjectCard = ({ title, coef, teacher, notes, color }: any) => {
                 <Text style={styles.noteItemDate}>{note.date} • Coef. {note.coef}</Text>
               </View>
               <View style={[styles.noteItemScoreBadge, { backgroundColor: `${color}15` }]}>
-                <Text style={[styles.noteItemScoreText, { color }]}>{note.score}</Text>
+                <Text style={[styles.noteItemScoreText, { color }]}>{note.value}</Text>
                 <Text style={[styles.noteItemScoreMax, { color }]}> / 20</Text>
               </View>
             </View>
