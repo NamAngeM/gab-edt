@@ -38,6 +38,7 @@ public class ExamService {
     private final SubjectRepository subjectRepository;
     private final RoomRepository roomRepository;
     private final TeacherRepository teacherRepository;
+    private final ga.gabedt.timetable.service.PlanningConflictService planningConflictService;
 
     public List<ExamSessionDto> getAllSessions() {
         return sessionRepository.findByDeletedFalse().stream()
@@ -70,6 +71,8 @@ public class ExamService {
 
     @Transactional
     public ExamDto createExam(ExamCreateDto dto) {
+        planningConflictService.validateExam(dto.roomId(), dto.supervisorIds(), dto.startAt(), dto.endAt(), null);
+
         ExamSession session = sessionRepository.findById(dto.sessionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Session not found"));
 

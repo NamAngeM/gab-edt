@@ -32,6 +32,7 @@ public class DefenseService {
     private final RoomRepository roomRepository;
     private final TeacherRepository teacherRepository;
     private final ga.gabedt.tenant.CurrentTenant currentTenant;
+    private final ga.gabedt.timetable.service.PlanningConflictService planningConflictService;
 
     public List<DefenseDto> getAllDefenses() {
         return defenseRepository.findByDeletedFalse().stream()
@@ -41,6 +42,9 @@ public class DefenseService {
 
     @Transactional
     public DefenseDto createDefense(DefenseCreateDto dto) {
+        planningConflictService.validateDefense(dto.roomId(), dto.presidentId(), dto.examinerId(), dto.reporterId(),
+                dto.startAt(), dto.endAt(), null);
+
         Student student = studentRepository.findById(dto.studentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 

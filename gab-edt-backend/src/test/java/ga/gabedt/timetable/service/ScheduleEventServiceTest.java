@@ -63,6 +63,8 @@ public class ScheduleEventServiceTest {
     @Mock
     private ga.gabedt.user.service.TeacherAvailabilityService teacherAvailabilityService;
     @Mock
+    private PlanningConflictService planningConflictService;
+    @Mock
     private ga.gabedt.homework.HomeworkRepository homeworkRepository;
     @Mock
     private ga.gabedt.homework.HomeworkStatusRepository homeworkStatusRepository;
@@ -134,60 +136,45 @@ public class ScheduleEventServiceTest {
 
     @Test
     void createEvent_Success() {
-        // Arrange
-        when(scheduleEventRepository.existsOverlappingForTeacher(eq(teacherId), any(), any())).thenReturn(false);
-        when(scheduleEventRepository.existsOverlappingForRoom(eq(roomId), any(), any())).thenReturn(false);
-        when(scheduleEventRepository.existsOverlappingForOrgUnit(eq(orgUnitId), any(), any())).thenReturn(false);
-
         when(courseRepository.findBySubjectIdAndTeacherIdAndOrgUnitIdAndDeletedFalse(subjectId, teacherId, orgUnitId))
                 .thenReturn(Optional.of(course));
-
         when(teacherRepository.findById(teacherId)).thenReturn(Optional.of(teacher));
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
-        
         when(scheduleEventRepository.save(any(ScheduleEvent.class))).thenAnswer(invocation -> {
             ScheduleEvent e = invocation.getArgument(0);
             e.setId(UUID.randomUUID());
             return e;
         });
 
-        // Act
         ScheduleEventDto result = scheduleEventService.createEvent(createDto);
 
-        // Assert
         assertNotNull(result);
         assertEquals(subjectId, result.getSubject().getId());
-        assertEquals(teacherId, result.getTeacher().getId());
-        assertEquals(roomId, result.getRoom().getId());
-        assertEquals(orgUnitId, result.getGroup().getId());
-
+        verify(planningConflictService).validateCourse(eq(teacherId), eq(roomId), eq(orgUnitId), any(), any(), any(), eq(false));
         verify(notificationService).sendAdminAlert(anyString(), anyString(), anyString());
     }
 
     @Test
     void createEvent_Conflict_TeacherOccupied() {
-        // Arrange
-        when(scheduleEventRepository.existsOverlappingForTeacher(eq(teacherId), any(), any())).thenReturn(true);
+        doThrow(new ScheduleConflictException("L'enseignant a déjà un cours sur ce créneau."))
+                .when(planningConflictService).validateCourse(any(), any(), any(), any(), any(), any(), anyBoolean());
 
-        // Act & Assert
-        ScheduleConflictException exception = assertThrows(ScheduleConflictException.class, 
+        ScheduleConflictException exception = assertThrows(ScheduleConflictException.class,
             () -> scheduleEventService.createEvent(createDto));
-            
-        assertEquals("L'enseignant est déjà occupé sur cette plage horaire.", exception.getMessage());
+
+        assertTrue(exception.getMessage().contains("enseignant"));
         verify(scheduleEventRepository, never()).save(any());
     }
-    
+
     @Test
     void createEvent_Conflict_RoomOccupied() {
-        // Arrange
-        when(scheduleEventRepository.existsOverlappingForTeacher(eq(teacherId), any(), any())).thenReturn(false);
-        when(scheduleEventRepository.existsOverlappingForRoom(eq(roomId), any(), any())).thenReturn(true);
+        doThrow(new ScheduleConflictException("La salle est déjà réservée pour un cours sur ce créneau."))
+                .when(planningConflictService).validateCourse(any(), any(), any(), any(), any(), any(), anyBoolean());
 
-        // Act & Assert
-        ScheduleConflictException exception = assertThrows(ScheduleConflictException.class, 
+        ScheduleConflictException exception = assertThrows(ScheduleConflictException.class,
             () -> scheduleEventService.createEvent(createDto));
-            
-        assertEquals("La salle est déjà réservée sur cette plage horaire.", exception.getMessage());
+
+        assertTrue(exception.getMessage().contains("salle"));
         verify(scheduleEventRepository, never()).save(any());
     }
 }

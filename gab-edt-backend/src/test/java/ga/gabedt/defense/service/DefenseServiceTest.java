@@ -28,6 +28,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +48,9 @@ class DefenseServiceTest {
 
     @Mock
     private ga.gabedt.tenant.CurrentTenant currentTenant;
+
+    @Mock
+    private ga.gabedt.timetable.service.PlanningConflictService planningConflictService;
 
     @InjectMocks
     private DefenseService defenseService;
@@ -121,6 +125,7 @@ class DefenseServiceTest {
 
         assertNotNull(result);
         assertEquals("Quantum Physics", result.topic());
+        verify(planningConflictService).validateDefense(eq(room.getId()), eq(teacher.getId()), eq(teacher.getId()), eq(teacher.getId()), any(), any(), any());
         verify(defenseRepository, times(1)).save(any(Defense.class));
     }
 

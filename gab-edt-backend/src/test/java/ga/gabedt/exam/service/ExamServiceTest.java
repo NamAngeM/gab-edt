@@ -20,6 +20,7 @@ import ga.gabedt.structure.repository.OrganizationalUnitRepository;
 import ga.gabedt.user.Teacher;
 import ga.gabedt.user.TeacherRepository;
 import ga.gabedt.user.User;
+import ga.gabedt.timetable.service.PlanningConflictService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -61,6 +63,9 @@ class ExamServiceTest {
 
     @Mock
     private TeacherRepository teacherRepository;
+
+    @Mock
+    private PlanningConflictService planningConflictService;
 
     @InjectMocks
     private ExamService examService;
@@ -176,6 +181,7 @@ class ExamServiceTest {
         assertNotNull(result);
         assertEquals("Maths", result.subjectName());
         assertEquals("A101", result.roomName());
+        verify(planningConflictService).validateExam(eq(room.getId()), eq(dto.supervisorIds()), any(), any(), any());
         verify(examRepository, times(1)).save(any(Exam.class));
     }
 

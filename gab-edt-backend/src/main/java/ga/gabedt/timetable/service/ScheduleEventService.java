@@ -65,6 +65,7 @@ public class ScheduleEventService {
     private final StudentRepository studentRepository;
     private final ga.gabedt.academic.AcademicCalendarService academicCalendarService;
     private final ga.gabedt.user.service.TeacherAvailabilityService teacherAvailabilityService;
+    private final PlanningConflictService planningConflictService;
 
     public List<ScheduleEventDto> searchEvents(UUID groupId, UUID teacherId, UUID roomId, LocalDate startDate, LocalDate endDate) {
         
@@ -328,8 +329,16 @@ public class ScheduleEventService {
                 }
             }
 
+            String examDefenseTeacher = event.getTeacher() != null
+                    ? planningConflictService.teacherCrossConflicts(event.getTeacher().getId(), event.getStartAt(), event.getEndAt(), event.getId())
+                    : "";
+            String examDefenseRoom = event.getRoom() != null
+                    ? planningConflictService.roomCrossConflicts(event.getRoom().getId(), event.getStartAt(), event.getEndAt())
+                    : "";
+
             if (isRoomConflict || isTeacherConflict || isOrgUnitConflict || closure.isPresent()
-                    || unavailability != null || isCapacityIssue) {
+                    || unavailability != null || isCapacityIssue
+                    || !examDefenseTeacher.isEmpty() || !examDefenseRoom.isEmpty()) {
                 ScheduleEventDto dto = mapToDto(event);
                 dto.setConflict(true);
                 String desc = closure.map(reason -> reason + " ").orElse("");
@@ -338,6 +347,7 @@ public class ScheduleEventService {
                 if (isTeacherConflict) desc += "Professeur déjà occupé. ";
                 if (isOrgUnitConflict) desc += "La classe a déjà cours. ";
                 if (isCapacityIssue) desc += capacityMsg + " ";
+                desc += examDefenseTeacher + examDefenseRoom;
                 dto.setConflictDetails(desc.trim());
                 conflicts.add(dto);
             }
@@ -348,8 +358,8 @@ public class ScheduleEventService {
     @Transactional
     public ScheduleEventDto createEvent(ScheduleEventCreateDto dto) {
         ScheduleEvent makeUpOf = dto.getMakeUpOfId() != null ? resolveMakeUpOriginal(dto) : null;
-        academicCalendarService.checkSchedulable(dto.getStartAt(), dto.getEndAt(), dto.isAllowDuringClosure());
-        validateNoConflict(dto.getTeacherId(), dto.getRoomId(), dto.getOrgUnitId(), dto.getStartAt(), dto.getEndAt(), null);
+        planningConflictService.validateCourse(dto.getTeacherId(), dto.getRoomId(), dto.getOrgUnitId(),
+                dto.getStartAt(), dto.getEndAt(), null, dto.isAllowDuringClosure());
 
         // Find existing course or create one
         Course course = courseRepository
@@ -414,8 +424,8 @@ public class ScheduleEventService {
 
     @Transactional
     public ScheduleEventDto updateEvent(UUID id, ScheduleEventCreateDto dto) {
-        academicCalendarService.checkSchedulable(dto.getStartAt(), dto.getEndAt(), dto.isAllowDuringClosure());
-        validateNoConflict(dto.getTeacherId(), dto.getRoomId(), dto.getOrgUnitId(), dto.getStartAt(), dto.getEndAt(), id);
+        planningConflictService.validateCourse(dto.getTeacherId(), dto.getRoomId(), dto.getOrgUnitId(),
+                dto.getStartAt(), dto.getEndAt(), id, dto.isAllowDuringClosure());
 
         ScheduleEvent event = scheduleEventRepository.findById(id)
                 .filter(e -> !e.isDeleted())
@@ -485,8 +495,8 @@ public class ScheduleEventService {
         UUID roomId = event.getRoom() != null ? event.getRoom().getId() : null;
         UUID orgUnitId = event.getOrgUnit() != null ? event.getOrgUnit().getId() : null;
 
-        academicCalendarService.checkSchedulable(dto.getStartAt(), dto.getEndAt(), dto.isAllowDuringClosure());
-        validateNoConflict(teacherId, roomId, orgUnitId, dto.getStartAt(), dto.getEndAt(), id);
+        planningConflictService.validateCourse(teacherId, roomId, orgUnitId,
+                dto.getStartAt(), dto.getEndAt(), id, dto.isAllowDuringClosure());
 
         event.setStartAt(dto.getStartAt());
         event.setEndAt(dto.getEndAt());
@@ -613,36 +623,4 @@ public class ScheduleEventService {
                 .toList();
     }
 
-    private void validateNoConflict(UUID teacherId, UUID roomId, UUID orgUnitId, LocalDateTime start, LocalDateTime end, UUID excludeId) {
-        if (teacherId != null) {
-            String unavailability = teacherAvailabilityService.unavailabilityReason(teacherId, start, end);
-            if (unavailability != null) throw new ScheduleConflictException(unavailability);
-
-            boolean conflict = (excludeId == null)
-                ? scheduleEventRepository.existsOverlappingForTeacher(teacherId, start, end)
-                : scheduleEventRepository.existsOverlappingForTeacherWithExclude(teacherId, start, end, excludeId);
-            if (conflict) throw new ScheduleConflictException("L'enseignant est déjà occupé sur cette plage horaire.");
-        }
-        if (roomId != null) {
-            boolean conflict = (excludeId == null)
-                ? scheduleEventRepository.existsOverlappingForRoom(roomId, start, end)
-                : scheduleEventRepository.existsOverlappingForRoomWithExclude(roomId, start, end, excludeId);
-            if (conflict) throw new ScheduleConflictException("La salle est déjà réservée sur cette plage horaire.");
-
-            Room room = roomRepository.findById(roomId).orElse(null);
-            if (room != null && room.getCapacity() != null && orgUnitId != null) {
-                long studentCount = studentRepository.countByOrgUnits_IdAndDeletedFalse(orgUnitId);
-                if (studentCount > room.getCapacity()) {
-                    throw new ScheduleConflictException(
-                            "Capacité insuffisante : " + studentCount + " élèves pour " + room.getCapacity() + " places (" + room.getName() + ").");
-                }
-            }
-        }
-        if (orgUnitId != null) {
-            boolean conflict = (excludeId == null)
-                ? scheduleEventRepository.existsOverlappingForOrgUnit(orgUnitId, start, end)
-                : scheduleEventRepository.existsOverlappingForOrgUnitWithExclude(orgUnitId, start, end, excludeId);
-            if (conflict) throw new ScheduleConflictException("Le groupe a déjà cours sur cette plage horaire.");
-        }
-    }
 }
